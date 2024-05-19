@@ -7,8 +7,6 @@ from bot.payment.products import product_test
 
 paymentsRouter = Router()
 
-PRICE = types.LabeledPrice(label="Подписка на 1 месяц", amount=500 * 100)
-
 
 @paymentsRouter.message(TextCommand(payment_command_start()))
 async def buy(message: types.Message):
