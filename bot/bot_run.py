@@ -3,7 +3,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 import config
-from bot.completions import completionsRouter
+from bot.gpt import gptRouter
 from bot.payment import paymentsRouter
 from bot.start import startRouter
 
@@ -11,14 +11,14 @@ from bot.start import startRouter
 def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(startRouter)
     dp.include_router(paymentsRouter)
-    dp.include_router(completionsRouter)
+    dp.include_router(gptRouter)
 
 
 async def bot_run() -> None:
     dp = Dispatcher(storage=MemoryStorage())
-    bot = Bot(token=config.TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN)
 
     apply_routers(dp)
 
-    await bot.delete_webhook(drop_pending_updates=True)
+    await bot.delete_webhook()
     await dp.start_polling(bot, skip_updates=False)

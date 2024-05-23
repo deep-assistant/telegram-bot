@@ -1,2 +1,4 @@
 .idea
 __pycache__
+config.py
+data_base.db

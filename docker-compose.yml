@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  app:
+    build: ./
+    volumes:
+      - ./data_base.db:/data_base.db

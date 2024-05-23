@@ -1,8 +1,9 @@
+import logging
+
 import requests
 import tiktoken
 
 from config import GPT_TOKEN
-from services.tokenize_service import tokenizeService
 
 PROXY_URL = "http://173.212.230.201:8080/chatgpt"
 
@@ -10,30 +11,31 @@ contextName = "exampleDialog"
 
 encoding = tiktoken.encoding_for_model("gpt-4")
 
-max_tokens = 4096
-
 
 class CompletionsService:
     TOKEN = GPT_TOKEN
+    TOKEN_LIMIT = 2000
 
     def query_chatgpt(self, user_id, message) -> str:
-        if not tokenizeService.is_available_context(max_tokens, message):
-            return "Слишком длинное сообщение!"
-
         payload = {
             'token': self.TOKEN,
+            'dialogName': user_id,
             'query': message,
-            'dialogName': user_id
+            'tokenLimit': self.TOKEN_LIMIT,
+            'singleMessage': True,
         }
 
         response = requests.post(PROXY_URL, json=payload, headers={'Content-Type': 'application/json'})
+
         if response.status_code == 200:
             data = response.json()
 
-            print(data.get('response'))
+            logging.log(logging.INFO, data.get('response'))
             return data.get('response')
         else:
-            return f"Ошибка: {response.text}"
+            data = response.json()
+
+            return f"Ошибка 😔: {data.get('message')}"
 
 
 completionsService = CompletionsService()
