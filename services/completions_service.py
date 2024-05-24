@@ -1,4 +1,4 @@
-import logging
+from typing import Any
 
 import requests
 import tiktoken
@@ -16,7 +16,7 @@ class CompletionsService:
     TOKEN = GPT_TOKEN
     TOKEN_LIMIT = 2000
 
-    def query_chatgpt(self, user_id, message) -> str:
+    def query_chatgpt(self, user_id, message) -> Any:
         payload = {
             'token': self.TOKEN,
             'dialogName': user_id,
@@ -28,14 +28,9 @@ class CompletionsService:
         response = requests.post(PROXY_URL, json=payload, headers={'Content-Type': 'application/json'})
 
         if response.status_code == 200:
-            data = response.json()
-
-            logging.log(logging.INFO, data.get('response'))
-            return data.get('response')
+            return response.json()
         else:
-            data = response.json()
-
-            return f"Ошибка 😔: {data.get('message')}"
+            return {"success": False, "response": f"Ошибка 😔: {response.json().get('message')}"}
 
 
 completionsService = CompletionsService()

@@ -1,41 +1,14 @@
+import asyncio
+
 from aiogram import Router
-from aiogram.enums import ChatMemberStatus
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from bot.filters import TextCommand
 from bot.gpt import change_model_command
-from services import completionsService
-from services.gpt_service import gptService, GPTModels
+from bot.gpt.utils import get_model_text, is_chat_member, checked_model_text, get_response_text
+from services import completionsService, gptService, GPTModels
 
 gptRouter = Router()
-
-
-def checked_model_text(model: GPTModels):
-    return f"{model.value} ✅"
-
-
-def get_model_text(model: GPTModels, current_model: GPTModels):
-    if model.value == current_model.value:
-        return checked_model_text(model)
-
-    return model.value
-
-
-async def is_chat_member(message: Message) -> bool:
-    chat_member = await message.bot.get_chat_member(chat_id=-1002239712203, user_id=message.chat.id)
-
-    is_subscribe = check_subscription(chat_member.status)
-
-    if not is_subscribe:
-        await message.answer(
-            text=subscribe_text,
-            reply_markup=InlineKeyboardMarkup(
-                resize_keyboard=True,
-                inline_keyboard=[[InlineKeyboardButton(text="Подписаться на канал", url="https://t.me/gptDeep")]]
-            )
-        )
-
-    return is_subscribe
 
 
 @gptRouter.message(TextCommand(change_model_command()))
@@ -61,6 +34,7 @@ async def handle_change_model(message: Message):
     ])
 
     await message.answer(text="Выбери модель: 🤖", reply_markup=keyboard)
+    await asyncio.sleep(0.5)
     await message.delete()
 
 
@@ -81,19 +55,24 @@ async def handle_change_model_query(callback_query: CallbackQuery):
 
     gptService.set_current_model(user_id, gpt_model)
 
+    await callback_query.message.edit_reply_markup(
+        reply_markup=InlineKeyboardMarkup(resize_keyboard=True, inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=get_model_text(GPTModels.GPT_4o, gpt_model),
+                    callback_data=GPTModels.GPT_4o.value
+                ),
+                InlineKeyboardButton(
+                    text=get_model_text(GPTModels.GPT_3_5, gpt_model),
+                    callback_data=GPTModels.GPT_3_5.value
+                )
+            ]
+        ]))
+
+    await asyncio.sleep(0.5)
+
     await callback_query.answer(f"Текущая модель успешно сменена на {checked_model_text(gpt_model)}")
     await callback_query.message.delete()
-
-
-def check_subscription(status: ChatMemberStatus) -> bool:
-    return status in ['member', 'administrator', 'creator']
-
-
-subscribe_text = """
-📰 Чтобы пользоваться ботом необходимо подписаться на наш канал! @gptDeep
-
-Следите за обновлениями и новостями у нас в канале!
-"""
 
 
 @gptRouter.message()
@@ -123,6 +102,10 @@ async def handle_completion(message: Message):
         message.text
     )
 
-    await message.bot.edit_message_text(answer, chat_id, message_loading.message_id)
-
     gptService.set_is_requesting(user_id, False)
+
+    await message.bot.edit_message_text(
+        get_response_text(answer),
+        chat_id,
+        message_loading.message_id,
+    )

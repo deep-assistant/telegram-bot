@@ -37,5 +37,13 @@ class GPTService:
 
         return is_requesting[user_id]
 
+    def get_current_(self, user_id: str) -> GPTModels:
+        try:
+            model = data_base[db_key(user_id, self.CURRENT_MODEL_KEY)].decode('utf-8')
+            return GPTModels(model)
+        except KeyError:
+            self.set_current_model(user_id, GPTModels.GPT_4o)
+            return GPTModels.GPT_4o
+
 
 gptService = GPTService()
