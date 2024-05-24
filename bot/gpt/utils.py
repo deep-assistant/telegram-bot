@@ -1,4 +1,3 @@
-from aiogram.enums import ChatMemberStatus
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import IS_DEV
@@ -24,7 +23,7 @@ subscribe_text = """
 
 
 async def check_subscription(message: Message) -> bool:
-    chat_member = await message.bot.get_chat_member(chat_id=-1002239712203, user_id=message.chat.id)
+    chat_member = await message.bot.get_chat_member(chat_id=-1002239712203, user_id=message.from_user.id)
 
     return chat_member.status in ['member', 'administrator', 'creator']
 
