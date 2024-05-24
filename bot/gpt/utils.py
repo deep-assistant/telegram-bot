@@ -47,11 +47,16 @@ async def is_chat_member(message: Message) -> bool:
 
 
 def get_response_text(answer):
+    remaining_user_tokens = answer.get("remainingTokens").get('remainingUserTokens')
+    remaining_chat_gpt_tokens = answer.get("remainingTokens").get('remainingChatGptTokens')
+    request_tokens_used = answer.get("tokensUsed").get('requestTokensUsed')
+    response_tokens_used = answer.get("tokensUsed").get('responseTokensUsed')
+
     if answer.get("success"):
         return f"""{answer.get('response')}
             
-🥰 Осталось `{answer.get("remainingTokens").get('remainingUserTokens')}` пользовательских токенов
-🤖 Осталось `{answer.get("remainingTokens").get('remainingChatGptTokens')}` нейросетевых токенов
+🥰 Затрачено `{request_tokens_used}` | Осталось `{remaining_user_tokens}` **юзер** токенов
+🤖 Затрачено `{response_tokens_used}` | Осталось `{remaining_chat_gpt_tokens}` **нейросетевых** токенов
             """
 
     return answer.get("response")
