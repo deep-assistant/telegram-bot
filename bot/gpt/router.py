@@ -1,12 +1,13 @@
 import asyncio
+import logging
 
 from aiogram import Router
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from bot.filters import TextCommand
 from bot.gpt import change_model_command
-from bot.gpt.utils import get_model_text, is_chat_member, checked_model_text, get_response_text
-from services import completionsService, gptService, GPTModels
+from bot.gpt.utils import get_model_text, is_chat_member, checked_model_text, send_message, get_response_text
+from services import gptService, GPTModels, completionsService
 
 gptRouter = Router()
 
@@ -77,35 +78,38 @@ async def handle_change_model_query(callback_query: CallbackQuery):
 
 @gptRouter.message()
 async def handle_completion(message: Message):
-    is_subscribe = await is_chat_member(message)
-
-    if not is_subscribe:
-        return
-
-    chat_id = message.chat.id
     user_id = message.from_user.id
 
-    await message.bot.send_chat_action(chat_id, "typing")
+    try:
+        is_subscribe = await is_chat_member(message)
 
-    is_requesting = gptService.get_is_requesting(user_id)
+        if not is_subscribe:
+            return
 
-    if is_requesting:
-        print(is_requesting)
-        return
+        chat_id = message.chat.id
 
-    gptService.set_is_requesting(user_id, True)
+        is_requesting = gptService.get_is_requesting(user_id)
 
-    message_loading = await message.answer("**⌛️Ожидайте ответ...**")
+        if is_requesting:
+            logging.log(logging.INFO, is_requesting)
+            return
 
-    answer = completionsService.query_chatgpt(
-        message.from_user.id,
-        message.text
-    )
+        gptService.set_is_requesting(user_id, True)
 
-    gptService.set_is_requesting(user_id, False)
+        message_loading = await message.answer("**⌛️Ожидайте ответ...**")
 
-    await message.bot.edit_message_text(
-        get_response_text(answer),
-        chat_id,
-        message_loading.message_id,
-    )
+        await message.bot.send_chat_action(chat_id, "typing")
+
+        answer = completionsService.query_chatgpt(
+            message.from_user.id,
+            message.text
+        )
+
+        gptService.set_is_requesting(user_id, False)
+
+        await send_message(message, get_response_text(answer))
+        await asyncio.sleep(0.5)
+        await message_loading.delete()
+    except Exception as e:
+        logging.log(logging.INFO, e)
+        gptService.set_is_requesting(user_id, False)

@@ -1,3 +1,6 @@
+import logging
+
+from aiogram.enums import ParseMode
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import IS_DEV
@@ -60,3 +63,18 @@ def get_response_text(answer):
             """
 
     return answer.get("response")
+
+
+def split_string_by_length(string: str, length=4096):
+    return [string[i:i + length] for i in range(0, len(string), length)]
+
+
+async def send_message(message: Message, text: str):
+    parts = split_string_by_length(text)
+
+    for part in parts:
+        try:
+            await message.answer(part, parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            logging.log(logging.INFO, e)
+            await message.answer(part, parse_mode=None)
