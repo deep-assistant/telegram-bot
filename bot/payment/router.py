@@ -11,7 +11,7 @@ from bot.payment.products import donation_product
 paymentsRouter = Router()
 
 donation_text = """
-Благодарим за поддержку проекта!🤩    
+Благодарим за поддержку проекта! 🤩    
 Скоро мы будем радовать вас новым и крутым функционалом!
 
 Выбери сумму пожертвования:
@@ -64,4 +64,4 @@ async def successful_payment(message: types.Message):
         logging.log(logging.INFO, f"{k} = {v}")
 
     await message.answer(
-        f"Платёж на сумму **{message.successful_payment.total_amount // 100} {message.successful_payment.currency}** прошел успешно!\nБлагодарим за поддержку проекта!")
+        f"Платёж на сумму **{message.successful_payment.total_amount // 100} {message.successful_payment.currency}** прошел успешно! 🤩\n\nБлагодарим за поддержку проекта!")
