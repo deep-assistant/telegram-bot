@@ -8,11 +8,18 @@ class GPTModels(Enum):
     GPT_3_5 = "gpt-3.5"
 
 
+class SystemMessages(Enum):
+    Default = "default"
+    SoftwareDeveloper = "software_developer"
+    Happy = "happy"
+
+
 is_requesting = {}
 
 
 class GPTService:
     CURRENT_MODEL_KEY = "current_model"
+    CURRENT_SYSTEM_MESSAGE_KEY = "current_system_message"
 
     def get_current_model(self, user_id: str) -> GPTModels:
         try:
@@ -37,13 +44,18 @@ class GPTService:
 
         return is_requesting[user_id]
 
-    def get_current_(self, user_id: str) -> GPTModels:
+    def get_current_system_message(self, user_id: str) -> str:
         try:
-            model = data_base[db_key(user_id, self.CURRENT_MODEL_KEY)].decode('utf-8')
-            return GPTModels(model)
+            return data_base[db_key(user_id, self.CURRENT_SYSTEM_MESSAGE_KEY)].decode('utf-8')
         except KeyError:
-            self.set_current_model(user_id, GPTModels.GPT_4o)
-            return GPTModels.GPT_4o
+            value = SystemMessages.Default.value
+            self.set_current_system_message(user_id, value)
+            return value
+
+    def set_current_system_message(self, user_id: str, value: str) -> str:
+        with data_base.transaction():
+            data_base[db_key(user_id, self.CURRENT_SYSTEM_MESSAGE_KEY)] = value
+        data_base.commit()
 
 
 gptService = GPTService()

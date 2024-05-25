@@ -4,13 +4,13 @@ from aiogram import Router, types, F
 
 import config
 from bot.filters import TextCommand
-from bot.payment.command_types import payment_command_start
+from bot.payment.command_types import payment_command_start, payment_command_text
 from bot.payment.products import product_test
 
 paymentsRouter = Router()
 
 
-@paymentsRouter.message(TextCommand(payment_command_start()))
+@paymentsRouter.message(TextCommand([payment_command_start(), payment_command_text()]))
 async def buy(message: types.Message):
     if config.PAYMENTS_TOKEN.split(':')[1] == 'TEST':
         await message.answer("Тестовый платеж!!!")

@@ -14,15 +14,16 @@ encoding = tiktoken.encoding_for_model("gpt-4")
 
 class CompletionsService:
     TOKEN = GPT_TOKEN
-    TOKEN_LIMIT = 2000
+    TOKEN_LIMIT = 4096
 
-    def query_chatgpt(self, user_id, message) -> Any:
+    def query_chatgpt(self, user_id, message, system_message) -> Any:
         payload = {
             'token': self.TOKEN,
             'dialogName': user_id,
             'query': message,
             'tokenLimit': self.TOKEN_LIMIT,
             'singleMessage': True,
+            'systemMessageContent': system_message,
         }
 
         response = requests.post(PROXY_URL, json=payload, headers={'Content-Type': 'application/json'})

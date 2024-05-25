@@ -7,13 +7,13 @@ from config import IS_DEV
 from services.gpt_service import GPTModels
 
 
-def checked_model_text(model: GPTModels):
-    return f"{model.value} ✅"
+def checked_text(value: str):
+    return f"{value} ✅"
 
 
 def get_model_text(model: GPTModels, current_model: GPTModels):
     if model.value == current_model.value:
-        return checked_model_text(model)
+        return checked_text(model.value)
 
     return model.value
 
@@ -50,18 +50,6 @@ async def is_chat_member(message: Message) -> bool:
 
 
 def get_response_text(answer):
-    remaining_user_tokens = answer.get("remainingTokens").get('remainingUserTokens')
-    remaining_chat_gpt_tokens = answer.get("remainingTokens").get('remainingChatGptTokens')
-    request_tokens_used = answer.get("tokensUsed").get('requestTokensUsed')
-    response_tokens_used = answer.get("tokensUsed").get('responseTokensUsed')
-
-    if answer.get("success"):
-        return f"""{answer.get('response')}
-            
-🥰 Затрачено `{request_tokens_used}` | Осталось `{remaining_user_tokens}` **юзер** токенов
-🤖 Затрачено `{response_tokens_used}` | Осталось `{remaining_chat_gpt_tokens}` **нейросетевых** токенов
-            """
-
     return answer.get("response")
 
 
@@ -78,3 +66,18 @@ async def send_message(message: Message, text: str):
         except Exception as e:
             logging.log(logging.INFO, e)
             await message.answer(part, parse_mode=None)
+
+
+def create_change_model_keyboard(current_model: GPTModels):
+    return InlineKeyboardMarkup(resize_keyboard=True, inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.GPT_4o, current_model),
+                callback_data=GPTModels.GPT_4o.value
+            ),
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.GPT_3_5, current_model),
+                callback_data=GPTModels.GPT_3_5.value
+            )
+        ]
+    ])

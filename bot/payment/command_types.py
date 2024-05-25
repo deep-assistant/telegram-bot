@@ -1,2 +1,6 @@
 def payment_command_start():
-    return "Купить подписку"
+    return "/buy"
+
+
+def payment_command_text():
+    return "⚡️ Купить подписку"
