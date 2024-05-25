@@ -11,4 +11,4 @@ def change_system_message_command():
 
 
 def change_system_message_text():
-    return "⚙️ Cистемное сообщение"
+    return "⚙️ Сменить Режим"

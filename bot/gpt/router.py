@@ -12,7 +12,7 @@ from bot.gpt.command_types import change_system_message_command, change_system_m
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_message, get_response_text, \
-    create_change_model_keyboard
+    create_change_model_keyboard, checked_text
 from bot.utils import include
 from services import gptService, GPTModels, completionsService
 from services.gpt_service import SystemMessages
@@ -114,11 +114,21 @@ async def handle_change_model(message: Message):
     await message.delete()
 
 
-@gptRouter.callback_query()
-async def handle_change_model_query(callback_query: CallbackQuery):
-    if not include(system_messages_list, callback_query.data):
+@gptRouter.message(TextCommand([change_model_command(), change_model_text()]))
+async def handle_change_model(message: Message):
+    is_subscribe = await is_chat_member(message)
+
+    if not is_subscribe:
         return
 
+    current_model = gptService.get_current_model(message.from_user.id)
+
+    await message.answer(text="Выбери модель: 🤖", reply_markup=create_change_model_keyboard(current_model))
+    await asyncio.sleep(0.5)
+    await message.delete()
+
+
+async def handle_change_system_message(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 
     system_message = callback_query.data
@@ -140,26 +150,7 @@ async def handle_change_model_query(callback_query: CallbackQuery):
     await callback_query.message.delete()
 
 
-@gptRouter.message(TextCommand([change_model_command(), change_model_text()]))
-async def handle_change_model(message: Message):
-    is_subscribe = await is_chat_member(message)
-
-    if not is_subscribe:
-        return
-
-    current_model = gptService.get_current_model(message.from_user.id)
-
-    await message.answer(text="Выбери модель: 🤖", reply_markup=create_change_model_keyboard(current_model))
-    await asyncio.sleep(0.5)
-    await message.delete()
-
-
-@gptRouter.callback_query()
-async def handle_change_model_query(callback_query: CallbackQuery):
-    print(callback_query.data)
-    if not callback_query.data.startswith('gpt'):
-        return
-
+async def handle_change_model(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 
     gpt_model = GPTModels(callback_query.data)
@@ -177,8 +168,16 @@ async def handle_change_model_query(callback_query: CallbackQuery):
 
     await asyncio.sleep(0.5)
 
-    await callback_query.answer(f"Текущая модель успешно сменена на {checked_model_text(gpt_model)}")
+    await callback_query.answer(f"Текущая модель успешно сменена на {checked_text(gpt_model.value)}")
     await callback_query.message.delete()
+
+
+@gptRouter.callback_query()
+async def handle_change_model_query(callback_query: CallbackQuery):
+    if include(system_messages_list, callback_query.data):
+        await handle_change_system_message(callback_query)
+    if callback_query.data.startswith('gpt'):
+        await handle_change_model(callback_query)
 
 
 @gptRouter.message()
