@@ -18,3 +18,24 @@ product_test = {
     "start_parameter": "one-month-subscription",
     "payload": "test-invoice-payload"
 }
+
+description = """
+🖥 Аренда серверов.                                         \n     
+🛠️ Создание инфраструктуры для нейросетей.                 \n     
+🦾 Оплата нейросетевых сервисов.                           \n
+                                                           \n
+"""
+
+donation_product = {
+    "title": "Пожертвование на развитие проекта.",
+    "description": description,
+    "provider_token": TOKEN,
+    "currency": "rub",
+    "photo_url": "https://www.aroged.com/wp-content/uploads/2022/06/Telegram-has-a-premium-subscription.jpg",
+    "photo_width": 416,
+    "photo_height": 234,
+    "photo_size": 416,
+    "is_flexible": False,
+    "start_parameter": "donation",
+    "payload": "donation"
+}
