@@ -1,4 +1,6 @@
 from aiogram import Bot, Dispatcher
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
@@ -16,7 +18,10 @@ def apply_routers(dp: Dispatcher) -> None:
 
 async def bot_run() -> None:
     dp = Dispatcher(storage=MemoryStorage())
-    bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN)
+    session = AiohttpSession(
+        api=TelegramAPIServer.from_base(config.ANALYTICS_URL)
+    )
+    bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN, session=session)
 
     apply_routers(dp)
 
