@@ -6,7 +6,7 @@ import aiofiles
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 
-from bot.filters import TextCommand, Document, Photo
+from bot.filters import TextCommand, Document, Photo, StartWithQuery, TextCommandQuery
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
@@ -128,7 +128,8 @@ async def handle_change_model(message: Message):
     await message.delete()
 
 
-async def handle_change_system_message(callback_query: CallbackQuery):
+@gptRouter.callback_query(TextCommandQuery(system_messages_list))
+async def handle_change_system_message_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 
     system_message = callback_query.data
@@ -150,7 +151,8 @@ async def handle_change_system_message(callback_query: CallbackQuery):
     await callback_query.message.delete()
 
 
-async def handle_change_model(callback_query: CallbackQuery):
+@gptRouter.callback_query(StartWithQuery('gpt'))
+async def handle_change_model_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 
     gpt_model = GPTModels(callback_query.data)
@@ -170,14 +172,6 @@ async def handle_change_model(callback_query: CallbackQuery):
 
     await callback_query.answer(f"Текущая модель успешно сменена на {checked_text(gpt_model.value)}")
     await callback_query.message.delete()
-
-
-@gptRouter.callback_query()
-async def handle_change_model_query(callback_query: CallbackQuery):
-    if include(system_messages_list, callback_query.data):
-        await handle_change_system_message(callback_query)
-    if callback_query.data.startswith('gpt'):
-        await handle_change_model(callback_query)
 
 
 @gptRouter.message()

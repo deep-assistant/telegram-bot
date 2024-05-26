@@ -18,10 +18,19 @@ def apply_routers(dp: Dispatcher) -> None:
 
 async def bot_run() -> None:
     dp = Dispatcher(storage=MemoryStorage())
-    session = AiohttpSession(
+
+    if config.IS_DEV:
+        bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN)
+
+        apply_routers(dp)
+
+        await bot.delete_webhook()
+        await dp.start_polling(bot, skip_updates=False)
+        return
+
+    bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN, session=AiohttpSession(
         api=TelegramAPIServer.from_base(config.ANALYTICS_URL)
-    )
-    bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN, session=session)
+    ))
 
     apply_routers(dp)
 

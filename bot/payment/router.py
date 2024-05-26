@@ -4,7 +4,7 @@ import logging
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
-from bot.filters import TextCommand
+from bot.filters import TextCommand, StartWithQuery
 from bot.payment.command_types import payment_command_start, payment_command_text
 from bot.payment.products import donation_product
 
@@ -34,20 +34,19 @@ async def buy(message: types.Message):
     )
 
 
-@paymentsRouter.callback_query()
+@paymentsRouter.callback_query(StartWithQuery("donation"))
 async def handle_change_model_query(callback_query: CallbackQuery):
-    if (callback_query.data.startswith("donation")):
-        amount = int(callback_query.data.split(" ")[1]) * 100
+    amount = int(callback_query.data.split(" ")[1]) * 100
 
-        await callback_query.bot.send_invoice(
-            callback_query.message.chat.id,
-            **donation_product,
-            prices=[types.LabeledPrice(label="Пожертвование на развитие", amount=amount)]
-        )
+    await callback_query.bot.send_invoice(
+        callback_query.message.chat.id,
+        **donation_product,
+        prices=[types.LabeledPrice(label="Пожертвование на развитие", amount=amount)]
+    )
 
-        await asyncio.sleep(0.5)
+    await asyncio.sleep(0.5)
 
-        await callback_query.message.delete()
+    await callback_query.message.delete()
 
 
 @paymentsRouter.pre_checkout_query(lambda query: True)
