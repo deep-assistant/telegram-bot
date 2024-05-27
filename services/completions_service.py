@@ -22,7 +22,7 @@ class CompletionsService:
             'dialogName': user_id,
             'query': message,
             'tokenLimit': self.TOKEN_LIMIT,
-            'singleMessage': True,
+            'singleMessage': not gpt_model.startsWith('gpt-3'),
             'systemMessageContent': system_message,
             'model': gpt_model
         }
