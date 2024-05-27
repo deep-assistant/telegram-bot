@@ -16,13 +16,13 @@ class CompletionsService:
     TOKEN = GPT_TOKEN
     TOKEN_LIMIT = 4096
 
-    def query_chatgpt(self, user_id, message, system_message, gpt_model) -> Any:
+    def query_chatgpt(self, user_id, message, system_message, gpt_model: str) -> Any:
         payload = {
             'token': self.TOKEN,
             'dialogName': user_id,
             'query': message,
             'tokenLimit': self.TOKEN_LIMIT,
-            'singleMessage': not gpt_model.startsWith('gpt-3'),
+            'singleMessage': not gpt_model.startswith('gpt-3'),
             'systemMessageContent': system_message,
             'model': gpt_model
         }
