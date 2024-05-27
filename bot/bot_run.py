@@ -25,7 +25,7 @@ async def bot_run() -> None:
         apply_routers(dp)
 
         await bot.delete_webhook()
-        await dp.start_polling(bot, skip_updates=False)
+        await dp.start_polling(bot, skip_updates=False, drop_pending_updates=True)
         return
 
     bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN, session=AiohttpSession(
@@ -35,4 +35,4 @@ async def bot_run() -> None:
     apply_routers(dp)
 
     await bot.delete_webhook()
-    await dp.start_polling(bot, skip_updates=False)
+    await dp.start_polling(bot, skip_updates=False, drop_pending_updates=True)

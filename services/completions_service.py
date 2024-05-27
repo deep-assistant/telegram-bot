@@ -16,7 +16,7 @@ class CompletionsService:
     TOKEN = GPT_TOKEN
     TOKEN_LIMIT = 4096
 
-    def query_chatgpt(self, user_id, message, system_message) -> Any:
+    def query_chatgpt(self, user_id, message, system_message, gpt_model) -> Any:
         payload = {
             'token': self.TOKEN,
             'dialogName': user_id,
@@ -24,6 +24,7 @@ class CompletionsService:
             'tokenLimit': self.TOKEN_LIMIT,
             'singleMessage': True,
             'systemMessageContent': system_message,
+            'model': gpt_model
         }
 
         response = requests.post(PROXY_URL, json=payload, headers={'Content-Type': 'application/json'})

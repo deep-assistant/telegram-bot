@@ -29,6 +29,11 @@ async def buy(message: types.Message):
                     InlineKeyboardButton(text="10 RUB", callback_data="donation 10"),
                     InlineKeyboardButton(text="50 RUB", callback_data="donation 50"),
                     InlineKeyboardButton(text="100 RUB", callback_data="donation 100"),
+                ],
+                [
+                    InlineKeyboardButton(text="150 RUB", callback_data="donation 150"),
+                    InlineKeyboardButton(text="250 RUB", callback_data="donation 250"),
+                    InlineKeyboardButton(text="500 RUB", callback_data="donation 500"),
                 ]
             ])
     )

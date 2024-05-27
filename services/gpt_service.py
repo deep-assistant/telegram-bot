@@ -16,6 +16,11 @@ class SystemMessages(Enum):
 
 is_requesting = {}
 
+gpt_models = {
+    GPTModels.GPT_3_5.value: "gpt-35-16k",
+    GPTModels.GPT_4o.value: "gpt-4o"
+}
+
 
 class GPTService:
     CURRENT_MODEL_KEY = "current_model"
@@ -56,6 +61,9 @@ class GPTService:
         with data_base.transaction():
             data_base[db_key(user_id, self.CURRENT_SYSTEM_MESSAGE_KEY)] = value
         data_base.commit()
+
+    def get_mapping_gpt_model(self, user_id: str):
+        return gpt_models[self.get_current_model(user_id).value]
 
 
 gptService = GPTService()

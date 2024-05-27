@@ -41,13 +41,13 @@ async def handle_gpt_request(message: Message, text: str):
 
         message_loading = await message.answer("**⌛️Ожидайте ответ...**")
 
+        gpt_model = gptService.get_mapping_gpt_model(user_id)
+
         await message.bot.send_chat_action(chat_id, "typing")
 
         system_message = gptService.get_current_system_message(user_id)
 
-        print(get_system_message(system_message))
-
-        answer = completionsService.query_chatgpt(user_id, text, get_system_message(system_message))
+        answer = completionsService.query_chatgpt(user_id, text, get_system_message(system_message), gpt_model)
 
         gptService.set_is_requesting(user_id, False)
 
