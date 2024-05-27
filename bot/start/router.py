@@ -19,9 +19,9 @@ async def buy(message: types.Message):
         resize_keyboard=True,
 
         keyboard=[
-            [
-                types.KeyboardButton(text=payment_command_text())
-            ],
+            # [
+            #     types.KeyboardButton(text=payment_command_text())
+            # ],
             [
                 types.KeyboardButton(text=change_model_text()),
                 types.KeyboardButton(text=change_system_message_text())
