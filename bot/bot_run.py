@@ -12,7 +12,7 @@ from bot.start import startRouter
 
 def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(startRouter)
-    dp.include_router(paymentsRouter)
+    # dp.include_router(paymentsRouter)
     dp.include_router(gptRouter)
 
 
