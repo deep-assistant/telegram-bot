@@ -1,8 +1,8 @@
 from aiogram import types, Router
 from aiogram.filters import CommandStart
 
+from bot.agreement.router import agreement_handler
 from bot.gpt.command_types import change_model_text, change_system_message_text
-from bot.payment.command_types import payment_command_text
 
 startRouter = Router()
 
@@ -30,7 +30,5 @@ async def buy(message: types.Message):
         input_field_placeholder="💬 Задай свой вопрос"
     )
 
-    await message.answer(
-        text=hello_text,
-        reply_markup=keyboard
-    )
+    await message.answer(text=hello_text, reply_markup=keyboard)
+    await agreement_handler(message)

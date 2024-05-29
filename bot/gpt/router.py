@@ -6,6 +6,7 @@ import aiofiles
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 
+from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, StartWithQuery, TextCommandQuery
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text
@@ -24,6 +25,11 @@ async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
 
     try:
+        is_agreement = await agreement_handler(message)
+
+        if not is_agreement:
+            return
+
         is_subscribe = await is_chat_member(message)
 
         if not is_subscribe:
@@ -92,6 +98,11 @@ async def handle_document(message: Message):
 
 @gptRouter.message(TextCommand([change_system_message_command(), change_system_message_text()]))
 async def handle_change_model(message: Message):
+    is_agreement = await agreement_handler(message)
+
+    if not is_agreement:
+        return
+
     is_subscribe = await is_chat_member(message)
 
     if not is_subscribe:
@@ -116,6 +127,11 @@ async def handle_change_model(message: Message):
 
 @gptRouter.message(TextCommand([change_model_command(), change_model_text()]))
 async def handle_change_model(message: Message):
+    is_agreement = await agreement_handler(message)
+
+    if not is_agreement:
+        return
+
     is_subscribe = await is_chat_member(message)
 
     if not is_subscribe:
