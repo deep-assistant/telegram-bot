@@ -15,7 +15,7 @@ from bot.gpt.system_messages import get_system_message, system_messages_list, \
 from bot.gpt.utils import is_chat_member, send_message, get_response_text, \
     create_change_model_keyboard, checked_text
 from bot.utils import include
-from services import gptService, GPTModels, completionsService
+from services import gptService, GPTModels, completionsService, tokenizeService
 from services.gpt_service import SystemMessages
 
 gptRouter = Router()
@@ -25,6 +25,13 @@ async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
 
     try:
+        is_available_tokens = tokenizeService.is_available_context(user_id)
+
+        if not is_available_tokens:
+            await message.answer(
+                "😔 К сожалению, за сегодня вы использовали слишком много токенов! Возвращайтесь к боту завтра!")
+            return
+
         is_agreement = await agreement_handler(message)
 
         if not is_agreement:
@@ -56,6 +63,11 @@ async def handle_gpt_request(message: Message, text: str):
         answer = completionsService.query_chatgpt(user_id, text, get_system_message(system_message), gpt_model)
 
         gptService.set_is_requesting(user_id, False)
+
+        request_tokens_used = answer.get("tokensUsed").get('requestTokensUsed')
+        response_tokens_used = answer.get("tokensUsed").get('responseTokensUsed')
+
+        tokenizeService.update_tokens(user_id, request_tokens_used + response_tokens_used)
 
         await send_message(message, get_response_text(answer))
         await asyncio.sleep(0.5)
