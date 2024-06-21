@@ -1,33 +1,29 @@
 from typing import Any
 
 import requests
-import tiktoken
 
-from config import GPT_TOKEN
-
-PROXY_URL = "http://173.212.230.201:8080/chatgpt"
-
-contextName = "exampleDialog"
-
-encoding = tiktoken.encoding_for_model("gpt-4")
+from bot.utils import get_user_name
+from config import PROXY_URL, ADMIN_TOKEN
+from services.gpt_service import GPTModels
 
 
 class CompletionsService:
-    TOKEN = GPT_TOKEN
     TOKEN_LIMIT = 4096
 
-    def query_chatgpt(self, user_id, message, system_message, gpt_model: str) -> Any:
+    def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels) -> Any:
+
         payload = {
-            'token': self.TOKEN,
-            'dialogName': user_id,
+            'token': ADMIN_TOKEN,
+            'dialogName': get_user_name(user_id, bot_model),
             'query': message,
             'tokenLimit': self.TOKEN_LIMIT,
-            'singleMessage': not gpt_model.startswith('gpt-3'),
+            "userNameToken": get_user_name(user_id, bot_model),
+            'singleMessage': False,
             'systemMessageContent': system_message,
             'model': gpt_model
         }
 
-        response = requests.post(PROXY_URL, json=payload, headers={'Content-Type': 'application/json'})
+        response = requests.post(f"{PROXY_URL}/chatgpt", json=payload, headers={'Content-Type': 'application/json'})
 
         if response.status_code == 200:
             return response.json()
