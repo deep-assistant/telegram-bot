@@ -9,7 +9,8 @@ from aiogram.types import Message, CallbackQuery
 from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, StartWithQuery, TextCommandQuery
 from bot.gpt import change_model_command
-from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text
+from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
+    balance_text, balance_command, clear_command, clear_text
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_message, get_response_text, \
@@ -23,15 +24,9 @@ gptRouter = Router()
 
 async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
+    message_loading = await message.answer("**⌛️Ожидайте ответ...**")
 
     try:
-        is_available_tokens = tokenizeService.is_available_context(user_id)
-
-        if not is_available_tokens:
-            await message.answer(
-                "😔 К сожалению, за сегодня вы использовали слишком много токенов! Возвращайтесь к боту завтра!")
-            return
-
         is_agreement = await agreement_handler(message)
 
         if not is_agreement:
@@ -52,22 +47,29 @@ async def handle_gpt_request(message: Message, text: str):
 
         gptService.set_is_requesting(user_id, True)
 
-        message_loading = await message.answer("**⌛️Ожидайте ответ...**")
-
+        bot_model = gptService.get_current_model(user_id)
         gpt_model = gptService.get_mapping_gpt_model(user_id)
 
         await message.bot.send_chat_action(chat_id, "typing")
 
         system_message = gptService.get_current_system_message(user_id)
 
-        answer = completionsService.query_chatgpt(user_id, text, get_system_message(system_message), gpt_model)
+        answer = completionsService.query_chatgpt(
+            user_id,
+            text,
+            get_system_message(system_message),
+            gpt_model,
+            bot_model
+        )
+
+        if not answer.get("success"):
+            await message.answer(answer.get('response'))
+            await asyncio.sleep(0.5)
+            await message_loading.delete()
+
+            return
 
         gptService.set_is_requesting(user_id, False)
-
-        request_tokens_used = answer.get("tokensUsed").get('requestTokensUsed')
-        response_tokens_used = answer.get("tokensUsed").get('responseTokensUsed')
-
-        tokenizeService.update_tokens(user_id, request_tokens_used + response_tokens_used)
 
         await send_message(message, get_response_text(answer))
         await asyncio.sleep(0.5)
@@ -106,6 +108,35 @@ async def handle_document(message: Message):
             """)
     except Exception as e:
         logging.log(logging.INFO, e)
+
+
+@gptRouter.message(TextCommand([balance_text(), balance_command()]))
+async def handle_balance(message: Message):
+    gpt_35_tokens = tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
+    gpt_4o_tokens = tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+
+    await message.answer(f"""
+💵 Текущий баланс: 
+    
+🤖  `GPT-3.5` : {gpt_35_tokens.get("tokens")} токенов
+🦾  `GPT-4o` : {gpt_4o_tokens.get("tokens")} токенов
+""")
+
+
+@gptRouter.message(TextCommand([clear_command(), clear_text()]))
+async def handle_clear_context(message: Message):
+    model = gptService.get_current_model(message.from_user.id)
+    hello = tokenizeService.clear_dialog(message.from_user.id, model)
+
+    if hello.get("status") == 404:
+        await message.answer("Диалог уже пуст!")
+        return
+
+    if hello is None:
+        await message.answer("Ошибка 😔: Не удалось очистить контекст!")
+        return
+
+    await message.answer("Контекст диалога успешно очищен! 👌🏻")
 
 
 @gptRouter.message(TextCommand([change_system_message_command(), change_system_message_text()]))

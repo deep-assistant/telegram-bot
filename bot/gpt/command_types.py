@@ -12,3 +12,18 @@ def change_system_message_command():
 
 def change_system_message_text():
     return "⚙️ Сменить Режим"
+
+
+def balance_text():
+    return "✨ Баланс"
+
+
+def balance_command():
+    return "/balance"
+
+def clear_text():
+    return "🧹 Очистить контекст"
+
+
+def clear_command():
+    return "/clear"

@@ -2,6 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message, CallbackQuery
 
 from bot.utils import include
+from services import StateTypes, stateService
 
 
 class TextCommand(BaseFilter):
@@ -9,6 +10,9 @@ class TextCommand(BaseFilter):
         self.text_command: [str] = text_command
 
     async def __call__(self, message: Message) -> bool:
+        if message.text is None:
+            return False
+
         return include(self.text_command, message.text)
 
 
@@ -36,3 +40,11 @@ class TextCommandQuery(BaseFilter):
 
     async def __call__(self, callback_query: CallbackQuery) -> bool:
         return include(self.text_command, callback_query.data)
+
+
+class StateCommand(BaseFilter):
+    def __init__(self, state: StateTypes):
+        self.state: StateTypes = state
+
+    async def __call__(self, message: Message) -> bool:
+        return stateService.get_current_state(message.from_user.id).value == self.state.value

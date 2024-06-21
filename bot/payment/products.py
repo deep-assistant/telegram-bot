@@ -31,11 +31,23 @@ donation_product = {
     "description": description,
     "provider_token": TOKEN,
     "currency": "rub",
-    "photo_url": "https://www.aroged.com/wp-content/uploads/2022/06/Telegram-has-a-premium-subscription.jpg",
+    "photo_url": "https://storage.yandexcloud.net/gptutor-bucket/DEEP_LOGO.jpg",
     "photo_width": 416,
     "photo_height": 234,
     "photo_size": 416,
     "is_flexible": False,
     "start_parameter": "donation",
     "payload": "donation"
+}
+
+buy_balance_product = {
+    "title": "Пополнение баланса",
+    "provider_token": TOKEN,
+    "currency": "rub",
+    "photo_url": "https://storage.yandexcloud.net/gptutor-bucket/DEEP_LOGO.jpg",
+    "photo_width": 416,
+    "photo_height": 234,
+    "photo_size": 416,
+    "is_flexible": False,
+    "start_parameter": "buy_balance",
 }
