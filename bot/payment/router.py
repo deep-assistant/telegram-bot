@@ -1,6 +1,5 @@
 import asyncio
 import logging
-
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, LabeledPrice, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder

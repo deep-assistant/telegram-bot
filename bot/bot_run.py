@@ -5,7 +5,6 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
 
-
 import config
 from bot.agreement import agreementRouter
 from bot.gpt import gptRouter
