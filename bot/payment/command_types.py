@@ -12,3 +12,4 @@ def balance_payment_command_text():
 
 def balance_payment_command_start():
     return "/buy_balance"
+
