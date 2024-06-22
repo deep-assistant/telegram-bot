@@ -1,7 +1,7 @@
 import httpx
 
 
-async def async_post(url, json, headers):
+async def async_post(url, json=None, headers=None):
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=json, headers=headers)
         return response
