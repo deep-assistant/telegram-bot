@@ -316,10 +316,8 @@ async def successful_payment(message: types.Message):
             await message.answer(
                 f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens} токенов!*")
 
-        gpt_35_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
-        gpt_4o_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
-        gpt_35_tokens = await gpt_35_tokens_async
-        gpt_4o_tokens = await gpt_4o_tokens_async
+        gpt_35_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
+        gpt_4o_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
 
         await message.answer(f"""
         💵 Текущий баланс: 

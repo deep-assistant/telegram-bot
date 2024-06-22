@@ -112,11 +112,10 @@ async def handle_document(message: Message):
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
 async def handle_balance(message: Message):
-    gpt_35_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
-    gpt_4o_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
-    gpt_35_tokens = await gpt_35_tokens_async
-    gpt_4o_tokens = await gpt_4o_tokens_async
+    gpt_35_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
+    gpt_4o_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
 
+    print(gpt_35_tokens)
     await message.answer(f"""
 💵 Текущий баланс: 
     

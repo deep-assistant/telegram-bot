@@ -10,12 +10,13 @@ headers = {'Content-Type': 'application/json'}
 
 class TokenizeService:
     async def get_tokens(self, user_id: str, model: GPTModels):
-        user_token = self.get_user_tokens(user_id, model)
+        user_token = await self.get_user_tokens(user_id, model)
 
         if user_token is not None:
             return user_token
         else:
             await self.create_new_token(user_id=user_id, model=model)
+            await self.update_user_token(user_id=user_id, model=model, tokens=8500)
             return await self.get_user_tokens(user_id, model)
 
     async def create_new_token(self, user_id: str, model: GPTModels):
