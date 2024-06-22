@@ -1,11 +1,11 @@
 from typing import Any
 
+import requests
 from openai import OpenAI
 
 from bot.utils import get_user_name
 from config import PROXY_URL, ADMIN_TOKEN, KEY_DEEPINFRA
 from services.gpt_service import GPTModels
-from services.utils import async_post
 
 history = {}
 
@@ -80,7 +80,7 @@ class CompletionsService:
             'model': gpt_model
         }
 
-        response = await async_post(f"{PROXY_URL}/chatgpt", json=payload)
+        response = requests.post(f"{PROXY_URL}/chatgpt", json=payload)
 
         if response.status_code == 200:
             return response.json()
