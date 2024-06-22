@@ -3,6 +3,7 @@ from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.client.default import DefaultBotProperties
 
 import config
 from bot.agreement import agreementRouter
@@ -24,7 +25,7 @@ async def bot_run() -> None:
     dp = Dispatcher(storage=MemoryStorage())
 
     if config.IS_DEV:
-        bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN)
+        bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 
         apply_routers(dp)
 
@@ -32,9 +33,13 @@ async def bot_run() -> None:
         await dp.start_polling(bot, skip_updates=False, drop_pending_updates=True)
         return
 
-    bot = Bot(token=config.TOKEN, parse_mode=ParseMode.MARKDOWN, session=AiohttpSession(
-        api=TelegramAPIServer.from_base(config.ANALYTICS_URL)
-    ))
+    bot = Bot(
+        token=config.TOKEN, 
+        default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
+        session=AiohttpSession(
+            api=TelegramAPIServer.from_base(config.ANALYTICS_URL)
+        )
+    )
 
     apply_routers(dp)
 
