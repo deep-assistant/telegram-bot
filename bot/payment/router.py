@@ -60,7 +60,7 @@ def create_buy_balance_keyboard_paym_payment(model):
         inline_keyboard=[
             [
                 InlineKeyboardButton(text="Telegram Stars", callback_data=f"buy_method_stars {model} stars"),
-                InlineKeyboardButton(text="Переводом на счёт", callback_data=f"buy_method_card {model} card"),
+                # InlineKeyboardButton(text="Переводом на счёт", callback_data=f"buy_method_card {model} card"),
             ],
         ]
     )
@@ -118,19 +118,19 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
             resize_keyboard=True,
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="10,000 токенов (20 ⭐️)",
-                                         callback_data=f"buy_stars 25,000 20 {model}"),
+                    InlineKeyboardButton(text="25,000 токенов (15 ⭐️)",
+                                         callback_data=f"buy_stars 25,000 15 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="30,000 токенов (45 ⭐️)",
-                                         callback_data=f"buy_stars 40,000 45 {model}"),
+                    InlineKeyboardButton(text="50,000 токенов (45 ⭐️)",
+                                         callback_data=f"buy_stars 50,000 45 {model}"),
                 ],
                 [
                     InlineKeyboardButton(text="100,000 токенов (90 ⭐️)",
                                          callback_data=f"buy_stars 100,000 90 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="1,000,000 токенов (270 ⭐️)",
+                    InlineKeyboardButton(text="1,000,000 токенов (250 ⭐️)",
                                          callback_data=f"buy_stars 1,000,000 250 {model}"),
                 ],
                 [
@@ -146,20 +146,20 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
             resize_keyboard=True,
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="10,000 токенов (40 ⭐️)",
-                                         callback_data=f"buy_stars 25,000 15 {model}"),
+                    InlineKeyboardButton(text="25,000 токенов (50 ⭐️)",
+                                         callback_data=f"buy_stars 25,000 50 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="30,000 токенов (170 ⭐️)",
-                                         callback_data=f"buy_stars 40,000 40 {model}"),
+                    InlineKeyboardButton(text="50,000 токенов (150 ⭐️)",
+                                         callback_data=f"buy_stars 50,000 150 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="100,000 токенов (270 ⭐️)",
-                                         callback_data=f"buy_stars 100,000 80 {model}"),
+                    InlineKeyboardButton(text="100,000 токенов (350 ⭐️)",
+                                         callback_data=f"buy_stars 100,000 350 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="1,000,000 токенов (1700 ⭐️)",
-                                         callback_data=f"buy_stars 1,000,000 1700 {model}"),
+                    InlineKeyboardButton(text="1,000,000 токенов (1500 ⭐️)",
+                                         callback_data=f"buy_stars 1,000,000 1500 {model}"),
                 ],
                 [
                     InlineKeyboardButton(text="⬅️ Назад к выбору модели", callback_data="back_buy_model"),
@@ -307,7 +307,7 @@ async def successful_payment(message: types.Message):
     if message.successful_payment.invoice_payload.startswith("buy_balance"):
         tokens = int(message.successful_payment.invoice_payload.split(" ")[1])
         model = GPTModels(message.successful_payment.invoice_payload.split(" ")[2])
-        tokenizeService.update_user_token(message.from_user.id, model, tokens)
+        await tokenizeService.update_user_token(message.from_user.id, model, tokens)
 
         if message.successful_payment.invoice_payload.split(" ")[3] == "stars": 
             await message.answer(
@@ -316,12 +316,16 @@ async def successful_payment(message: types.Message):
             await message.answer(
                 f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens} токенов!*")
 
-        gpt_35_tokens = tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
-        gpt_4o_tokens = tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+        gpt_35_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
+        gpt_4o_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+        gpt_35_tokens = await gpt_35_tokens_async
+        gpt_4o_tokens = await gpt_4o_tokens_async
+
         await message.answer(f"""
         💵 Текущий баланс: 
 
-🤖  GPT-3.5 : {gpt_35_tokens.get("tokens")} токенов
-🦾  GPT-4o : {gpt_4o_tokens.get("tokens")} токенов
+🤖 `GPT-3.5` : {gpt_35_tokens.get("tokens")} токенов
+🦾 `GPT-4o` : {gpt_4o_tokens.get("tokens")} токенов
+👾 `Llama3_8b` : Неограничено токенов
 """)
 
