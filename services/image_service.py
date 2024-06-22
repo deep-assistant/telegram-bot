@@ -1,12 +1,17 @@
-import logging
+import asyncio
 from random import randint
-from requests import get
 
-def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, steps, seed=randint(1, 10000)):
+from services.utils import async_get
+
+generating_map = {}
+
+
+async def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, steps, seed=randint(1, 10000)):
     headers = {
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36",
     }
-    resp = get(
+
+    resp = await async_get(
         "https://api.prodia.com/generate",
         params={
             "new": "true",
@@ -25,8 +30,10 @@ def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, steps, se
     data = resp.json()
 
     while True:
-        resp = get(f"https://api.prodia.com/job/{data['job']}", headers=headers)
+        await asyncio.sleep(18)
+        resp = await async_get(f"https://api.prodia.com/job/{data['job']}", headers=headers)
         json = resp.json()
+        print(json)
         if json["status"] == "succeeded":
             return {"output": [f"https://images.prodia.xyz/{data['job']}.png"], "meta": {"seed": seed}}
 
@@ -34,9 +41,18 @@ def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, steps, se
 class ImageService:
     default_model = "ICantBelieveItsNotPhotography_seco.safetensors [4e7a3dfd]"
 
-    def generate(self, prompt: str):
+    def set_waiting_image(self, user_id, value: bool):
+        generating_map[user_id] = value
 
-        return txt2img(
+    def get_waiting_image(self, user_id):
+        if not (user_id in generating_map):
+            self.set_waiting_image(user_id, False)
+            return False
+
+        return generating_map[user_id]
+
+    async def generate(self, prompt: str):
+        return await txt2img(
             prompt=prompt,
             model=self.default_model,
             negative_prompt="",

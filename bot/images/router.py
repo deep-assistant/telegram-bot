@@ -11,21 +11,31 @@ imagesRouter = Router()
 
 @imagesRouter.message(StateCommand(StateTypes.Image))
 async def handle_generate_image(message: types.Message):
-    if not stateService.is_image_state(message.from_user.id):
+    user_id = message.from_user.id
+
+    if not stateService.is_image_state(user_id):
+        return
+
+    is_waiting_image = imageService.get_waiting_image(user_id)
+
+    if is_waiting_image:
         return
 
     try:
-        wait_message = await message.answer("**⌛️Ожидайте генерацию...**")
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
-        image = imageService.generate(message.text)
+        imageService.set_waiting_image(user_id, True)
+
+        image = await imageService.generate(message.text)
         await message.reply_photo(image["output"][0])
         await wait_message.delete()
     except Exception as e:
-        await message.reply_photo("Что-то пошло не так попробуйте позже! 😔")
+        await message.answer("Что-то пошло не так попробуйте позже! 😔")
         logging.log(logging.INFO, e)
 
+    imageService.set_waiting_image(user_id, False)
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
 

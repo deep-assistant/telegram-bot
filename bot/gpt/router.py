@@ -54,7 +54,7 @@ async def handle_gpt_request(message: Message, text: str):
 
         system_message = gptService.get_current_system_message(user_id)
 
-        answer = completionsService.query_chatgpt(
+        answer = await completionsService.query_chatgpt(
             user_id,
             text,
             get_system_message(system_message),
@@ -112,21 +112,36 @@ async def handle_document(message: Message):
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
 async def handle_balance(message: Message):
-    gpt_35_tokens = tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
-    gpt_4o_tokens = tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+    gpt_35_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
+    gpt_4o_tokens_async = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+    gpt_35_tokens = await gpt_35_tokens_async
+    gpt_4o_tokens = await gpt_4o_tokens_async
 
     await message.answer(f"""
 💵 Текущий баланс: 
     
 🤖  `GPT-3.5` : {gpt_35_tokens.get("tokens")} токенов
 🦾  `GPT-4o` : {gpt_4o_tokens.get("tokens")} токенов
+👾  `Llama3_8b` : Неограничено токенов
 """)
 
 
 @gptRouter.message(TextCommand([clear_command(), clear_text()]))
 async def handle_clear_context(message: Message):
-    model = gptService.get_current_model(message.from_user.id)
-    hello = tokenizeService.clear_dialog(message.from_user.id, model)
+    user_id = message.from_user.id
+    model = gptService.get_current_model(user_id)
+
+    if model.value is not GPTModels.GPT_4o.value and model.value is not GPTModels.GPT_3_5.value:
+        history = completionsService.get_history(user_id)
+        if len(history) == 0:
+            await message.answer("Диалог уже пуст!")
+            return
+
+        completionsService.clear_history(user_id)
+        await message.answer("Контекст диалога успешно очищен! 👌🏻")
+        return
+
+    hello = await tokenizeService.clear_dialog(user_id, model)
 
     if hello.get("status") == 404:
         await message.answer("Диалог уже пуст!")
@@ -193,6 +208,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
 
     system_message = callback_query.data
     current_system_message = gptService.get_current_system_message(user_id)
+    current_model = gptService.get_current_model(user_id)
 
     if system_message == current_system_message:
         await callback_query.answer(f"Данный режим уже выбран!")
@@ -204,13 +220,16 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
         reply_markup=create_system_message_keyboard(system_message)
     )
 
+    await tokenizeService.clear_dialog(user_id=user_id, model=current_model)
+
     await asyncio.sleep(0.5)
 
     await callback_query.answer(f"Режим успешно изменён!")
     await callback_query.message.delete()
 
 
-@gptRouter.callback_query(StartWithQuery('gpt'))
+@gptRouter.callback_query(
+    TextCommandQuery([GPTModels.GPT_4o.value, GPTModels.GPT_3_5.value, GPTModels.Llama3_8b.value]))
 async def handle_change_model_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 
