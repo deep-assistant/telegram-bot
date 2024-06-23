@@ -123,19 +123,19 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
             resize_keyboard=True,
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="25,000 токенов (1̶̶̶5̶̶̶ 10 ⭐️)",
+                    InlineKeyboardButton(text="25,000 токенов (1̶̶̶5̶̶̶  10 ⭐️)",
                                          callback_data=f"buy_stars 25,000 10 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="50,000 токенов (4̶5̶ 25 ⭐️)",
+                    InlineKeyboardButton(text="50,000 токенов (4̶5̶  25 ⭐️)",
                                          callback_data=f"buy_stars 50,000 25 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="100,000 токенов (9̶0̶ 50 ⭐️)",
+                    InlineKeyboardButton(text="100,000 токенов (9̶0̶  50 ⭐️)",
                                          callback_data=f"buy_stars 100,000 50 ⭐ {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="1,000,000 токенов (2̶5̶0̶ 100 ⭐️)",
+                    InlineKeyboardButton(text="1,000,000 токенов (2̶5̶0̶  100 ⭐️)",
                                          callback_data=f"buy_stars 1,000,000 100 {model}"),
                 ],
                 [
@@ -151,19 +151,19 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
             resize_keyboard=True,
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="25,000 токенов (5̶0̶ 25 ⭐️)",
+                    InlineKeyboardButton(text="25,000 токенов (5̶0̶  25 ⭐️)",
                                          callback_data=f"buy_stars 25,000 25 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="50,000 токенов (1̶5̶0̶ 50 ⭐️)",
+                    InlineKeyboardButton(text="50,000 токенов (1̶5̶0̶  50 ⭐️)",
                                          callback_data=f"buy_stars 50,000 50 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="100,000 токенов (3̶5̶0̶ 150 ⭐️)",
+                    InlineKeyboardButton(text="100,000 токенов (3̶5̶0̶  150 ⭐️)",
                                          callback_data=f"buy_stars 100,000 150 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="1,000,000 токенов (1̶5̶0̶0̶ 500 ⭐️)",
+                    InlineKeyboardButton(text="1,000,000 токенов (1̶5̶0̶0̶  500 ⭐️)",
                                          callback_data=f"buy_stars 1,000,000 500 {model}"),
                 ],
                 [
