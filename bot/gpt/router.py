@@ -121,7 +121,6 @@ async def handle_balance(message: Message):
     
 🤖  `GPT-3.5` : {gpt_35_tokens.get("tokens")} токенов
 🦾  `GPT-4o` : {gpt_4o_tokens.get("tokens")} токенов
-👾  `Llama3_8b` : Неограничено токенов
 """)
 
 
@@ -228,7 +227,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
 
 
 @gptRouter.callback_query(
-    TextCommandQuery([GPTModels.GPT_4o.value, GPTModels.GPT_3_5.value, GPTModels.Llama3_8b.value]))
+    TextCommandQuery([GPTModels.GPT_4o.value, GPTModels.GPT_3_5.value]))
 async def handle_change_model_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 

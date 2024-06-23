@@ -332,6 +332,5 @@ async def successful_payment(message: types.Message):
 
 🤖 `GPT-3.5` : {gpt_35_tokens.get("tokens")} токенов
 🦾 `GPT-4o` : {gpt_4o_tokens.get("tokens")} токенов
-👾 `Llama3_8b` : Неограничено токенов
 """)
 

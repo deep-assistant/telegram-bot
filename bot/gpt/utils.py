@@ -79,9 +79,9 @@ def create_change_model_keyboard(current_model: GPTModels):
                 text=get_model_text(GPTModels.GPT_3_5, current_model),
                 callback_data=GPTModels.GPT_3_5.value
             ),
-            InlineKeyboardButton(
-                text=get_model_text(GPTModels.Llama3_8b, current_model),
-                callback_data=GPTModels.Llama3_8b.value
-            )
+            # InlineKeyboardButton(
+            #     text=get_model_text(GPTModels.Llama3_8b, current_model),
+            #     callback_data=GPTModels.Llama3_8b.value
+            # )
         ]
     ])
