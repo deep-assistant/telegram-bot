@@ -63,6 +63,18 @@ async def handle_gpt_request(message: Message, text: str):
         )
 
         if not answer.get("success"):
+            if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
+                await message.answer(
+                    text=f"""
+{answer.get('response')}
+💎 Пополнить баланс - /buy
+""",
+                )
+                await asyncio.sleep(0.5)
+                await message_loading.delete()
+
+                return
+
             await message.answer(answer.get('response'))
             await asyncio.sleep(0.5)
             await message_loading.delete()
