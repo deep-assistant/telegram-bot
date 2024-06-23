@@ -112,7 +112,7 @@ async def handle_buy_balance_query(callback_query: CallbackQuery):
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
     await callback_query.message.edit_text("""
-Насколько токенов вы хотите пополнить баланс?
+На сколько токенов вы хотите пополнить баланс?
 
 На данный момент действует скидка! 
 Успей получить токены в 2-4 раза дешевле!
