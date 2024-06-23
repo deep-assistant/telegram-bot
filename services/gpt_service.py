@@ -6,7 +6,7 @@ from db import data_base, db_key
 class GPTModels(Enum):
     GPT_4o = "gpt-4o"
     GPT_3_5 = "gpt-3.5"
-    Llama3_8b = "Llama3-8b"
+    # Llama3_8b = "Llama3-8b"
 
 
 class SystemMessages(Enum):
@@ -20,7 +20,7 @@ is_requesting = {}
 gpt_models = {
     GPTModels.GPT_3_5.value: "gpt-35-16k",
     GPTModels.GPT_4o.value: "gpt-4o",
-    GPTModels.Llama3_8b.value: "meta-llama/Meta-Llama-3-8B-Instruct"
+    # GPTModels.Llama3_8b.value: "meta-llama/Meta-Llama-3-8B-Instruct"
 }
 
 
@@ -33,11 +33,11 @@ class GPTService:
             model = data_base[db_key(user_id, self.CURRENT_MODEL_KEY)].decode('utf-8')
             return GPTModels(model)
         except KeyError:
-            self.set_current_model(user_id, GPTModels.Llama3_8b)
-            return GPTModels.Llama3_8b
+            self.set_current_model(user_id, GPTModels.GPT_4o)
+            return GPTModels.GPT_4o
         except Exception:
-            self.set_current_model(user_id, GPTModels.Llama3_8b)
-            return GPTModels.Llama3_8b
+            self.set_current_model(user_id, GPTModels.GPT_4o)
+            return GPTModels.GPT_4o
 
     def set_current_model(self, user_id: str, model: GPTModels):
         with data_base.transaction():

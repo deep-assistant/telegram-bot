@@ -111,27 +111,32 @@ async def handle_buy_balance_query(callback_query: CallbackQuery):
 @paymentsRouter.callback_query(StartWithQuery("buy_method_stars"))
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text("Насколько токенов вы хотите пополнить баланс?")
+    await callback_query.message.edit_text("""
+Насколько токенов вы хотите пополнить баланс?
+
+На данный момент действует скидка! 
+Успей получить токены в 2-4 раза дешевле!
+""")
 
     if GPTModels.GPT_3_5.value == model:
         await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
             resize_keyboard=True,
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="25,000 токенов (15 ⭐️)",
-                                         callback_data=f"buy_stars 25,000 15 {model}"),
+                    InlineKeyboardButton(text="25,000 токенов (1̶̶̶5̶̶̶ 10 ⭐️)",
+                                         callback_data=f"buy_stars 25,000 10 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="50,000 токенов (45 ⭐️)",
-                                         callback_data=f"buy_stars 50,000 45 {model}"),
+                    InlineKeyboardButton(text="50,000 токенов (4̶5̶ 25 ⭐️)",
+                                         callback_data=f"buy_stars 50,000 25 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="100,000 токенов (90 ⭐️)",
-                                         callback_data=f"buy_stars 100,000 90 {model}"),
+                    InlineKeyboardButton(text="100,000 токенов (9̶0̶ 50 ⭐️)",
+                                         callback_data=f"buy_stars 100,000 50 ⭐ {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="1,000,000 токенов (250 ⭐️)",
-                                         callback_data=f"buy_stars 1,000,000 250 {model}"),
+                    InlineKeyboardButton(text="1,000,000 токенов (2̶5̶0̶ 100 ⭐️)",
+                                         callback_data=f"buy_stars 1,000,000 100 {model}"),
                 ],
                 [
                     InlineKeyboardButton(text="⬅️ Назад к выбору модели", callback_data="back_buy_model"),
@@ -146,20 +151,20 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
             resize_keyboard=True,
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="25,000 токенов (50 ⭐️)",
-                                         callback_data=f"buy_stars 25,000 50 {model}"),
+                    InlineKeyboardButton(text="25,000 токенов (5̶0̶ 25 ⭐️)",
+                                         callback_data=f"buy_stars 25,000 25 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="50,000 токенов (150 ⭐️)",
-                                         callback_data=f"buy_stars 50,000 150 {model}"),
+                    InlineKeyboardButton(text="50,000 токенов (1̶5̶0̶ 50 ⭐️)",
+                                         callback_data=f"buy_stars 50,000 50 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="100,000 токенов (350 ⭐️)",
-                                         callback_data=f"buy_stars 100,000 350 {model}"),
+                    InlineKeyboardButton(text="100,000 токенов (3̶5̶0̶ 150 ⭐️)",
+                                         callback_data=f"buy_stars 100,000 150 {model}"),
                 ],
                 [
-                    InlineKeyboardButton(text="1,000,000 токенов (1500 ⭐️)",
-                                         callback_data=f"buy_stars 1,000,000 1500 {model}"),
+                    InlineKeyboardButton(text="1,000,000 токенов (1̶5̶0̶0̶ 500 ⭐️)",
+                                         callback_data=f"buy_stars 1,000,000 500 {model}"),
                 ],
                 [
                     InlineKeyboardButton(text="⬅️ Назад к выбору модели", callback_data="back_buy_model"),
