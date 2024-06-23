@@ -49,7 +49,17 @@ async def is_chat_member(message: Message) -> bool:
     return is_subscribe
 
 
-def get_response_text(answer):
+def get_response_text(answer, tokens: int):
+    if tokens <= 0:
+        return answer.get("response")
+
+    if answer.get("success"):
+        return f"""{answer.get('response')}
+
+🤖 Затрачено на запрос  `{tokens}` токенов.
+❔ /help - Информация по токенам
+"""
+
     return answer.get("response")
 
 

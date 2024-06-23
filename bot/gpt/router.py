@@ -54,6 +54,8 @@ async def handle_gpt_request(message: Message, text: str):
 
         system_message = gptService.get_current_system_message(user_id)
 
+        gpt_tokens_before = await tokenizeService.get_tokens(user_id, bot_model)
+
         answer = await completionsService.query_chatgpt(
             user_id,
             text,
@@ -81,9 +83,17 @@ async def handle_gpt_request(message: Message, text: str):
 
             return
 
+        gpt_tokens_after = await tokenizeService.get_tokens(user_id, bot_model)
+
         gptService.set_is_requesting(user_id, False)
 
-        await send_message(message, get_response_text(answer))
+        await send_message(
+            message,
+            get_response_text(
+                answer,
+                gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0)
+            )
+        )
         await asyncio.sleep(0.5)
         await message_loading.delete()
     except Exception as e:
