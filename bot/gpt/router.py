@@ -224,7 +224,7 @@ async def handle_voice(message: Message):
 
     response_json = await transcribe_voice(file_url)
 
-    tokens = duration * 20
+    tokens = duration * 30
     if response_json.get("success"):
         await message.answer(f"""
 🎤 Обработка аудио затратила `{tokens}` токенов 
