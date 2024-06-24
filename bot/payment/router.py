@@ -172,7 +172,7 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
                 ],
                 [
                     InlineKeyboardButton(text="5,000,000 токенов (5̶0̶0̶0̶  1700 ⭐️)",
-                                         callback_data=f"buy_stars 5,000,000 500 {model}"),
+                                         callback_data=f"buy_stars 5,000,000 1700 {model}"),
                 ],
                 [
                     InlineKeyboardButton(text="⬅️ Назад к выбору модели", callback_data="back_buy_model"),
