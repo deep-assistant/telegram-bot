@@ -74,6 +74,8 @@ async def handle_gpt_request(message: Message, text: str):
                 await message.answer(
                     text=f"""
 {answer.get('response')}
+
+✨ Проверить Баланс - /balance
 💎 Пополнить баланс - /buy
 """,
                 )
