@@ -205,6 +205,20 @@ async def transcribe_voice(voice_file_url: str):
 
 @gptRouter.message(Voice())
 async def handle_voice(message: Message):
+    current_gpt_model = gptService.get_current_model(message.from_user.id)
+
+    is_subscribe = await is_chat_member(message)
+
+    if not is_subscribe:
+        return
+
+    if current_gpt_model.value is not GPTModels.GPT_4o.value:
+        await message.answer("""
+Данная модель не поддерживает обработку фотографий! 😔
+
+/model - 🤖 Смените модель на gpt-4o, чтобы обрабатывать фотографии!        
+""")
+
     duration = message.voice.duration
     voice_file_id = message.voice.file_id
     file = await message.bot.get_file(voice_file_id)
