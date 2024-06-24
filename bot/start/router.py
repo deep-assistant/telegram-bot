@@ -1,3 +1,4 @@
+import logging
 import re
 
 from aiogram import types, Router
@@ -50,8 +51,9 @@ async def buy(message: types.Message):
     user_id = message.from_user.id
     user_token = await tokenizeService.get_user_tokens(user_id, GPTModels.GPT_4o)
 
-    if user_token is None:
+    if user_token is None and args is not user_id:
         if args:
+            logging.log(logging.INFO, f"Новый реферал {args} -> {user_id}!")
             await tokenizeService.get_tokens(user_id, GPTModels.GPT_4o)
             await tokenizeService.get_tokens(user_id, GPTModels.GPT_3_5)
             await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, 5000)
@@ -66,6 +68,7 @@ async def buy(message: types.Message):
 
 /balance - ✨ Узнать баланс
 """)
+
     await message.answer(text=hello_text, reply_markup=keyboard)
     await agreement_handler(message)
 

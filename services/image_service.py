@@ -33,7 +33,6 @@ async def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, ste
         await asyncio.sleep(18)
         resp = await async_get(f"https://api.prodia.com/job/{data['job']}", headers=headers)
         json = resp.json()
-        print(json)
         if json["status"] == "succeeded":
             return {"output": [f"https://images.prodia.xyz/{data['job']}.png"], "meta": {"seed": seed}}
 

@@ -28,7 +28,6 @@ class Photo(BaseFilter):
 
 class Voice(BaseFilter):
     async def __call__(self, message: Message) -> bool:
-        print(message)
         return message.voice is not None
 
 

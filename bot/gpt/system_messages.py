@@ -35,8 +35,6 @@ system_messages_list = list(map(lambda message: message.value, SystemMessages))
 
 
 def get_system_message_text(system_message: str, current_system_message: str):
-    print(system_message)
-    print(current_system_message)
     if system_message == current_system_message:
         return checked_text(system_message)
 

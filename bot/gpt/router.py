@@ -139,8 +139,6 @@ async def handle_document(message: Message):
 
     text = "Опиши эту фотографию" if message.text is None else message.text
 
-    print(text)
-
     await message.bot.send_chat_action(message.chat.id, "typing")
 
     chat_completion = openai.chat.completions.create(
@@ -266,7 +264,6 @@ async def handle_balance(message: Message):
     gpt_35_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
     gpt_4o_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
 
-    print(gpt_35_tokens)
     await message.answer(f"""
 💵 Текущий баланс: 
     
