@@ -11,14 +11,17 @@ from bot.gpt import gptRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
 from bot.start import startRouter
+from bot.referral.router import referralRouter
 
 
 def apply_routers(dp: Dispatcher) -> None:
+    dp.include_router(referralRouter)
     dp.include_router(imagesRouter)
     dp.include_router(startRouter)
     dp.include_router(agreementRouter)
     dp.include_router(paymentsRouter)
     dp.include_router(gptRouter)
+    
 
 
 async def bot_run() -> None:

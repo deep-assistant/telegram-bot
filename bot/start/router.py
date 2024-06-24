@@ -1,12 +1,18 @@
 from aiogram import types, Router
 from aiogram.filters import CommandStart, Command
+from bot.filters import TextCommand, StateCommand
+from bot.referral.command_types import referral_command, referral_command_text
+import re
 
 from bot.agreement.router import agreement_handler
 from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text
 from bot.images import images_command_text
 from bot.payment.command_types import balance_payment_command_text
-
+from bot.referral import referral_command_text
 startRouter = Router()
+
+from services import GPTModels, tokenizeService
+
 
 hello_text = """
 👋 Привет! Я самый умный бот, я использую в себе самые мощные нейросети на данный момент!
@@ -34,13 +40,23 @@ async def buy(message: types.Message):
                 types.KeyboardButton(text=clear_text()),
                 types.KeyboardButton(text=images_command_text())
             ],
+            [
+                types.KeyboardButton(text=referral_command_text()),
+            ],
         ],
         input_field_placeholder="💬 Задай свой вопрос"
     )
-
+    args_match = re.search(r'^/start\s(\S+)', message.text)
+    args = args_match.group(1) if args_match else None
+    user_id = message.from_user.id
+    user_token = await tokenizeService.get_user_tokens(user_id, GPTModels.GPT_4o)
+    if user_token is None:
+        if args:
+            await tokenizeService.get_tokens(user_id, GPTModels.GPT_4o)
+            await tokenizeService.get_tokens(user_id, GPTModels.GPT_3_5)
+            test = await tokenizeService.update_user_token(args, GPTModels.GPT_4o, 15000)
     await message.answer(text=hello_text, reply_markup=keyboard)
     await agreement_handler(message)
-
 
 @startRouter.message(Command("help"))
 async def help_command(message: types.Message):
@@ -56,4 +72,6 @@ async def help_command(message: types.Message):
 /balance - ✨ Баланс, позволяет узнать оставшиеся количество токенов.
 /image - 🖼️ Сгенерировать картинку, вызывает нейросеть Stable Diffusion для генерации изображений.
 /buy - 💎 Пополнить баланс, позволяет пополнить баланс токенов.
+/referral - ✉️ Получить реферальную ссылку
 """)
+
