@@ -1,7 +1,8 @@
-aiogram==3.8.0
+aiogram~=3.6.0
 tiktoken==0.7.0
 vedis==0.7.2
 aiofiles==23.2.1
 schedule==1.2.2
 openai==1.34.0
 httpx==0.24.1
+requests~=2.31.0

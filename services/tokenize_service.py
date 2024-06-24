@@ -46,11 +46,12 @@ class TokenizeService:
 
         return None
 
-    async def update_user_token(self, user_id: str, model: GPTModels, tokens: int):
+    async def update_user_token(self, user_id: str, model: GPTModels, tokens: int, operation='add'):
         payload = {
             "token": ADMIN_TOKEN,
             "userName": get_user_name(user_id, model),
-            "newToken": tokens
+            "newToken": tokens,
+            "operation": operation
         }
 
         response = await async_post(f"{PROXY_URL}/update-user-token", json=payload, headers=headers)

@@ -1,13 +1,17 @@
 import asyncio
+import base64
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from tempfile import NamedTemporaryFile
 
 import aiofiles
+import requests
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
+from openai import OpenAI
 
 from bot.agreement import agreement_handler
-from bot.filters import TextCommand, Document, Photo, StartWithQuery, TextCommandQuery
+from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
     balance_text, balance_command, clear_command, clear_text
@@ -16,6 +20,7 @@ from bot.gpt.system_messages import get_system_message, system_messages_list, \
 from bot.gpt.utils import is_chat_member, send_message, get_response_text, \
     create_change_model_keyboard, checked_text
 from bot.utils import include
+from config import TOKEN, GO_API_KEY
 from services import gptService, GPTModels, completionsService, tokenizeService
 from services.gpt_service import SystemMessages
 
@@ -103,12 +108,122 @@ async def handle_gpt_request(message: Message, text: str):
 
 @gptRouter.message(Photo())
 async def handle_document(message: Message):
-    await message.answer(
-        """
-        😔 К сожалению, фотографии пока не поддерживаются!
+    current_gpt_model = gptService.get_current_model(message.from_user.id)
 
-Следите за обновлениями в канале @gptDeep
-        """)
+    is_subscribe = await is_chat_member(message)
+
+    if not is_subscribe:
+        return
+
+    if current_gpt_model.value is not GPTModels.GPT_4o.value:
+        await message.answer("""
+Данная модель не поддерживает обработку фотографий! 😔
+
+/model - 🤖 Смените модель на gpt-4o, чтобы обрабатывать фотографии!        
+""")
+
+    # Получаем информацию о файле фотографии
+    file_info = await message.bot.get_file(message.photo[-1].file_id)
+
+    # Загружаем файл
+    file = await message.bot.download_file(file_info.file_path)
+
+    # Читаем содержимое файла и кодируем в Base64
+    photo_bytes = file.read()
+    photo_base64 = base64.b64encode(photo_bytes).decode('utf-8')
+
+    openai = OpenAI(
+        api_key=GO_API_KEY,
+        base_url="https://api.goapi.xyz/v1/",
+    )
+
+    text = "Опиши эту фотографию" if message.text is None else message.text
+
+    print(text)
+
+    await message.bot.send_chat_action(message.chat.id, "typing")
+
+    chat_completion = openai.chat.completions.create(
+        model="gpt-4o",
+        max_tokens=4096,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": text},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{photo_base64}"}},
+                ]
+            },
+        ],
+        stream=False,
+    )
+
+    tokens = chat_completion.usage.total_tokens * 3
+
+    await message.bot.send_chat_action(message.chat.id, "typing")
+
+    await tokenizeService.update_user_token(message.from_user.id, GPTModels.GPT_4o, tokens, 'subtract')
+
+    content = chat_completion.choices[0].message.content
+
+    await message.bot.send_chat_action(message.chat.id, "typing")
+
+    await send_message(message, get_response_text({"success": True, "response": content}, tokens))
+
+
+def transcribe_voice_sync(voice_file_url: str):
+    headers = {
+        "Authorization": f"Bearer {GO_API_KEY}",
+    }
+
+    voice_response = requests.get(voice_file_url)
+    if voice_response.status_code == 200:
+        voice_data = voice_response.content
+
+        files = {
+            'file': ('audio.ogg', voice_data, 'audio/ogg'),
+            'model': (None, 'whisper-1')
+        }
+
+        post_response = requests.post("https://api.goapi.ai/v1/audio/transcriptions", headers=headers, files=files)
+        if post_response.status_code == 200:
+            return {"success": True, "text": post_response.json()["text"]}
+        else:
+            return {"success": False, "text": f"Error: {post_response.status_code}"}
+    else:
+        return {"success": False, "text": f"Error: {voice_response.status_code}"}
+
+
+executor = ThreadPoolExecutor()
+
+
+async def transcribe_voice(voice_file_url: str):
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(executor, transcribe_voice_sync, voice_file_url)
+    return response
+
+
+@gptRouter.message(Voice())
+async def handle_voice(message: Message):
+    duration = message.voice.duration
+    voice_file_id = message.voice.file_id
+    file = await message.bot.get_file(voice_file_id)
+    file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
+
+    response_json = await transcribe_voice(file_url)
+
+    tokens = duration * 20
+    if response_json.get("success"):
+        await message.answer(f"""
+🎤 Обработка аудио затратила `{tokens}` токенов 
+❔ /help - Информация по токенам
+""")
+        await tokenizeService.update_user_token(message.from_user.id, GPTModels.GPT_4o, tokens, 'subtract')
+
+        await handle_gpt_request(message, response_json.get('text'))
+        return
+
+    await message.answer(response_json.get('text'))
 
 
 @gptRouter.message(Document())

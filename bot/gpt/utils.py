@@ -72,7 +72,7 @@ async def send_message(message: Message, text: str):
 
     for part in parts:
         try:
-            await message.answer(part, parse_mode=ParseMode.MARKDOWN)
+            await message.answer(part)
         except Exception as e:
             logging.log(logging.INFO, e)
             await message.answer(part, parse_mode=None)

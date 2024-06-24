@@ -26,6 +26,12 @@ class Photo(BaseFilter):
         return message.photo is not None
 
 
+class Voice(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        print(message)
+        return message.voice is not None
+
+
 class StartWithQuery(BaseFilter):
     def __init__(self, text_command: str):
         self.text_command: str = text_command

@@ -1,9 +1,9 @@
 import asyncio
 import logging
+
 from aiogram import Router, types, F
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, LabeledPrice, Message
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, LabeledPrice
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 from bot.filters import TextCommand, StartWithQuery
 from bot.payment.command_types import payment_command_start, payment_command_text, balance_payment_command_text, \
@@ -60,7 +60,7 @@ def create_buy_balance_keyboard_paym_payment(model):
         inline_keyboard=[
             [
                 InlineKeyboardButton(text="Telegram Stars", callback_data=f"buy_method_stars {model} stars"),
-                # InlineKeyboardButton(text="Переводом на счёт", callback_data=f"buy_method_card {model} card"),
+                # InlineKeyboardButton(text="Опалата картой", callback_data=f"buy_method_card {model} card"),
             ],
         ]
     )
