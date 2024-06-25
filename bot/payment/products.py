@@ -43,7 +43,7 @@ donation_product = {
 buy_balance_product = {
     "title": "Пополнение баланса",
     "provider_token": TOKEN,
-    "currency": "rub",
+    "currency": "RUB",
     "photo_url": "https://storage.yandexcloud.net/gptutor-bucket/DEEP_LOGO.jpg",
     "photo_width": 416,
     "photo_height": 234,
