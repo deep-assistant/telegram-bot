@@ -246,7 +246,7 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
             inline_keyboard=[
                 *get_rub_price_keyboard(
                     "buy_card",
-                    [25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000],
+                    [60000, 100000, 250000, 500000, 1000000, 2500000, 5000000],
                     model
                 ),
                 [
