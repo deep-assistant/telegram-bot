@@ -123,6 +123,7 @@ async def handle_document(message: Message):
 
 /model - 🤖 Смените модель на gpt-4o, чтобы обрабатывать фотографии!        
 """)
+    return
 
     # Получаем информацию о файле фотографии
     file_info = await message.bot.get_file(message.photo[-1].file_id)
@@ -218,6 +219,7 @@ async def handle_voice(message: Message):
 
 /model - 🤖 Смените модель на gpt-4o, чтобы обрабатывать фотографии!        
 """)
+        return
 
     duration = message.voice.duration
     voice_file_id = message.voice.file_id

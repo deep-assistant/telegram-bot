@@ -25,11 +25,10 @@ subscribe_text = """
 """
 
 
-async def check_subscription(message: Message) -> bool:
-    if IS_DEV:
-        return True
+async def check_subscription(message: Message, id: str = None) -> bool:
+    user_id = id if id is not None else message.from_user.id
 
-    chat_member = await message.bot.get_chat_member(chat_id=-1002239712203, user_id=message.from_user.id)
+    chat_member = await message.bot.get_chat_member(chat_id=-1002239712203, user_id=user_id)
 
     return chat_member.status in ['member', 'administrator', 'creator']
 
