@@ -118,13 +118,13 @@ async def handle_buy_balance_query(callback_query: CallbackQuery):
 
 def get_star_price(tokens: int, model: str):
     base_star_price = 1.9
-    base_one_token_price = 0.001 if model == GPTModels.GPT_4o.value else 0.00025
+    base_one_token_price = 0.0008 if model == GPTModels.GPT_4o.value else 0.00025
     print(tokens * base_one_token_price)
     return int(tokens * base_one_token_price / base_star_price)
 
 
 def get_price_rub(tokens: int, model: str):
-    base_one_token_price = 0.001 if model == GPTModels.GPT_4o.value else 0.00025
+    base_one_token_price = 0.0008 if model == GPTModels.GPT_4o.value else 0.00025
     print(tokens * base_one_token_price)
     return int(tokens * base_one_token_price)
 
@@ -143,7 +143,7 @@ def get_rub_price_keyboard(base_callback: str, prices: [int], model):
 
         buttons.append([
             InlineKeyboardButton(
-                text=f"{format_price} токенов ({strikethrough(star_price * 2)}  {star_price} RUB)",
+                text=f"{format_price} токенов ({strikethrough(star_price * 3)}  {star_price} RUB)",
                 callback_data=f"{base_callback} {format_price} {star_price} {model}"
             ),
         ])
@@ -246,7 +246,7 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
             inline_keyboard=[
                 *get_rub_price_keyboard(
                     "buy_card",
-                    [60000, 100000, 250000, 500000, 1000000, 2500000, 5000000],
+                    [100000, 250000, 500000, 1000000, 2500000, 5000000],
                     model
                 ),
                 [
