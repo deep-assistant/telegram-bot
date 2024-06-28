@@ -7,3 +7,7 @@ def include(arr: [str], value: str) -> bool:
 
 def get_user_name(user_id: str, model: Enum):
     return str(user_id) + model.value
+
+
+def divide_into_chunks(lst, chunk_size):
+    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]

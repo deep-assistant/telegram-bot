@@ -110,6 +110,17 @@ async def handle_gpt_request(message: Message, text: str):
 
 @gptRouter.message(Photo())
 async def handle_document(message: Message):
+    tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+
+    if tokens.get("tokens") <= 0:
+        await message.answer("""
+У вас не хватает токенов `GPT-4o`
+
+✨ Проверить Баланс - /balance
+💎 Пополнить баланс - /buy        
+""")
+        return
+
     current_gpt_model = gptService.get_current_model(message.from_user.id)
 
     is_subscribe = await is_chat_member(message)
@@ -125,13 +136,10 @@ async def handle_document(message: Message):
 """)
     return
 
-    # Получаем информацию о файле фотографии
     file_info = await message.bot.get_file(message.photo[-1].file_id)
 
-    # Загружаем файл
     file = await message.bot.download_file(file_info.file_path)
 
-    # Читаем содержимое файла и кодируем в Base64
     photo_bytes = file.read()
     photo_base64 = base64.b64encode(photo_bytes).decode('utf-8')
 
@@ -206,6 +214,17 @@ async def transcribe_voice(voice_file_url: str):
 
 @gptRouter.message(Voice())
 async def handle_voice(message: Message):
+    tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+
+    if tokens.get("tokens") <= 0:
+        await message.answer("""
+У вас не хватает токенов `GPT-4o`
+
+✨ Проверить Баланс - /balance
+💎 Пополнить баланс - /buy        
+""")
+        return
+
     current_gpt_model = gptService.get_current_model(message.from_user.id)
 
     is_subscribe = await is_chat_member(message)
@@ -355,6 +374,7 @@ async def handle_change_model(message: Message):
 @gptRouter.callback_query(TextCommandQuery(system_messages_list))
 async def handle_change_system_message_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
+    print(user_id)
 
     system_message = callback_query.data
     current_system_message = gptService.get_current_system_message(user_id)

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 
@@ -30,6 +31,7 @@ ref_text = """
 
 async def create_token_if_not_exist(user_id):
     user_token = await tokenizeService.get_user_tokens(user_id, GPTModels.GPT_4o)
+    print(user_token)
 
     if user_token is None:
         await tokenizeService.get_tokens(user_id, GPTModels.GPT_4o)
@@ -95,6 +97,8 @@ async def buy(message: types.Message):
 
     is_subscribe = await check_subscription(message)
 
+    await create_token_if_not_exist(message.from_user.id)
+
     if not is_subscribe:
         if str(ref_user_id) == str(message.from_user.id):
             return
@@ -117,12 +121,14 @@ async def buy(message: types.Message):
 
         return
 
+    if ref_user_id is None:
+        return
+
     await apply_ref(message, message.from_user.id, ref_user_id)
 
 
 @startRouter.callback_query(StartWithQuery("ref-is-subscribe"))
 async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
-    print(callback_query.data.split(" "))
     ref_user_id = callback_query.data.split(" ")[1]
     user_id = callback_query.data.split(" ")[2]
 

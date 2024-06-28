@@ -1,16 +1,29 @@
 import asyncio
-from random import randint
 
-from services.utils import async_get
+from config import GO_API_KEY
+from db import data_base, db_key
+from services.image_utils import get_image_model_by_label, get_samplers_by_label
+from services.utils import async_get, async_post
 
 generating_map = {}
 
 
-async def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, steps, seed=randint(1, 10000)):
+async def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, steps, seed="-1"):
     headers = {
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36",
     }
 
+    print({
+        "new": "true",
+        "prompt": prompt,
+        "model": model,
+        "negative_prompt": "(nsfw:1.5),verybadimagenegative_v1.3, ng_deepnegative_v1_75t, (ugly face:0.5),cross-eyed,sketches, (worst quality:2), (low quality:2.1), (normal quality:2), lowres, normal quality, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, bad anatomy, DeepNegative, facing away, tilted head, {Multiple people}, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worstquality, low quality, normal quality, jpegartifacts, signature, watermark, username, blurry, bad feet, cropped, poorly drawn hands, poorly drawn face, mutation, deformed, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, extra fingers, fewer digits, extra limbs, extra arms,extra legs, malformed limbs, fused fingers, too many fingers, long neck, cross-eyed,mutated hands, polar lowres, bad body, bad proportions, gross proportions, text, error, missing fingers, missing arms, missing legs, extra digit, extra arms, extra leg, extra foot, repeating hair" + negative_prompt,
+        "steps": steps,
+        "cfg": guidance_scale,
+        "seed": seed,
+        "sampler": scheduler,
+        "aspect_ratio": "square",
+    })
     resp = await async_get(
         "https://api.prodia.com/generate",
         params={
@@ -38,7 +51,17 @@ async def txt2img(prompt, negative_prompt, model, scheduler, guidance_scale, ste
 
 
 class ImageService:
-    default_model = "ICantBelieveItsNotPhotography_seco.safetensors [4e7a3dfd]"
+    CURRENT_IMAGE_MODEL = 'current_image_model'
+    CURRENT_SAMPLER = 'current_sampler'
+    CURRENT_STEPS = 'current_steps'
+    CURRENT_CFG = 'current_cfg'
+    DALLE_SIZE = 'dalee_size'
+
+    default_model = "I Cant Believe Its Not Photography Seco"
+    default_sampler = "DPM++ SDE Karras"
+    default_steps = "20"
+    default_cfg = "7"
+    default_dalle_size = "1024x1024"
 
     def set_waiting_image(self, user_id, value: bool):
         generating_map[user_id] = value
@@ -50,15 +73,94 @@ class ImageService:
 
         return generating_map[user_id]
 
-    async def generate(self, prompt: str):
+    def get_current_image(self, user_id: str) -> str:
+        try:
+            return data_base[db_key(user_id, self.CURRENT_IMAGE_MODEL)].decode('utf-8')
+        except KeyError:
+            self.set_current_image(user_id, self.default_model)
+            return self.default_model
+
+    def set_current_image(self, user_id: str, state: str):
+        with data_base.transaction():
+            data_base[db_key(user_id, self.CURRENT_IMAGE_MODEL)] = state
+        data_base.commit()
+
+    def get_sampler(self, user_id: str) -> str:
+        try:
+            return data_base[db_key(user_id, self.CURRENT_SAMPLER)].decode('utf-8')
+        except KeyError:
+            self.set_sampler_state(user_id, self.default_sampler)
+            return self.default_sampler
+
+    def set_sampler_state(self, user_id: str, state: str):
+        with data_base.transaction():
+            data_base[db_key(user_id, self.CURRENT_SAMPLER)] = state
+        data_base.commit()
+
+    def get_steps(self, user_id: str) -> str:
+        try:
+            return data_base[db_key(user_id, self.CURRENT_STEPS)].decode('utf-8')
+        except KeyError:
+            self.set_steps_state(user_id, self.default_steps)
+            return self.default_steps
+
+    def set_steps_state(self, user_id: str, state: str):
+        with data_base.transaction():
+            data_base[db_key(user_id, self.CURRENT_STEPS)] = state
+        data_base.commit()
+
+    def get_cfg_model(self, user_id: str) -> str:
+        try:
+            return data_base[db_key(user_id, self.CURRENT_CFG)].decode('utf-8')
+        except KeyError:
+            self.set_cfg_state(user_id, self.default_cfg)
+            return self.default_cfg
+
+    def set_cfg_state(self, user_id: str, state: str):
+        with data_base.transaction():
+            data_base[db_key(user_id, self.CURRENT_CFG)] = state
+        data_base.commit()
+
+    def get_dalle_size(self, user_id: str) -> str:
+        try:
+            return data_base[db_key(user_id, self.DALLE_SIZE)].decode('utf-8')
+        except KeyError:
+            self.set_dalle_size(user_id, self.default_dalle_size)
+            return self.default_dalle_size
+
+    def set_dalle_size(self, user_id: str, state: str):
+        with data_base.transaction():
+            data_base[db_key(user_id, self.DALLE_SIZE)] = state
+        data_base.commit()
+
+    async def generate(self, prompt: str, user_id: str):
         return await txt2img(
             prompt=prompt,
-            model=self.default_model,
+            model=get_image_model_by_label(self.get_current_image(user_id))["value"],
             negative_prompt="",
-            scheduler="DPM++ SDE Karras",
-            guidance_scale=7,
-            steps=25,
+            scheduler=get_samplers_by_label(self.get_sampler(user_id))["value"],
+            guidance_scale=int(self.get_cfg_model(user_id)),
+            steps=int(self.get_steps(user_id)),
         )
+
+    async def generate_dalle(self, user_id: str, prompt: str):
+        url = 'https://api.goapi.xyz/v1/images/generations'
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + GO_API_KEY
+        }
+
+        data = {
+            "model": "dall-e-3",
+            "prompt": prompt,
+            "n": 1,
+            "size": self.get_dalle_size(user_id),
+            "quality": 'standard'
+        }
+
+        response = await async_post(url, headers=headers, json=data, timeout=30)
+
+        return response.json()
 
 
 imageService = ImageService()

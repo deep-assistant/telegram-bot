@@ -6,6 +6,7 @@ from db import data_base, db_key
 class StateTypes(Enum):
     Default = "default"
     Image = "image"
+    Dalle3 = "dalle3"
 
 
 class StateService:
@@ -28,5 +29,8 @@ class StateService:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.Image.value
 
+    def is_dalle3_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.Dalle3.value
 
 stateService = StateService()
