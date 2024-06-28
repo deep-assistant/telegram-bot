@@ -57,8 +57,8 @@ class ImageService:
     CURRENT_CFG = 'current_cfg'
     DALLE_SIZE = 'dalee_size'
 
-    default_model = "I Cant Believe Its Not Photography Seco"
-    default_sampler = "DPM++ SDE Karras"
+    default_model = "ICantBelieveItsNotPhotographySeco"
+    default_sampler = "DPM++SDEKarras"
     default_steps = "20"
     default_cfg = "7"
     default_dalle_size = "1024x1024"
