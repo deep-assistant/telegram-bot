@@ -175,7 +175,7 @@ async def generate_base_dalle3_keyboard(callback_query: CallbackQuery):
             return checked_text(size)
         return size
 
-    await callback_query.message.edit_text("Параметры *Dalle3*:")
+    await callback_query.message.edit_text("Параметры *Dall-e-3*:")
     await callback_query.message.edit_reply_markup(
         reply_markup=InlineKeyboardMarkup(
             resize_keyboard=True,
