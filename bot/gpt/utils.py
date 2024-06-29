@@ -1,9 +1,8 @@
 import logging
 
-from aiogram.enums import ParseMode
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
-from config import IS_DEV
+from services import tokenizeService
 from services.gpt_service import GPTModels
 
 
@@ -34,6 +33,7 @@ async def check_subscription(message: Message, id: str = None) -> bool:
 
 
 async def is_chat_member(message: Message) -> bool:
+    await tokenizeService.check_tokens_update_tokens(message.from_user.id)
     is_subscribe = await check_subscription(message)
 
     if not is_subscribe:

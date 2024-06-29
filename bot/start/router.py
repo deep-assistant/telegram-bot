@@ -31,13 +31,12 @@ ref_text = """
 
 async def create_token_if_not_exist(user_id):
     user_token = await tokenizeService.get_user_tokens(user_id, GPTModels.GPT_4o)
-    print(user_token)
 
     if user_token is None:
         await tokenizeService.get_tokens(user_id, GPTModels.GPT_4o)
         await tokenizeService.get_tokens(user_id, GPTModels.GPT_3_5)
         await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, 15000 - 1500)
-        await tokenizeService.update_user_token(user_id, GPTModels.GPT_3_5, 40000 - 1500)
+        await tokenizeService.check_tokens_update_tokens(user_id)
 
     return user_token
 

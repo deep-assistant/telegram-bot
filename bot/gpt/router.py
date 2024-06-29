@@ -134,7 +134,7 @@ async def handle_document(message: Message):
 
 /model - 🤖 Смените модель на gpt-4o, чтобы обрабатывать фотографии!        
 """)
-    return
+        return
 
     file_info = await message.bot.get_file(message.photo[-1].file_id)
 
@@ -284,6 +284,7 @@ async def handle_document(message: Message):
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
 async def handle_balance(message: Message):
+    await tokenizeService.check_tokens_update_tokens(message.from_user.id)
     gpt_35_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
     gpt_4o_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
 
@@ -374,7 +375,6 @@ async def handle_change_model(message: Message):
 @gptRouter.callback_query(TextCommandQuery(system_messages_list))
 async def handle_change_system_message_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
-    print(user_id)
 
     system_message = callback_query.data
     current_system_message = gptService.get_current_system_message(user_id)
