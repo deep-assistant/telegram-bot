@@ -33,7 +33,6 @@ ref_text = """
 
 async def create_token_if_not_exist(user_id):
     user_token = await tokenizeService.get_user_tokens(user_id, GPTModels.GPT_4o)
-
     if user_token is None:
         await tokenizeService.get_tokens(user_id, GPTModels.GPT_4o)
         await tokenizeService.get_tokens(user_id, GPTModels.GPT_3_5)
@@ -44,12 +43,13 @@ async def create_token_if_not_exist(user_id):
 
 
 async def apply_ref(message: types.Message, user_id, ref_user_id: str):
-    user_token = await create_token_if_not_exist(user_id)
+    user_token = await tokenizeService.get_user_tokens(user_id, GPTModels.GPT_4o)
 
     if user_token is None and str(ref_user_id) != str(user_id):
         if ref_user_id:
             logging.log(logging.INFO, f"Новый реферал {ref_user_id} -> {user_id}!")
 
+        await create_token_if_not_exist(user_id)
         await tokenizeService.update_user_token(user_id, GPTModels.GPT_3_5, 5000)
         await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, 5000)
         await message.answer(text="""
@@ -93,12 +93,14 @@ async def buy(message: types.Message):
     )
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
+    print(ref_user_id)
 
     await message.answer(text=hello_text, reply_markup=keyboard)
 
     is_subscribe = await check_subscription(message)
 
-    await create_token_if_not_exist(message.from_user.id)
+    if ref_user_id is None:
+        await create_token_if_not_exist(message.from_user.id)
 
     if not is_subscribe:
         if str(ref_user_id) == str(message.from_user.id):
@@ -124,7 +126,7 @@ async def buy(message: types.Message):
 
     if ref_user_id is None:
         return
-
+    print(ref_user_id, '129')
     await apply_ref(message, message.from_user.id, ref_user_id)
 
 
