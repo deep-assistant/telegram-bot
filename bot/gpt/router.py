@@ -17,7 +17,7 @@ from bot.gpt.command_types import change_system_message_command, change_system_m
     balance_text, balance_command, clear_command, clear_text
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
-from bot.gpt.utils import is_chat_member, send_message, get_response_text, \
+from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
 from bot.utils import include
 from config import TOKEN, GO_API_KEY
@@ -25,6 +25,40 @@ from services import gptService, GPTModels, completionsService, tokenizeService
 from services.gpt_service import SystemMessages
 
 gptRouter = Router()
+
+
+async def multimodal_query(message: Message, message_loading: Message, text: str):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+
+    bot_model = gptService.get_current_model(user_id)
+
+    if bot_model.value == GPTModels.GPT_3_5.value:
+        return {"is_requested": False, "total_tokens": 0}
+
+    message_type_text = await completionsService.get_message_type(text)
+    message_type = message_type_text["text"]
+
+    print(message_type)
+    if message_type == "search" or message_type == "generate_image" or message_type == "modify_image":
+        await message.bot.send_chat_action(chat_id, "typing")
+        result = await completionsService.get_multi_modal_conversation(text)
+        await message.bot.send_chat_action(chat_id, "typing")
+
+        await message.answer(result["text"])
+        if result["url_image"] is not None:
+            await message.answer_photo(result["url_image"])
+
+        gptService.set_is_requesting(user_id, False)
+        await asyncio.sleep(0.5)
+        await message_loading.delete()
+        tokens = 2000 + message_type_text["total_tokens"] * 2
+        await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, tokens, "subtract")
+        await message.answer(get_tokens_message(tokens))
+
+        return {"is_requested": True, "total_tokens": message_type_text["total_tokens"]}
+
+    return {"is_requested": False, "total_tokens": message_type_text["total_tokens"]}
 
 
 async def handle_gpt_request(message: Message, text: str):
@@ -61,6 +95,20 @@ async def handle_gpt_request(message: Message, text: str):
 
         gpt_tokens_before = await tokenizeService.get_tokens(user_id, bot_model)
 
+        if gpt_tokens_before.get("tokens", 0) <= 0:
+            await message.answer(
+                text=f"""
+            "Ошибка 😔: Превышен лимит использования токенов."
+
+            ✨ Проверить Баланс - /balance
+            💎 Пополнить баланс - /buy
+            """)
+
+        multi_modal_request = await multimodal_query(message, message_loading, text)
+
+        if multi_modal_request["is_requested"]:
+            return
+
         answer = await completionsService.query_chatgpt(
             user_id,
             text,
@@ -87,22 +135,21 @@ async def handle_gpt_request(message: Message, text: str):
             await message.answer(answer.get('response'))
             await asyncio.sleep(0.5)
             await message_loading.delete()
+            gptService.set_is_requesting(user_id, False)
 
             return
 
         gpt_tokens_after = await tokenizeService.get_tokens(user_id, bot_model)
 
         gptService.set_is_requesting(user_id, False)
-
-        await send_message(
-            message,
-            get_response_text(
-                answer,
-                gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0)
-            )
-        )
+        await send_message(message, answer.get('response'))
         await asyncio.sleep(0.5)
         await message_loading.delete()
+        await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, multi_modal_request["total_tokens"],
+                                                "subtract")
+        await message.answer(get_tokens_message(
+            gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0) + multi_modal_request["total_tokens"]
+        ))
     except Exception as e:
         logging.log(logging.INFO, e)
         gptService.set_is_requesting(user_id, False)
@@ -177,7 +224,8 @@ async def handle_document(message: Message):
 
     await message.bot.send_chat_action(message.chat.id, "typing")
 
-    await send_message(message, get_response_text({"success": True, "response": content}, tokens))
+    await send_message(message, content)
+    await message.answer(get_tokens_message(tokens))
 
 
 def transcribe_voice_sync(voice_file_url: str):
