@@ -150,6 +150,7 @@ class CompletionsService:
                 stream=False,
             )
 
+            print(chat_completion.choices[0].message.content)
             return {"text": chat_completion.choices[0].message.content,
                     "total_tokens": chat_completion.usage.total_tokens}
         except Exception as e:
