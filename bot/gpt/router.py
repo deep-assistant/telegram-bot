@@ -140,8 +140,9 @@ async def handle_gpt_request(message: Message, text: str):
         await send_message(message, answer.get('response'))
         await asyncio.sleep(0.5)
         await message_loading.delete()
-        await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, multi_modal_request["total_tokens"],
-                                                "subtract")
+        if bot_model.value == GPTModels.GPT_4o.value:
+            await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, multi_modal_request["total_tokens"],
+                                                    "subtract")
         await message.answer(get_tokens_message(
             gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0) + multi_modal_request["total_tokens"]
         ))

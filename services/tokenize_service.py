@@ -51,7 +51,6 @@ class TokenizeService:
                 print("Пока ещё не новый день 😴")
         else:
             token_entity = await self.get_tokens(user_id, GPTModels.GPT_3_5)
-
             await self.update_user_token(user_id, GPTModels.GPT_3_5, 50000 - token_entity.get('tokens'))
             self.set_check_date(user_id, now.isoformat())
 
