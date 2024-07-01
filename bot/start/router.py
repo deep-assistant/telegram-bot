@@ -97,7 +97,6 @@ async def buy(message: types.Message):
     )
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
-    print(ref_user_id)
 
     await message.answer(text=hello_text, reply_markup=keyboard)
 

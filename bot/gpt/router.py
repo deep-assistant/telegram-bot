@@ -78,14 +78,6 @@ async def handle_gpt_request(message: Message, text: str):
 
         chat_id = message.chat.id
 
-        is_requesting = gptService.get_is_requesting(user_id)
-
-        if is_requesting:
-            logging.log(logging.INFO, is_requesting)
-            return
-
-        gptService.set_is_requesting(user_id, True)
-
         bot_model = gptService.get_current_model(user_id)
         gpt_model = gptService.get_mapping_gpt_model(user_id)
 
@@ -140,13 +132,11 @@ async def handle_gpt_request(message: Message, text: str):
             await message.answer(answer.get('response'))
             await asyncio.sleep(0.5)
             await message_loading.delete()
-            gptService.set_is_requesting(user_id, False)
 
             return
 
         gpt_tokens_after = await tokenizeService.get_tokens(user_id, bot_model)
 
-        gptService.set_is_requesting(user_id, False)
         await send_message(message, answer.get('response'))
         await asyncio.sleep(0.5)
         await message_loading.delete()
@@ -157,7 +147,6 @@ async def handle_gpt_request(message: Message, text: str):
         ))
     except Exception as e:
         logging.log(logging.INFO, e)
-        gptService.set_is_requesting(user_id, False)
 
 
 @gptRouter.message(Photo())

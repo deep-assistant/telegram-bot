@@ -48,11 +48,12 @@ class GPTService:
         is_requesting[user_id] = value
 
     def get_is_requesting(self, user_id):
-        if not (user_id in is_requesting):
-            self.set_is_requesting(user_id, False)
-            return False
-
-        return is_requesting[user_id]
+        return False
+        # if not (user_id in is_requesting):
+        #     self.set_is_requesting(user_id, False)
+        #     return False
+        #
+        # return is_requesting[user_id]
 
     def get_current_system_message(self, user_id: str) -> str:
         try:
