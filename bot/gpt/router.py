@@ -7,6 +7,7 @@ from tempfile import NamedTemporaryFile
 import aiofiles
 import requests
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from openai import OpenAI
 
@@ -14,7 +15,7 @@ from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
-    balance_text, balance_command, clear_command, clear_text
+    balance_text, balance_command, clear_command, clear_text, multimodal_command
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
@@ -39,7 +40,6 @@ async def multimodal_query(message: Message, message_loading: Message, text: str
     message_type_text = await completionsService.get_message_type(text)
     message_type = message_type_text["text"]
 
-    print(message_type)
     if message_type == "search" or message_type == "generate_image" or message_type == "modify_image":
         await message.bot.send_chat_action(chat_id, "typing")
         result = await completionsService.get_multi_modal_conversation(text)
@@ -59,6 +59,55 @@ async def multimodal_query(message: Message, message_loading: Message, text: str
         return {"is_requested": True, "total_tokens": message_type_text["total_tokens"]}
 
     return {"is_requested": False, "total_tokens": message_type_text["total_tokens"]}
+
+
+@gptRouter.message(Command("multimodal"))
+async def handle_multimodal_request(message: Message):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    bot_model = gptService.get_current_model(user_id)
+
+    gpt_tokens_before = await tokenizeService.get_tokens(user_id, bot_model)
+
+    if bot_model.value == GPTModels.GPT_3_5.value:
+        await message.answer(
+            text=f"""
+Модель `gpt-3.5`, не поддерживает мультимодальный режим
+
+/model - Сменить модель
+""")
+        return
+
+    if gpt_tokens_before.get("tokens", 0) <= 0:
+        await message.answer(
+            text=f"""
+Ошибка 😔: Превышен лимит использования токенов.
+
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс 
+/referral - Пригласить друга, чтобы получить бесплатные токены!
+/model - Сменить модель
+""")
+        return
+
+    text = message.text.split("/multimodal ")[1]
+    message_loading = await message.answer("**⌛️Ожидайте ответ...**")
+
+    await message.bot.send_chat_action(chat_id, "typing")
+    result = await completionsService.get_multi_modal_conversation(text)
+    await message.bot.send_chat_action(chat_id, "typing")
+
+    await message.answer(result["text"])
+
+    if result["url_image"] is not None:
+        await message.answer_photo(result["url_image"])
+
+    gptService.set_is_requesting(user_id, False)
+    await asyncio.sleep(0.5)
+    await message_loading.delete()
+
+    await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, 2000, "subtract")
+    await message.answer(get_tokens_message(2000))
 
 
 async def handle_gpt_request(message: Message, text: str):
