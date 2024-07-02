@@ -21,9 +21,14 @@ def balance_text():
 def balance_command():
     return "/balance"
 
+
 def clear_text():
     return "🧹 Очистить контекст"
 
 
 def clear_command():
     return "/clear"
+
+
+def multimodal_command():
+    return "/multimodal"
