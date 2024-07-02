@@ -362,7 +362,9 @@ async def handle_document(message: Message):
             with NamedTemporaryFile(delete=False) as temp_file:
                 await message.bot.download(user_document, temp_file.name)
             async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:
-                await handle_gpt_request(message, await file.read())
+                text = await file.read()
+                caption = message.caption if message.caption is not None else ""
+                await handle_gpt_request(message, f"{caption}\n{text}")
     except UnicodeDecodeError as e:
         logging.log(logging.INFO, e)
         await message.answer(
