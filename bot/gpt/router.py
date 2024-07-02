@@ -24,6 +24,7 @@ from bot.utils import include
 from config import TOKEN, GO_API_KEY
 from services import gptService, GPTModels, completionsService, tokenizeService
 from services.gpt_service import SystemMessages
+from services.utils import async_post, async_get
 
 gptRouter = Router()
 
@@ -273,12 +274,12 @@ async def handle_document(message: Message):
     await message.answer(get_tokens_message(tokens))
 
 
-def transcribe_voice_sync(voice_file_url: str):
+async def transcribe_voice_sync(voice_file_url: str):
     headers = {
         "Authorization": f"Bearer {GO_API_KEY}",
     }
 
-    voice_response = requests.get(voice_file_url)
+    voice_response = await async_get(voice_file_url)
     if voice_response.status_code == 200:
         voice_data = voice_response.content
 
@@ -287,7 +288,7 @@ def transcribe_voice_sync(voice_file_url: str):
             'model': (None, 'whisper-1')
         }
 
-        post_response = requests.post("https://api.goapi.ai/v1/audio/transcriptions", headers=headers, files=files)
+        post_response = await async_post("https://api.goapi.ai/v1/audio/transcriptions", headers=headers, files=files)
         if post_response.status_code == 200:
             return {"success": True, "text": post_response.json()["text"]}
         else:
@@ -302,7 +303,7 @@ executor = ThreadPoolExecutor()
 async def transcribe_voice(voice_file_url: str):
     loop = asyncio.get_event_loop()
     response = await loop.run_in_executor(executor, transcribe_voice_sync, voice_file_url)
-    return response
+    return await response
 
 
 @gptRouter.message(Voice())
@@ -327,9 +328,9 @@ async def handle_voice(message: Message):
 
     if current_gpt_model.value is not GPTModels.GPT_4o.value:
         await message.answer("""
-Данная модель не поддерживает обработку фотографий! 😔
+Данная модель не поддерживает обработку голосовых! 😔
 
-/model - 🤖 Смените модель на gpt-4o, чтобы обрабатывать фотографии!        
+/model - 🤖 Смените модель на gpt-4o, чтобы обрабатывать голосовые!        
 """)
         return
 
@@ -519,4 +520,22 @@ async def handle_change_model_query(callback_query: CallbackQuery):
 
 @gptRouter.message()
 async def handle_completion(message: Message):
+    # print(message.json)
+    # forwarded_messages = []
+    # # Проверка, было ли сообщение переслано
+    # if message.forward_from or message.forward_from_chat:
+    #     forwarded_messages.append(message)
+    #     print(forwarded_messages)
+    #
+    #     print(len(forwarded_messages))
+    #     # Пример объединения сообщений в одну "пачку"
+    #     if len(forwarded_messages) >= 2:  # Настроить размер "пачки", если хотите
+    #         pass
+    #         # combined_text = "\n".join(m.text for m in forwarded_messages if m.text)
+    #         # await bot.send_message(message.chat.id, combined_text)
+    #         # forwarded_messages.clear()
+    #     else:
+    #         print( "Сообщение добавлено в пачку.")
+    # else:
+    #     print("Это не пересланное сообщение.")
     await handle_gpt_request(message, message.text)
