@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 from bot.utils import get_user_name
 from config import PROXY_URL, ADMIN_TOKEN
@@ -27,11 +27,12 @@ class TokenizeService:
 
     async def check_tokens_update_tokens(self, user_id):
         now = datetime.now()
-        midnight_today = datetime.combine(now.date(), time(0, 0))
         last_check_data = self.get_check_date(user_id)
 
         if last_check_data is not None:
             last_check = datetime.fromisoformat(last_check_data)
+            midnight_today = datetime.combine(last_check.date() + timedelta(days=1), time(0, 0))
+
             if last_check < now and now > midnight_today:
                 token_entity = await self.get_tokens(user_id, GPTModels.GPT_3_5)
                 tokens = token_entity.get('tokens')
