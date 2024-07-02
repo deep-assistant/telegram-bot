@@ -63,6 +63,7 @@ async def multimodal_query(message: Message, message_loading: Message, text: str
 
 @gptRouter.message(Command("multimodal"))
 async def handle_multimodal_request(message: Message):
+    print("multimodal")
     user_id = message.from_user.id
     chat_id = message.chat.id
     bot_model = gptService.get_current_model(user_id)
