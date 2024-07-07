@@ -342,7 +342,25 @@ async def handle_change_model(message: Message):
 
     current_model = gptService.get_current_model(message.from_user.id)
 
-    await message.answer(text="Выбери модель: 🤖", reply_markup=create_change_model_keyboard(current_model))
+    text = """
+Выберите модель: 🤖  
+
+Как рассчитывается energy для моделей?
+1000 *GPT-4o* токенов = 1000 `energy` ⚡️
+1000 *GPT-3.5-turbo* токенов = 70 `energy` ⚡️
+
+1000 *Nemotron-4-340B* токенов = 800 `energy` ⚡️
+
+1000 *Llama-3-70B* токенов = 285 `energy` ⚡️
+1000 *Qwen2-72B* токенов = 285 `energy` ⚡️
+1000 *CodeLlama-70b* токенов = 285 `energy` ⚡️
+1000 *WizardLM-2-8x22B* токенов = 285 `energy` ⚡️
+
+1000 *Meta-Llama-3-8B* токенов = 20 `energy` ⚡️
+1000 *WizardLM-2-7B* токенов = 20 `energy` ⚡️    
+"""
+
+    await message.answer(text=text, reply_markup=create_change_model_keyboard(current_model))
     await asyncio.sleep(0.5)
     await message.delete()
 
