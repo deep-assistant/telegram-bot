@@ -80,11 +80,10 @@ async def buy(message: types.Message):
     )
 
 
-# Обработчик команды /balance
 @paymentsRouter.message(TextCommand([balance_payment_command_text(), balance_payment_command_start()]))
 async def buy_balance(message: types.Message):
-    await message.answer(text="Баланс какой модели вы хотите пополнить?",
-                         reply_markup=create_buy_balance_keyboard_model())
+    await message.answer(text="Выбирете способ оплаты",
+                         reply_markup=create_buy_balance_keyboard_paym_payment(GPTModels.GPT_4o.value))
 
 
 # Обработчик запроса "назад к выбору модели"
@@ -95,14 +94,6 @@ async def handle_buy_balance_query(callback_query: CallbackQuery):
         await callback_query.message.edit_reply_markup(reply_markup=create_buy_balance_keyboard_model())
     except Exception:
         pass
-
-
-# Обработчик запроса выбора модели
-@paymentsRouter.callback_query(StartWithQuery("buy-gpt"))
-async def handle_buy_balance_model_query(callback_query: CallbackQuery):
-    model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text(text="Выбирете способ оплаты")
-    await callback_query.message.edit_reply_markup(reply_markup=create_buy_balance_keyboard_paym_payment(model))
 
 
 # Обработчик запроса "назад к выбору способа оплаты"
@@ -143,7 +134,7 @@ def get_rub_price_keyboard(base_callback: str, prices: [int], model):
 
         buttons.append([
             InlineKeyboardButton(
-                text=f"{format_price} токенов ({strikethrough(star_price * 3)}  {star_price} RUB)",
+                text=f"{format_price} energy ⚡ ({star_price} RUB)",
                 callback_data=f"{base_callback} {format_price} {star_price} {model}"
             ),
         ])
@@ -160,7 +151,7 @@ def get_star_price_keyboard(base_callback: str, prices: [int], model):
 
         buttons.append([
             InlineKeyboardButton(
-                text=f"{format_price} токенов ({strikethrough(star_price * 2)}  {star_price} ⭐️)",
+                text=f"{format_price} energy ⚡ ({star_price} ⭐️)",
                 callback_data=f"{base_callback} {format_price} {star_price} {model}"
             ),
         ])
@@ -168,96 +159,44 @@ def get_star_price_keyboard(base_callback: str, prices: [int], model):
     return buttons
 
 
-# Обработчик запроса покупки токенов Telegram Stars
 @paymentsRouter.callback_query(StartWithQuery("buy_method_stars"))
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text("""
-На сколько токенов вы хотите пополнить баланс?
+    await callback_query.message.edit_text("Насколько `energy` вы хотите пополнить баланс?")
 
-На данный момент действует скидка! 
-Успей получить токены в 2-4 раза дешевле!
-""")
-
-    if GPTModels.GPT_3_5.value == model:
-        await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
-            resize_keyboard=True,
-            inline_keyboard=[
-                *get_star_price_keyboard(
-                    "buy_stars",
-                    [100000, 250000, 500000, 1000000, 2500000],
-                    model
-                ),
-                [
-                    InlineKeyboardButton(text="⬅️ Назад к выбору модели", callback_data="back_buy_model"),
-                ],
-                [
-                    InlineKeyboardButton(text="⬅️ Назад к выбору способа оплаты",
-                                         callback_data=f"back_buy_method {model}"),
-                ]
-            ]))
-        return
-
-    if GPTModels.GPT_4o.value == model:
-        await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
-            resize_keyboard=True,
-            inline_keyboard=[
-                *get_star_price_keyboard(
-                    "buy_stars",
-                    [25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000],
-                    model
-                ),
-                [
-                    InlineKeyboardButton(text="⬅️ Назад к выбору модели", callback_data="back_buy_model"),
-                ],
-                [
-                    InlineKeyboardButton(text="⬅️ Назад к выбору способа оплаты",
-                                         callback_data=f"back_buy_method {model}"),
-                ]
-            ]))
-        return
+    await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            *get_star_price_keyboard(
+                "buy_stars",
+                [25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000],
+                model
+            ),
+            [
+                InlineKeyboardButton(text="⬅️ Назад к выбору способа оплаты",
+                                     callback_data=f"back_buy_method {model}"),
+            ]
+        ]))
 
 
-# Обработчик запроса покупки токенов переводом на счёт
 @paymentsRouter.callback_query(StartWithQuery("buy_method_card"))
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text("Насколько токенов вы хотите пополнить баланс?")
+    await callback_query.message.edit_text("Насколько `energy` вы хотите пополнить баланс?")
 
-    if GPTModels.GPT_3_5.value == model:
-        await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
-            resize_keyboard=True,
-            inline_keyboard=[
-                *get_rub_price_keyboard(
-                    "buy_card",
-                    [250000, 500000, 1000000, 2500000],
-                    model
-                ),
-                [
-                    InlineKeyboardButton(text="⬅️ Назад к выбору способа оплаты",
-                                         callback_data=f"back_buy_method {model}"),
-                ]
-            ]))
-        return
-
-    if GPTModels.GPT_4o.value == model:
-        await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
-            resize_keyboard=True,
-            inline_keyboard=[
-                *get_rub_price_keyboard(
-                    "buy_card",
-                    [100000, 250000, 500000, 1000000, 2500000, 5000000],
-                    model
-                ),
-                [
-                    InlineKeyboardButton(text="⬅️ Назад к выбору модели", callback_data="back_buy_model"),
-                ],
-                [
-                    InlineKeyboardButton(text="⬅️ Назад к выбору способа оплаты",
-                                         callback_data=f"back_buy_method {model}"),
-                ]
-            ]))
-        return
+    await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            *get_rub_price_keyboard(
+                "buy_card",
+                [100000, 250000, 500000, 1000000, 2500000, 5000000],
+                model
+            ),
+            [
+                InlineKeyboardButton(text="⬅️ Назад к выбору способа оплаты",
+                                     callback_data=f"back_buy_method {model}"),
+            ]
+        ]))
 
 
 # Обработчик запроса отправки инвойса (Telegram Stars)
@@ -267,8 +206,8 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     tokens = callback_query.data.split(" ")[1]
     model = callback_query.data.split(" ")[3]
     await callback_query.message.answer_invoice(
-        title="Покупка токенов",
-        description=f"Купить {tokens} токенов {model}?",
+        title="Покупка energy ⚡",
+        description=f"Купить {tokens} energy ⚡?",
         prices=[LabeledPrice(label="XTR", amount=amount)],
         provider_token="",
         payload=f"buy_balance {tokens.replace(',', '')} {model} stars",
@@ -286,17 +225,16 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     tokens = callback_query.data.split(" ")[1]
     model = callback_query.data.split(" ")[3]
 
-    print(str(int(amount / 100)) + ".00")
     await callback_query.bot.send_invoice(
         callback_query.message.chat.id,
         **buy_balance_product,
-        description=f"🤩 Покупка {tokens} токенов {model}",
+        description=f"🤩 Покупка {tokens} energy ⚡",
         payload=f"buy_balance {tokens.replace(',', '')} {model} card",
-        prices=[types.LabeledPrice(label=f"Покупка {tokens} токенов", amount=amount)],
+        prices=[types.LabeledPrice(label=f"Покупка {tokens} energy ⚡", amount=amount)],
         provider_data=json.dumps(
             {"receipt": {
                 "items": [{
-                    "description": f"🤩 Покупка {tokens} токенов {model}",
+                    "description": f"🤩 Покупка {tokens} energy ⚡",
                     "quantity": "1",
                     "amount": {
                         "value": str(int(amount / 100)) + ".00",
@@ -351,26 +289,22 @@ async def successful_payment(message: types.Message):
         return
 
     if message.successful_payment.invoice_payload.startswith("buy_balance"):
-        await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
-        await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+        await tokenizeService.get_tokens(message.from_user.id)
 
         tokens = int(message.successful_payment.invoice_payload.split(" ")[1])
-        model = GPTModels(message.successful_payment.invoice_payload.split(" ")[2])
-        await tokenizeService.update_user_token(message.from_user.id, model, tokens)
+        await tokenizeService.update_user_token(message.from_user.id, tokens)
 
         if message.successful_payment.invoice_payload.split(" ")[3] == "stars":
             await message.answer(
-                f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens} токенов!*")
+                f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}* energy ⚡!")
         else:
             await message.answer(
-                f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens} токенов!*")
+                f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}* energy ⚡!")
 
-        gpt_35_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_3_5)
-        gpt_4o_tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+        gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)
 
         await message.answer(f"""
-        💵 Текущий баланс: 
+💵 Текущий баланс:
 
-🤖 `GPT-3.5` : {gpt_35_tokens.get("tokens")} токенов
-🦾 `GPT-4o` : {gpt_4o_tokens.get("tokens")} токенов
+*{gpt_tokens.get("tokens")}* `energy` ⚡ 
 """)

@@ -6,7 +6,13 @@ from db import data_base, db_key
 class GPTModels(Enum):
     GPT_4o = "gpt-4o"
     GPT_3_5 = "gpt-3.5"
-    # Llama3_8b = "Llama3-8b"
+    Nemotron_4_340b = "Nemotron_4_340b"
+    Llama_3_70b = "Llama_3_70B"
+    Qwen2_72b = "Qwen2_72B"
+    CodeLlama_70b = "CodeLlama_70b"
+    WizardLM_2_8_x22b = "WizardLM_2_8_x22b"
+    Llama_3_8B = "Llama_3_8B"
+    WizardLM_2_7B = "WizardLM_2_7B"
 
 
 class SystemMessages(Enum):
@@ -18,9 +24,14 @@ class SystemMessages(Enum):
 is_requesting = {}
 
 gpt_models = {
-    GPTModels.GPT_3_5.value: "gpt-35-16k",
-    GPTModels.GPT_4o.value: "gpt-4o",
-    # GPTModels.Llama3_8b.value: "meta-llama/Meta-Llama-3-8B-Instruct"
+    GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
+    GPTModels.GPT_4o.value: "gpt-4o-plus",
+    GPTModels.Qwen2_72b.value: "Qwen/Qwen2-72B-Instruct",
+    GPTModels.Nemotron_4_340b.value: "nvidia/Nemotron-4-340B-Instruct",
+    GPTModels.Llama_3_70b.value: "meta-llama/Meta-Llama-3-70B-Instruct",
+    GPTModels.CodeLlama_70b.value: "codellama/CodeLlama-70b-Instruct-hf",
+    GPTModels.Llama_3_8B.value: "meta-llama/Meta-Llama-3-8B-Instruct",
+    GPTModels.WizardLM_2_7B.value: "microsoft/WizardLM-2-7B"
 }
 
 

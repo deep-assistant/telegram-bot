@@ -1,11 +1,9 @@
 import asyncio
 import json
-import logging
 import re
 from typing import Any
 
-import requests
-from openai import OpenAI, AsyncClient
+from openai import OpenAI
 
 from bot.utils import get_user_name
 from config import PROXY_URL, ADMIN_TOKEN, KEY_DEEPINFRA, GO_API_KEY
@@ -97,15 +95,13 @@ class CompletionsService:
         return {"success": True, "response": chat_completion.choices[0].message.content}
 
     async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels) -> Any:
-        if bot_model.value is not GPTModels.GPT_4o.value and bot_model.value is not GPTModels.GPT_3_5.value:
-            return await self.query_open_source_model(user_id, message)
 
         payload = {
             'token': ADMIN_TOKEN,
-            'dialogName': get_user_name(user_id, bot_model),
+            'dialogName': get_user_name(user_id),
             'query': message,
             'tokenLimit': self.TOKEN_LIMIT,
-            "userNameToken": get_user_name(user_id, bot_model),
+            "userNameToken": get_user_name(user_id),
             'singleMessage': False,
             'systemMessageContent': system_message,
             'model': gpt_model
@@ -114,46 +110,10 @@ class CompletionsService:
         response = await async_post(f"{PROXY_URL}/chatgpt", json=payload)
 
         if response.status_code == 200:
+            print(response.json())
             return response.json()
         else:
             return {"success": False, "response": f"Ошибка 😔: {response.json().get('message')}"}
-
-    async def get_message_type(self, prompt):
-        try:
-
-            openai = AsyncClient(
-                api_key=GO_API_KEY,
-                base_url="https://api.goapi.xyz/v1/",
-            )
-
-            chat_completion = await openai.chat.completions.create(
-                model="gpt-3.5-turbo",
-                max_tokens=10,
-                temperature=0,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": """
-                          If the user wants to generate an image: generate_image.
-                         If he wants to find something on the Internet: do a search
-                         If he wants to change the image: modify_image.
-                         Otherwise: text. Send only these four values (generate_image, modify_image, text, search) and that's
-                         it, under no circumstances write anything else! Just these four words
-                         This is very important! The operation of my application depends on it, only these 4 values!
-                        """
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    },
-                ],
-                stream=False,
-            )
-            return {"text": chat_completion.choices[0].message.content,
-                    "total_tokens": chat_completion.usage.total_tokens}
-        except Exception as e:
-            logging.log(logging.INFO, e)
-            return {"text": "", "total_tokens": 0}
 
     async def get_file(self, parts, conversation):
         url = f"https://api.goapi.xyz/api/chatgpt/v1/conversation/{conversation}/download"
@@ -175,7 +135,6 @@ class CompletionsService:
             return {"text": "Что-то пошло не так попробуйте позже! 😔", "url_image": None}
 
         conversation = await get_free_conversation()
-        print(conversations)
 
         url = f"https://api.goapi.xyz/api/chatgpt/v1/conversation/{conversation}"
 

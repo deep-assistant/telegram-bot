@@ -17,9 +17,7 @@ async def handle_start_referral_generation(message: types.Message):
     logging.info(f"Generated referral link for user {user_id}: {referral_link}")
     await message.bot.send_chat_action(message.chat.id, "typing")
     await message.answer(f"""
-`15 000` токенов `GPT-4o` за каждого приглашенного пользователя. 
-
-`5 000` токенов `GPT-4o` приглашенному пользователю.
+*15 000* `energy` ⚡ за каждого приглашенного пользователя. 
  
 🎉 Ваша реферальная ссылка: `{referral_link}`
     """)
