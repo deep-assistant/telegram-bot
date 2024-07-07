@@ -1,8 +1,10 @@
 import asyncio
 
+from openai import OpenAI
+
 from config import GO_API_KEY
 from db import data_base, db_key
-from services.image_utils import get_image_model_by_label, get_samplers_by_label
+from services.image_utils import get_image_model_by_label, get_samplers_by_label, format_image_from_request
 from services.utils import async_get, async_post
 
 generating_map = {}
@@ -143,24 +145,32 @@ class ImageService:
             steps=int(self.get_steps(user_id)),
         )
 
-    async def generate_dalle(self, user_id: str, prompt: str):
-        url = 'https://api.goapi.xyz/v1/images/generations'
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + GO_API_KEY
+    async def generate_dalle(self, user_id, prompt: str):
+        openai = OpenAI(
+            api_key=GO_API_KEY,
+            base_url="https://api.goapi.xyz/v1/",
+        )
+
+        chat_completion = openai.chat.completions.create(
+            model="gpt-4o-plus",
+            max_tokens=4096,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"You should generate images in size {self.get_dalle_size(user_id)}"
+                },
+                {"role": "user", "content": prompt},
+            ],
+            stream=False,
+        )
+
+        formatted_response = format_image_from_request(chat_completion.choices[0].message.content)
+
+        return {
+            "image": formatted_response["image"],
+            "text": formatted_response["text"],
+            "total_tokens": chat_completion.usage.total_tokens
         }
-
-        data = {
-            "model": "dall-e-3",
-            "prompt": prompt,
-            "n": 1,
-            "size": self.get_dalle_size(user_id),
-            "quality": 'standard'
-        }
-
-        response = await async_post(url, headers=headers, json=data, timeout=30)
-
-        return response.json()
 
 
 imageService = ImageService()

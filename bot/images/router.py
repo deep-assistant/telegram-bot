@@ -7,7 +7,7 @@ from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.gpt.utils import checked_text
 from bot.images.command_types import images_command, images_command_text
 from bot.utils import divide_into_chunks
-from services import stateService, StateTypes, imageService, tokenizeService, GPTModels
+from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
     steps_values, cgf_values
 
@@ -52,24 +52,19 @@ async def handle_generate_image(message: types.Message):
 async def handle_generate_image(message: types.Message):
     user_id = message.from_user.id
 
-    tokens = await tokenizeService.get_tokens(message.from_user.id, GPTModels.GPT_4o)
+    tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     print(tokens)
-    if tokens.get("tokens") < 5000:
+    if tokens.get("tokens") < 0:
         await message.answer("""
-У вас не хватает токенов `GPT-4o`
+У вас не хватает `energy` ⚡!
 
-✨ Проверить Баланс - /balance
-💎 Пополнить баланс - /buy        
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - Пригласить друга, чтобы получить бесплатные `energy` ⚡!       
 """)
         stateService.set_current_state(message.from_user.id, StateTypes.Default)
         return
-
-    pricing = {
-        "1024x1024": 5000,
-        "1024x1792": 10000,
-        "1792x1024": 10000
-    }
 
     if not stateService.is_dalle3_state(user_id):
         return
@@ -89,17 +84,18 @@ async def handle_generate_image(message: types.Message):
         await message.bot.send_chat_action(message.chat.id, "typing")
 
         image = await imageService.generate_dalle(user_id, message.text)
-
+        print(image)
         await message.bot.send_chat_action(message.chat.id, "typing")
 
-        await message.reply_photo(image["data"][0]["url"])
+        await message.answer(image["text"])
+        await message.reply_photo(image["image"])
         await wait_message.delete()
-        dalle_size = imageService.get_dalle_size(user_id)
 
-        await tokenizeService.update_user_token(user_id, GPTModels.GPT_4o, pricing[dalle_size], "subtract")
+        await tokenizeService.update_user_token(user_id, image["total_tokens"], "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию  `{pricing[dalle_size]}` токенов.
-❔ /help - Информация по токенам
+🤖 Затрачено на генерацию  *{image["total_tokens"]}* `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
 """)
     except Exception as e:
         await message.answer("Что-то пошло не так попробуйте позже! 😔")

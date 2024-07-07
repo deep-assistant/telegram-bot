@@ -7,7 +7,7 @@ from services.gpt_service import GPTModels
 
 
 def checked_text(value: str):
-    return f"{value} ✅"
+    return f"✅ {value}"
 
 
 def get_model_text(model: GPTModels, current_model: GPTModels):
@@ -53,8 +53,9 @@ def get_tokens_message(tokens: int):
         return None
 
     return f"""
-🤖 Затрачено на запрос  `{tokens}` токенов.
-❔ /help - Информация по токенам
+🤖 Затрачено на запрос *{tokens}* `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
 """
 
 
@@ -84,9 +85,34 @@ def create_change_model_keyboard(current_model: GPTModels):
                 text=get_model_text(GPTModels.GPT_3_5, current_model),
                 callback_data=GPTModels.GPT_3_5.value
             ),
-            # InlineKeyboardButton(
-            #     text=get_model_text(GPTModels.Llama3_8b, current_model),
-            #     callback_data=GPTModels.Llama3_8b.value
-            # )
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.Nemotron_4_340b, current_model),
+                callback_data=GPTModels.Nemotron_4_340b.value
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.Llama_3_70b, current_model),
+                callback_data=GPTModels.Llama_3_70b.value
+            ),
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.WizardLM_2_7B, current_model),
+                callback_data=GPTModels.WizardLM_2_7B.value
+            ),
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.Llama_3_8B, current_model),
+                callback_data=GPTModels.Llama_3_8B.value
+            ),
+
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.Qwen2_72b, current_model),
+                callback_data=GPTModels.Qwen2_72b.value
+            ),
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.WizardLM_2_8_x22b, current_model),
+                callback_data=GPTModels.WizardLM_2_8_x22b.value
+            ),
         ]
     ])
