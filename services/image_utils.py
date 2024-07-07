@@ -1,3 +1,5 @@
+import re
+
 from services.utils import find_in_list, find_in_list_by_field
 
 image_models = [
@@ -303,3 +305,31 @@ def get_samplers_by_value(label: str):
 
 def get_samplers_by_label(label: str):
     return find_in_list_by_field(samplers, "label", label)
+
+
+def format_image_from_request(text: str):
+    pattern1 = r'\{\s*"prompt"\s*:\s*".*?",\s*"size"\s*:\s*".*?"\s*\}'
+    answer_text_re1 = re.sub(pattern1, '', text, flags=re.DOTALL)
+    pattern2 = r'\{\s*"prompt"\s*:\s*".*?,\s*"size"\s*:\s*".*?",\s*"n"\s*:\s*\d+\s*\}'
+    answer_text_re2 = re.sub(pattern2, '', answer_text_re1, flags=re.DOTALL)
+    pattern3 = r'!\[image\]\(https://files\.oaiusercontent\.com/file-.*?\)'
+    answer_text_re3 = re.sub(pattern3, '', answer_text_re2)
+
+    image = get_image_form_response(answer_text_re2)
+
+    return {
+        "image": image,
+        "text": answer_text_re3
+    }
+
+
+def get_image_form_response(text):
+    pattern = r'!\[image\]\((https://files\.oaiusercontent\.com/file-.*?)\)'
+
+    match = re.search(pattern, text)
+
+    if match:
+        image_url = match.group(1)
+        return image_url
+    else:
+        return None
