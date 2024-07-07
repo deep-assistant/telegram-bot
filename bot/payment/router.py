@@ -294,13 +294,18 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
         payload=f"buy_balance {tokens.replace(',', '')} {model} card",
         prices=[types.LabeledPrice(label=f"Покупка {tokens} токенов", amount=amount)],
         provider_data=json.dumps(
-            {
-                "description": f"🤩 Покупка {tokens} токенов {model}",
-                "quantity": "1.00",
-                "amount": {
-                    "value": str(int(amount / 100)) + ".00",
-                    "currency": "RUB",
-                },
+            {"receipt": {
+                "items": [{
+                    "description": f"🤩 Покупка {tokens} токенов {model}",
+                    "quantity": "1",
+                    "amount": {
+                        "value": str(int(amount / 100)) + ".00",
+                        "currency": "RUB",
+                    },
+                    "vat_code": 1
+                }],
+                "email": "lowww1337@mail.ru"
+            }
             }
         )
 
