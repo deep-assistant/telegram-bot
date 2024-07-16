@@ -19,7 +19,8 @@ class SystemMessages(Enum):
     Default = "default"
     SoftwareDeveloper = "software_developer"
     Happy = "happy"
-
+    QuestionAnswer = "question_answer"
+    DeepPromt = "deep"
 
 is_requesting = {}
 
