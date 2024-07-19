@@ -5,6 +5,7 @@ from db import data_base, db_key
 
 class GPTModels(Enum):
     GPT_4o = "gpt-4o"
+    GPT_4o_mini = "gpt-4o-mini"
     GPT_3_5 = "gpt-3.5"
     Nemotron_4_340b = "Nemotron_4_340b"
     Llama_3_70b = "Llama_3_70B"
@@ -27,6 +28,7 @@ is_requesting = {}
 gpt_models = {
     GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
     GPTModels.GPT_4o.value: "gpt-4o-plus",
+    GPTModels.GPT_4o_mini.value: 'gpt-4o-mini',
     GPTModels.Qwen2_72b.value: "Qwen/Qwen2-72B-Instruct",
     GPTModels.Nemotron_4_340b.value: "nvidia/Nemotron-4-340B-Instruct",
     GPTModels.Llama_3_70b.value: "meta-llama/Meta-Llama-3-70B-Instruct",

@@ -67,9 +67,9 @@ async def handle_gpt_request(message: Message, text: str):
 """)
             return
         system_message = get_system_message(system_message)
-        if system_message == "question-answer": 
+        if system_message == "question-answer":
             questionAnswer = True
-        else: 
+        else:
             questionAnswer = False
         answer = await completionsService.query_chatgpt(
             user_id,
@@ -355,6 +355,7 @@ async def handle_change_model(message: Message):
 
 Как рассчитывается energy для моделей?
 1000 *GPT-4o* токенов = 1000 `energy` ⚡️
+1000 *GPT-4o-mini* токенов = 70 `energy` ⚡️
 1000 *GPT-3.5-turbo* токенов = 70 `energy` ⚡️
 
 1000 *Nemotron-4-340B* токенов = 800 `energy` ⚡️
