@@ -10,6 +10,7 @@ from bot.utils import divide_into_chunks
 from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
     steps_values, cgf_values
+from bot.utils import send_photo_as_file
 
 imagesRouter = Router()
 
@@ -39,8 +40,7 @@ async def handle_generate_image(message: types.Message):
 
         await message.bot.send_chat_action(message.chat.id, "typing")
         await message.reply_photo(image["output"][0])
-        await message.answer(text="Вот картинка в оригинальном качестве:")
-        await message.answer_document(document=image["output"][0])
+        await send_photo_as_file(message, image["output"][0], "Вот картинка в оригинальном качестве")
         await wait_message.delete()
     except Exception as e:
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
@@ -91,8 +91,7 @@ async def handle_generate_image(message: types.Message):
 
         await message.answer(image["text"])
         await message.reply_photo(image["image"])
-        await message.answer(text="Вот картинка в оригинальном качестве:")
-        await message.answer_document(document=image["image"])
+        await send_photo_as_file(message, image["image"], "Вот картинка в оригинальном качестве")
         await wait_message.delete()
 
         await tokenizeService.update_user_token(user_id, image["total_tokens"], "subtract")
