@@ -112,7 +112,8 @@ async def handle_gpt_request(message: Message, text: str):
         await send_message(message, format_text["text"])
         if image is not None:
             await message.answer_photo(image)
-            await message.answer_document(text="Вот картинка в оригинальном качестве:", document=image)
+            await message.answer(text="Вот картинка в оригинальном качестве:")
+            await message.answer_document(document=image)
         await asyncio.sleep(0.5)
         await message_loading.delete()
         await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0)))
