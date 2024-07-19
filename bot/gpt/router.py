@@ -26,6 +26,7 @@ from services.utils import async_post, async_get
 
 gptRouter = Router()
 
+questionAnswer = False
 
 async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
@@ -64,13 +65,18 @@ async def handle_gpt_request(message: Message, text: str):
 /model - Сменить модель
 """)
             return
-
+        system_message = get_system_message(system_message)
+        if system_message == "question-answer": 
+            questionAnswer = True
+        else: 
+            questionAnswer = False
         answer = await completionsService.query_chatgpt(
             user_id,
             text,
-            get_system_message(system_message),
+            system_message,
             gpt_model,
-            bot_model
+            bot_model,
+            questionAnswer,
         )
 
         print(answer)
@@ -382,8 +388,8 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
     await callback_query.message.edit_reply_markup(
         reply_markup=create_system_message_keyboard(system_message)
     )
-
-    await tokenizeService.clear_dialog(user_id)
+    if system_message != "question_answer" and current_system_message != "question_answer":
+        await tokenizeService.clear_dialog(user_id)
 
     await asyncio.sleep(0.5)
 

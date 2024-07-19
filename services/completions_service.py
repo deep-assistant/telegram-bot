@@ -94,7 +94,7 @@ class CompletionsService:
 
         return {"success": True, "response": chat_completion.choices[0].message.content}
 
-    async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels) -> Any:
+    async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
 
         payload = {
             'token': ADMIN_TOKEN,
@@ -102,7 +102,7 @@ class CompletionsService:
             'query': message,
             'tokenLimit': self.TOKEN_LIMIT,
             "userNameToken": get_user_name(user_id),
-            'singleMessage': False,
+            'singleMessage': singleMessage,
             'systemMessageContent': system_message,
             'model': gpt_model
         }
