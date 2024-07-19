@@ -39,6 +39,7 @@ async def handle_generate_image(message: types.Message):
 
         await message.bot.send_chat_action(message.chat.id, "typing")
         await message.reply_photo(image["output"][0])
+        await message.answer(text="Вот картинка в оригинальном качестве:", document=image["output"][0])
         await wait_message.delete()
     except Exception as e:
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
@@ -84,11 +85,12 @@ async def handle_generate_image(message: types.Message):
         await message.bot.send_chat_action(message.chat.id, "typing")
 
         image = await imageService.generate_dalle(user_id, message.text)
-        print(image)
+
         await message.bot.send_chat_action(message.chat.id, "typing")
 
         await message.answer(image["text"])
         await message.reply_photo(image["image"])
+        await message.answer(text="Вот картинка в оригинальном качестве:", document=image["image"])
         await wait_message.delete()
 
         await tokenizeService.update_user_token(user_id, image["total_tokens"], "subtract")
