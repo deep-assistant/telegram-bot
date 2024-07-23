@@ -4,7 +4,7 @@
 
 The key must be obtained in the bot https://t.me/DeepGPTBot , call the `/api` command
 
-![](/attachments/doc_image.jpeg)
+<img src="./attachments/doc_image.jpeg" width="400"/>
 
 ## Using the API in `JavaScript`
 
