@@ -27,7 +27,8 @@ async def agreement_handler(message: Message) -> bool:
                         InlineKeyboardButton(text="Да ✅", callback_data=AgreementStatuses.ACCEPT_AGREEMENT.value),
                         InlineKeyboardButton(text="Нет ❌", callback_data=AgreementStatuses.DECLINE_AGREEMENT.value)
                     ],
-                ])
+                ]
+            )
         )
 
     return is_agreement

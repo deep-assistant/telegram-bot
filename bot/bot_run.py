@@ -9,6 +9,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 import config
 from bot.agreement import agreementRouter
+from bot.api.router import apiRouter
+
 from bot.gpt import gptRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
@@ -21,6 +23,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(imagesRouter)
     dp.include_router(startRouter)
     dp.include_router(agreementRouter)
+    dp.include_router(apiRouter)
     dp.include_router(paymentsRouter)
     dp.include_router(gptRouter)
 
@@ -33,6 +36,7 @@ class AlbumMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
         if event.photo is None:
             date = str(event.date)
+            print(date)
 
             try:
                 self.batch_data[date].append(event)

@@ -126,5 +126,31 @@ class TokenizeService:
         else:
             return None
 
+    async def get_api_token(self, user_id: str):
+        params = {
+            "masterToken": ADMIN_TOKEN,
+            "userId": user_id,
+        }
+
+        response = await async_get(f"{PROXY_URL}/token/admin", params=params, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+    async def regenerate_api_token(self, user_id: str):
+        params = {
+            "masterToken": ADMIN_TOKEN,
+            "userId": user_id,
+        }
+
+        response = await async_post(f"{PROXY_URL}/token/admin", params=params, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
 
 tokenizeService = TokenizeService()
