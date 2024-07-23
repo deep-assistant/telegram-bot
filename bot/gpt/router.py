@@ -18,7 +18,7 @@ from bot.gpt.system_messages import get_system_message, system_messages_list, \
 from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
 from bot.utils import include
-from config import TOKEN, GO_API_KEY
+from config import TOKEN, GO_API_KEY, GUO_GUO_KEY
 from services import gptService, GPTModels, completionsService, tokenizeService
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
@@ -121,8 +121,24 @@ async def handle_gpt_request(message: Message, text: str):
         logging.log(logging.INFO, e)
 
 
+async def get_photos_links(message, photos):
+    images = []
+
+    for photo in photos:
+        file_info = await message.bot.get_file(photo.file_id)
+        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_info.file_path}"
+        images.append({"type": "image_url", "image_url": {"url": file_url}})
+
+    return images
+
+
 @gptRouter.message(Photo())
-async def handle_document(message: Message):
+async def handle_document(message: Message, album):
+    photos = []
+
+    for item in album:
+        photos.append(item.photo[-1])
+
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     if tokens.get("tokens") <= 0:
@@ -131,7 +147,7 @@ async def handle_document(message: Message):
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
-/referral - Пригласить друга, чтобы получить бесплатно `energy`⚡!    
+/referral - Пригласить друга, чтобы получить бесплатно `energy`⚡!
 """)
         return
 
@@ -140,35 +156,38 @@ async def handle_document(message: Message):
     if not is_subscribe:
         return
 
-    file_info = await message.bot.get_file(message.photo[-1].file_id)
-
     openai = OpenAI(
-        api_key=GO_API_KEY,
-        base_url="https://api.goapi.xyz/v1/",
+        api_key=GUO_GUO_KEY,
+        base_url="https://api.aiguoguo199.com/v1/",
     )
 
-    text = "Опиши эту фотографию" if message.caption is None else message.caption
+    text = "Опиши" if message.caption is None else message.caption
 
     await message.bot.send_chat_action(message.chat.id, "typing")
+    print([
 
-    file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_info.file_path}"
-
+        *await get_photos_links(message, photos),
+        {
+            "role": "user",
+            "content": text
+        },
+    ])
     chat_completion = openai.chat.completions.create(
-        model="gpt-4o",
-        max_tokens=4096,
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "user",
-                "content": [
-                    {"type": "text", "text": text},
-                    {"type": "image_url", "image_url": {"url": file_url}},
-                ]
+                "content": await get_photos_links(message, photos)
+            },
+            {
+                "role": "user",
+                "content": text
             },
         ],
         stream=False,
     )
 
-    tokens = chat_completion.usage.total_tokens * 3
+    tokens = int(chat_completion.usage.total_tokens / 20)
 
     await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -424,5 +443,11 @@ async def handle_change_model_query(callback_query: CallbackQuery):
 
 
 @gptRouter.message()
-async def handle_completion(message: Message):
-    await handle_gpt_request(message, message.text)
+async def handle_completion(message: Message, batch_messages):
+    text = ''
+    for message in batch_messages:
+        text = text + message.text + "\n"
+
+    print(text)
+
+    await handle_gpt_request(message, text)

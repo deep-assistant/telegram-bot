@@ -5,7 +5,7 @@ from openai import OpenAI
 from config import GO_API_KEY
 from db import data_base, db_key
 from services.image_utils import get_image_model_by_label, get_samplers_by_label, format_image_from_request
-from services.utils import async_get, async_post
+from services.utils import async_get
 
 generating_map = {}
 
