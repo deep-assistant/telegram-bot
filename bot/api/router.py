@@ -15,7 +15,7 @@ def get_api_message(token):
         "text": f"""API KEY: `{token['id']}` \n"""
                 f"""API URL: https://api.deep-foundation.tech/v1/ \n\n"""
                 f"""Ваш баланс: {token['tokens_gpt']} `energy` ⚡️  \n\n"""
-                f"""/docs - 📄 Документация по работе с API""",
+                f"""https://github.com/deep-foundation/deep-gpt/blob/main/docs.md - 📄 Документация по работе с API""",
         "reply_markup": InlineKeyboardMarkup(
             resize_keyboard=True,
             inline_keyboard=[[InlineKeyboardButton(text="Перегенерировать токен 🔄", callback_data="regenerate_token")]]
