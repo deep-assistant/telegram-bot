@@ -23,7 +23,7 @@ def get_api_message(token):
     }
 
 
-@apiRouter.message(TextCommand(api_command()))
+@apiRouter.message(TextCommand([api_command()]))
 async def handle_api_message(message: Message):
     token = await tokenizeService.get_api_token(message.from_user.id)
 

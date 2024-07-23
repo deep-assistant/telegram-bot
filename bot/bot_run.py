@@ -23,8 +23,8 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(imagesRouter)
     dp.include_router(startRouter)
     dp.include_router(agreementRouter)
-    dp.include_router(apiRouter)
     dp.include_router(paymentsRouter)
+    dp.include_router(apiRouter)
     dp.include_router(gptRouter)
 
 

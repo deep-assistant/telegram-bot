@@ -146,7 +146,6 @@ class TokenizeService:
         }
 
         response = await async_post(f"{PROXY_URL}/token/admin", params=params, headers=headers)
-
         if response.status_code == 200:
             return response.json()
         else:
