@@ -1,5 +1,10 @@
 # API Documentation `Deep.GPT`
 
+## Getting the API key
+
+The key must be obtained in the bot https://t.me/DeepGPTBot , call the `/api` command
+
+<img src="C:\Users\grisha_blyat\PycharmProjects\pythonProject4\attachments\doc_image.jpeg" width="400"/>
 
 ## Using the API in `JavaScript`
 
