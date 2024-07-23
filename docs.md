@@ -30,6 +30,8 @@ async function main() {
     messages: [{ role: 'user', content: 'Say this is a test' }],
     model: 'gpt-3.5-turbo',
   });
+  
+  console.log(chatCompletion.choices[0].delta.content);
 }
 
 main();
