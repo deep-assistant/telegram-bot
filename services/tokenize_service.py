@@ -87,7 +87,7 @@ class TokenizeService:
         }
 
         response = await async_get(f"{PROXY_URL}/tokens", params=params, headers=headers)
-        print(response.status_code)
+
         if response.status_code == 200:
             data = response.json()
             if "id" in data:

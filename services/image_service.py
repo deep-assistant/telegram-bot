@@ -153,7 +153,7 @@ class ImageService:
 
         chat_completion = openai.chat.completions.create(
             model="gpt-4o-plus",
-            max_tokens=4096,
+            max_tokens=30000,
             messages=[
                 {
                     "role": "user",

@@ -77,23 +77,6 @@ class CompletionsService:
 
         history[user_id] = list(reversed(cut_dialog))
 
-    async def query_open_source_model(self, user_id: str, message: str):
-        self.update_history(user_id, {"role": "user", "content": message})
-        self.cut_history(user_id)
-
-        chat_completion = self.openai.chat.completions.create(
-            model="meta-llama/Meta-Llama-3-8B-Instruct",
-            max_tokens=4096,
-            messages=self.get_history(user_id),
-            stream=False,
-        )
-
-        content = chat_completion.choices[0].message.content
-
-        self.update_history(user_id, {"role": "assistant", "content": content})
-
-        return {"success": True, "response": chat_completion.choices[0].message.content}
-
     async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
 
         payload = {
