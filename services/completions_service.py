@@ -41,7 +41,7 @@ async def get_free_conversation():
 
 
 class CompletionsService:
-    TOKEN_LIMIT = 4096
+    TOKEN_LIMIT = 30000
 
     openai = OpenAI(
         api_key=KEY_DEEPINFRA,
