@@ -377,15 +377,12 @@ async def handle_change_model(message: Message):
 1000 *GPT-4o-mini* токенов = 70 `energy` ⚡️
 1000 *GPT-3.5-turbo* токенов = 70 `energy` ⚡️
 
-1000 *Nemotron-4-340B* токенов = 800 `energy` ⚡️
+1000 *Llama3.1-405B* токенов = 800 `energy` ⚡️
 
 1000 *Llama-3-70B* токенов = 285 `energy` ⚡️
-1000 *Qwen2-72B* токенов = 285 `energy` ⚡️
-1000 *CodeLlama-70b* токенов = 285 `energy` ⚡️
-1000 *WizardLM-2-8x22B* токенов = 285 `energy` ⚡️
+1000 *Llama3.1-70B* токенов = 285 `energy` ⚡️
 
-1000 *Meta-Llama-3-8B* токенов = 20 `energy` ⚡️
-1000 *WizardLM-2-7B* токенов = 20 `energy` ⚡️    
+1000 *Llama-3.1-8B* токенов = 20 `energy` ⚡️
 """
 
     await message.answer(text=text, reply_markup=create_change_model_keyboard(current_model))

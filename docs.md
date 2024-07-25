@@ -113,13 +113,12 @@ for chunk in stream:
 ```
 
 ### List of all available models:
+1 energy = 0.8 RUB = 0,009 USD
 
 - `gpt-4o`: 1000 tokens = 1000 energy
 - `gpt-4o-mini`: 1000 tokens = 70 energy
-- `gpt-3.5-turbo`: 1000 tokens = 15 energy
-- `meta-llama/Meta-Llama-3-70B-Instruct`: 1000 tokens = 300 energy
-- `deepinfra/deepinfra2-72B-Instruct`: 1000 tokens = 300 energy
-- `codellama/CodeLlama-70b-Instruct-hf`: 1000 tokens = 300 energy
-- `microsoft/WizardLM-2-8x22B`: 1000 tokens = 300 energy
-- `meta-llama/Meta-Llama-3-8B-Instruct`: 1000 tokens = 20 energy
-- `microsoft/WizardLM-2-7B`: 1000 tokens = 20 energy
+- `gpt-3.5-turbo`: 1000 tokens = 70 energy
+- `meta-llama/Meta-Llama-3.1-405B`: 1000  tokens = 800 energy
+- `meta-llama/Meta-Llama-3.1-70B`: 1000  tokens = 285 energy
+- `meta-llama/Meta-Llama-3-70B-Instruct`: 1000  tokens = 285 energy
+- `meta-llama/Meta-Llama-3.1-8B`: 1000 tokens = 20 energy
