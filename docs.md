@@ -31,7 +31,7 @@ async function main() {
     model: 'gpt-3.5-turbo',
   });
   
-  console.log(chatCompletion.choices[0].delta.content);
+  console.log(chatCompletion.choices[0].message.content);
 }
 
 main();
@@ -54,7 +54,7 @@ async function main() {
   let result = "";
   
   for await (const chunk of stream) {
-    result += chunk.choices[0]?.delta?.content || '';
+    result += chunk.choices[0]?.message?.content || '';
     console.log(result);
   }
 }
