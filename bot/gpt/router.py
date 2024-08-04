@@ -486,6 +486,14 @@ async def handle_get_history(message: types.Message):
     
 @gptRouter.message()
 async def handle_completion(message: Message, batch_messages):
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+            return  
+
+
     text = ''
     for message in batch_messages:
         text = text + message.text + "\n"
