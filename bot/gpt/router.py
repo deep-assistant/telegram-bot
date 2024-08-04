@@ -3,16 +3,22 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import NamedTemporaryFile
 
+import io
+import json
+
 import aiofiles
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
+from aiogram.types import InputFile
+from aiogram import types
+from aiogram.types import BufferedInputFile
 from openai import OpenAI
 
 from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
-    balance_text, balance_command, clear_command, clear_text
+    balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
@@ -64,7 +70,7 @@ async def handle_gpt_request(message: Message, text: str):
 /buy - 💎 Пополнить баланс 
 /referral - Пригласить друга, чтобы получить бесплатно `energy` ⚡!
 /model - Сменить модель
-""")
+""") 
             return
         system_message = get_system_message(system_message)
         if system_message == "question-answer":
@@ -439,6 +445,45 @@ async def handle_change_model_query(callback_query: CallbackQuery):
     await callback_query.message.delete()
 
 
+
+@gptRouter.message(TextCommand([get_history_command(), get_history_text()]))
+async def handle_get_history(message: types.Message):
+    is_agreement = await agreement_handler(message)
+    if not is_agreement:
+        return
+
+    is_subscribe = await is_chat_member(message)
+    if not is_subscribe:
+        return
+
+    user_id = message.from_user.id
+
+    history = await tokenizeService.history(user_id)
+
+    if history.get("status") == 404:
+        await message.answer("История диалога пуста.")
+        return
+
+    if history is None:
+        await message.answer("Ошибка 😔: Не удалось получить историю диалога!")
+        return
+
+    history_data = history.get("response").get("history")
+
+    json_data = json.dumps(history_data, ensure_ascii=False, indent=4)
+    file_stream = io.BytesIO(json_data.encode('utf-8'))
+    file_stream.name = "dialog_history.json"  
+
+    input_file = BufferedInputFile(file_stream.read(), filename=file_stream.name)
+
+    await message.answer_document(input_file)
+
+    await asyncio.sleep(0.5)
+    await message.delete()
+
+
+
+    
 @gptRouter.message()
 async def handle_completion(message: Message, batch_messages):
     text = ''

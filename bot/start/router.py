@@ -7,12 +7,13 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import CallbackQuery
 
 from bot.filters import StartWithQuery
-from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text
+from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text, get_history_text, help_text, help_command
 from bot.gpt.utils import check_subscription
 from bot.images import images_command_text
 from bot.payment.command_types import balance_payment_command_text
 from bot.referral import referral_command_text
 from services import GPTModels, tokenizeService
+from bot.filters import TextCommand
 
 startRouter = Router()
 
@@ -89,6 +90,10 @@ async def buy(message: types.Message):
                 types.KeyboardButton(text=images_command_text())
             ],
             [
+                types.KeyboardButton(text=help_text()),
+                types.KeyboardButton(text=get_history_text())
+            ],
+            [
                 types.KeyboardButton(text=referral_command_text()),
             ],
         ],
@@ -146,7 +151,7 @@ async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
     await apply_ref(callback_query.message, user_id, ref_user_id)
 
 
-@startRouter.message(Command("help"))
+@startRouter.message(TextCommand([help_command(), help_text()]))
 async def help_command(message: types.Message):
     await message.bot.send_message(message.chat.id, text="""
 Основной ресурc для доступа нейросети - `energy`⚡.
