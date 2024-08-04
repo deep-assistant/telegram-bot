@@ -140,6 +140,16 @@ async def get_photos_links(message, photos):
 
 @gptRouter.message(Photo())
 async def handle_document(message: Message, album):
+    print(message)
+    print(message.chat.type)
+    print(message.entities)
+    print(message.text)
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+            return  
     photos = []
 
     for item in album:
@@ -241,6 +251,13 @@ async def transcribe_voice(voice_file_url: str):
 
 @gptRouter.message(Voice())
 async def handle_voice(message: Message):
+    print(message.chat.type)
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+            return  
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     if tokens.get("tokens") <= 0:
@@ -282,6 +299,12 @@ async def handle_voice(message: Message):
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is not None:
+            mentions = [entity for entity in message.entities if entity.type == 'mention']
+            if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+                print('return - Bot not mentioned in photo, ignoring message.')
+                return  # Игнорируем сообщение, если бот не упомянут
     try:
         user_document = message.document if message.document else None
         if user_document:
@@ -497,7 +520,7 @@ async def handle_completion(message: Message, batch_messages):
     text = ''
     for message in batch_messages:
         text = text + message.text + "\n"
-
+    text = f"message: {text}\n\nis the answer to: {message.reply_to_message.text}" if message.reply_to_message else ""
     print(text)
 
     await handle_gpt_request(message, text)
