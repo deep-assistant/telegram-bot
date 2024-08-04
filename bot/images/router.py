@@ -9,7 +9,7 @@ from bot.images.command_types import images_command, images_command_text
 from bot.utils import divide_into_chunks
 from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
-    steps_values, cgf_values
+    steps_values, cgf_values, size_values
 from bot.utils import send_photo_as_file
 
 imagesRouter = Router()
@@ -22,11 +22,6 @@ async def handle_generate_image(message: types.Message):
     if not stateService.is_image_state(user_id):
         return
 
-    is_waiting_image = imageService.get_waiting_image(user_id)
-
-    if is_waiting_image:
-        return
-
     try:
         wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
 
@@ -36,12 +31,27 @@ async def handle_generate_image(message: types.Message):
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
-        image = await imageService.generate(message.text, user_id)
+        async def wait_image():
+            stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
+            await message.answer("Генерация изображения ушла в фоновый режим. \n"
+                                 "Пришлем вам изображение через 40-120 секунд. \n"
+                                 "Можете продолжать работать с ботом 😉")
+
+        image = await imageService.generate(message.text, user_id, wait_image)
+
+        print(image)
         await message.bot.send_chat_action(message.chat.id, "typing")
         await message.reply_photo(image["output"][0])
         await send_photo_as_file(message, image["output"][0], "Вот картинка в оригинальном качестве")
+        await tokenizeService.update_user_token(user_id, 30, "subtract")
+        await message.answer(f"""
+🤖 Затрачено на генерацию  30 `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
+""")
         await wait_message.delete()
+
     except Exception as e:
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
         logging.log(logging.INFO, e)
@@ -69,11 +79,6 @@ async def handle_generate_image(message: types.Message):
         return
 
     if not stateService.is_dalle3_state(user_id):
-        return
-
-    is_waiting_image = imageService.get_waiting_image(user_id)
-
-    if is_waiting_image:
         return
 
     try:
@@ -104,7 +109,6 @@ async def handle_generate_image(message: types.Message):
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
         logging.log(logging.INFO, e)
 
-    imageService.set_waiting_image(user_id, False)
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
 
@@ -127,7 +131,7 @@ async def generate_base_stable_diffusion_keyboard(callback_query: CallbackQuery)
     user_id = callback_query.from_user.id
 
     current_image = imageService.get_current_image(user_id)
-    current_sampler = imageService.get_sampler(user_id)
+    current_size = imageService.get_size_model(user_id)
     current_steps = imageService.get_steps(user_id)
     current_cfg = imageService.get_cfg_model(user_id)
 
@@ -141,8 +145,8 @@ async def generate_base_stable_diffusion_keyboard(callback_query: CallbackQuery)
                     callback_data="image-model choose-model 0 5"
                 )],
                 [InlineKeyboardButton(
-                    text=f"Сэмплер: {current_sampler}",
-                    callback_data="image-model choose-sampler 0 5"
+                    text=f"Размер: {current_size}",
+                    callback_data="image-model choose-size 0 5"
                 )],
                 [
                     InlineKeyboardButton(
@@ -299,6 +303,32 @@ async def handle_image_model_query(callback_query: CallbackQuery):
             reply_markup=InlineKeyboardMarkup(
                 resize_keyboard=True,
                 inline_keyboard=copy_stable_models
+            )
+        )
+
+    if model == "update-size":
+        size = callback_query.data.split(" ")[2]
+
+        imageService.set_size_state(user_id, size)
+
+        await generate_base_stable_diffusion_keyboard(callback_query)
+
+    if model == "choose-size":
+        keyboard = divide_into_chunks(
+            list(
+                map(lambda x: InlineKeyboardButton(text=str(x), callback_data=f"image-model update-size {x}"),
+                    size_values)),
+            2
+        )
+
+        keyboard.append([InlineKeyboardButton(text="❌ Отменить",
+                                              callback_data=f"image-model SD")])
+
+        await callback_query.message.edit_text("👾 Шаги Stable Diffusion: ")
+        await callback_query.message.edit_reply_markup(
+            reply_markup=InlineKeyboardMarkup(
+                resize_keyboard=True,
+                inline_keyboard=keyboard
             )
         )
 
