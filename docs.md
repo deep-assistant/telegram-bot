@@ -113,7 +113,7 @@ for chunk in stream:
 ```
 
 ### List of all available models:
-1 energy = 0.8 RUB = 0,009 USD
+1000 energy = 0.8 RUB = 0,009 USD
 
 - `gpt-4o`: 1000 tokens = 1000 energy
 - `gpt-4o-mini`: 1000 tokens = 70 energy
