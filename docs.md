@@ -19,7 +19,7 @@ npm install openai
 ```js
 import OpenAI from 'openai';
 
-const client = new OpenAI({
+const openai = new OpenAI({
   // You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
   apiKey: "YOUR KEY", 
   baseURL: "https://api.deep-foundation.tech/v1/"
@@ -31,7 +31,7 @@ async function main() {
     model: 'gpt-3.5-turbo',
   });
   
-  console.log(chatCompletion.choices[0].delta.content);
+  console.log(chatCompletion.choices[0].message.content);
 }
 
 main();
@@ -42,7 +42,7 @@ main();
 ```js
 import OpenAI from 'openai';
 
-const client = new OpenAI();
+const openai = new OpenAI();
 
 async function main() {
   const stream = await openai.chat.completions.create({
@@ -54,7 +54,7 @@ async function main() {
   let result = "";
   
   for await (const chunk of stream) {
-    result += chunk.choices[0]?.delta?.content || '';
+    result += chunk.choices[0]?.message?.content || '';
     console.log(result);
   }
 }
@@ -108,7 +108,7 @@ stream = openai.chat.completions.create(
 )
 
 for chunk in stream:
-    print(chunk.choices[0].delta.content or "", end="")
+    print(chunk.choices[0].message.content or "", end="")
 
 ```
 
