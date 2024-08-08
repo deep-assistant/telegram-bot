@@ -143,13 +143,18 @@ async def handle_document(message: Message, album):
     print(message)
     print(message.chat.type)
     print(message.entities)
-    print(message.text)
+    print(message.caption_entities)
+    print(message.caption)
+
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
+            print('No entities, ignoring message.')
             return
         mentions = [entity for entity in message.entities if entity.type == 'mention']
         if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-            return  
+            print('Bot not mentioned, ignoring message.')
+            return
+            
     photos = []
 
     for item in album:
@@ -520,7 +525,8 @@ async def handle_completion(message: Message, batch_messages):
     text = ''
     for message in batch_messages:
         text = text + message.text + "\n"
-    text = f"message: {text}\n\nis the answer to: {message.reply_to_message.text}" if message.reply_to_message else ""
-    print(text)
+    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text4
+    
+    print(text, 'text11111111111')
 
     await handle_gpt_request(message, text)

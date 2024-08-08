@@ -48,3 +48,4 @@ def help_command():
 
 def help_text():
     return "🆘 Помощь"
+    

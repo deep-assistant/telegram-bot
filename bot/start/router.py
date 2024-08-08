@@ -137,6 +137,7 @@ async def buy(message: types.Message):
     await apply_ref(message, message.from_user.id, ref_user_id)
 
 
+
 @startRouter.callback_query(StartWithQuery("ref-is-subscribe"))
 async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
     ref_user_id = callback_query.data.split(" ")[1]
