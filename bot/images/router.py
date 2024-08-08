@@ -40,7 +40,6 @@ async def handle_generate_image(message: types.Message):
 
         image = await imageService.generate(message.text, user_id, wait_image)
 
-        print(image)
         await message.bot.send_chat_action(message.chat.id, "typing")
         await message.reply_photo(image["output"][0])
         await send_photo_as_file(message, image["output"][0], "Вот картинка в оригинальном качестве")
@@ -179,9 +178,9 @@ async def handle_generate_image(message: types.Message):
 
         await wait_message.delete()
 
-        await tokenizeService.update_user_token(user_id, 3000, "subtract")
+        await tokenizeService.update_user_token(user_id, 2500, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию 3000 `energy` ⚡
+🤖 Затрачено на генерацию 2500 `energy` ⚡
 
 ❔ /help - Информация по `energy` ⚡
 """)
@@ -233,9 +232,9 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
         image["task_id"]
     )
 
-    await tokenizeService.update_user_token(callback.from_user.id, 3000, "subtract")
+    await tokenizeService.update_user_token(callback.from_user.id, 2500, "subtract")
     await callback.message.answer(f"""
-🤖 Затрачено на генерацию 3000 `energy` ⚡
+🤖 Затрачено на генерацию 2500 `energy` ⚡
 
 ❔ /help - Информация по `energy` ⚡
 """)
