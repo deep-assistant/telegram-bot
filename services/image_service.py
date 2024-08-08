@@ -62,6 +62,7 @@ class ImageService:
     CURRENT_CFG = 'current_cfg'
     CURRENT_SIZE = 'current_size'
     DALLE_SIZE = 'dalee_size'
+    MIDJOURNEY_SIZE = 'midjourney_size'
 
     default_model = "cyberrealistic"
     default_sampler = "DPM++SDEKarras"
@@ -69,6 +70,7 @@ class ImageService:
     default_cfg = "7"
     default_size = "512x512"
     default_dalle_size = "1024x1024"
+    default_midjourney_size = "1:1"
 
     def set_waiting_image(self, user_id, value: bool):
         generating_map[user_id] = value
@@ -152,6 +154,18 @@ class ImageService:
             data_base[db_key(user_id, self.DALLE_SIZE)] = state
         data_base.commit()
 
+    def get_midjourney_size(self, user_id: str) -> str:
+        try:
+            return data_base[db_key(user_id, self.MIDJOURNEY_SIZE)].decode('utf-8')
+        except KeyError:
+            self.set_midjourney_size(user_id, self.default_midjourney_size)
+            return self.default_midjourney_size
+
+    def set_midjourney_size(self, user_id: str, state: str):
+        with data_base.transaction():
+            data_base[db_key(user_id, self.MIDJOURNEY_SIZE)] = state
+        data_base.commit()
+
     async def generate(self, prompt: str, user_id: str, wait_image):
 
         model = get_image_model_by_label(self.get_current_image(user_id))
@@ -198,5 +212,63 @@ class ImageService:
             "total_tokens": chat_completion.usage.total_tokens
         }
 
+    async def try_fetch_midjourney(self, task_id):
+        await asyncio.sleep(10)
+
+        attempts = 0
+
+        while True:
+            if attempts == 15:
+                return {}
+
+            await asyncio.sleep(30)
+            attempts += 1
+
+            result = await self.task_fetch(task_id)
+            print(result)
+
+            if result["status"] == "processing":
+                continue
+
+            return result
+
+    async def generate_midjourney(self, user_id, prompt):
+        data = {
+            "prompt": prompt,
+            "aspect_ratio": self.get_midjourney_size(user_id),
+            "process_mode": "relax",
+        }
+
+        response = await async_post(
+            "https://api.midjourneyapi.xyz/mj/v2/imagine",
+            headers={"X-API-KEY": GO_API_KEY},
+            json=data
+        )
+
+        return await self.try_fetch_midjourney(response.json()['task_id'])
+
+    async def task_fetch(self, task_id):
+        response = await async_post("https://api.midjourneyapi.xyz/mj/v2/fetch", json={"task_id": task_id})
+        return response.json()
+
+    async def upscale_image(self, task_id, index):
+        print(task_id)
+        response = await async_post(
+            "https://api.midjourneyapi.xyz/mj/v2/upscale",
+            headers={"X-API-KEY": GO_API_KEY},
+            json={"origin_task_id": task_id, "index": index, }
+        )
+
+        return await self.try_fetch_midjourney(response.json()['task_id'])
+
+    async def variation_image(self, task_id, index):
+        print(task_id)
+        response = await async_post(
+            "https://api.midjourneyapi.xyz/mj/v2/variation",
+            headers={"X-API-KEY": GO_API_KEY},
+            json={"origin_task_id": task_id, "index": index, }
+        )
+
+        return await self.try_fetch_midjourney(response.json()['task_id'])
 
 imageService = ImageService()
