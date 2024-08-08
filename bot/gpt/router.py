@@ -140,19 +140,12 @@ async def get_photos_links(message, photos):
 
 @gptRouter.message(Photo())
 async def handle_document(message: Message, album):
-    print(message)
-    print(message.chat.type)
-    print(message.entities)
-    print(message.caption_entities)
-    print(message.caption)
 
     if message.chat.type in ['group', 'supergroup']:
-        if message.entities is None:
-            print('No entities, ignoring message.')
+        if message.caption_entities is None:
             return
-        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
         if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-            print('Bot not mentioned, ignoring message.')
             return
             
     photos = []
@@ -304,12 +297,13 @@ async def handle_voice(message: Message):
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
+    
     if message.chat.type in ['group', 'supergroup']:
-        if message.entities is not None:
-            mentions = [entity for entity in message.entities if entity.type == 'mention']
-            if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-                print('return - Bot not mentioned in photo, ignoring message.')
-                return  # Игнорируем сообщение, если бот не упомянут
+        if message.caption_entities is None:
+            return
+        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+            return
     try:
         user_document = message.document if message.document else None
         if user_document:
@@ -525,8 +519,128 @@ async def handle_completion(message: Message, batch_messages):
     text = ''
     for message in batch_messages:
         text = text + message.text + "\n"
-    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text4
-    
+    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
     print(text, 'text11111111111')
 
     await handle_gpt_request(message, text)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @gptRouter.message(Photo())
+# async def handle_document(message: Message, album):
+#     print(f"Message: {message}")
+#     print(f"Chat type: {message.chat.type}")
+#     print(f"Entities: {message.entities}")
+#     print(f"Caption entities: {message.caption_entities}")
+#     print(f"Caption: {message.caption}")
+
+
+#     pattern = r"(@?DeepGPT_TestBot\s*(?:,|:)\s*)"  # Регулярное выражение
+#     match = re.search(pattern, message.caption or "")
+#     print(match, 'match')
+#     if match: 
+#         return
+#     else: 
+#         return
+
+#     # if message.chat.type in ['group', 'supergroup']:
+#     #     if message.reply_to_message is not None:
+#     #         if message.reply_to_message.from_user.is_bot:
+#     #             # ... (обработка сообщения) ...
+#     #         else:
+#     #             print('Message not a reply to bot, ignoring.')
+#     #             return
+#     #     else:
+#     #         print('No reply message, ignoring.')
+#     #         return
+            
+#     photos = []
+
+#     for item in album:
+#         photos.append(item.photo[-1])
+
+#     tokens = await tokenizeService.get_tokens(message.from_user.id)
+
+#     if tokens.get("tokens") <= 0:
+#         await message.answer("""
+# У вас не хватает energy ⚡!
+
+# /balance - ✨ Проверить Баланс
+# /buy - 💎 Пополнить баланс
+# /referral - Пригласить друга, чтобы получить бесплатно energy⚡!
+# """)
+#         return
+
+#     is_subscribe = await is_chat_member(message)
+
+#     if not is_subscribe:
+#         return
+
+#     openai = OpenAI(
+#         api_key=GUO_GUO_KEY,
+#         base_url="https://api.aiguoguo199.com/v1/",
+#     )
+
+#     text = "Опиши" if message.caption is None else message.caption
+
+#     await message.bot.send_chat_action(message.chat.id, "typing")
+#     print([
+
+#         *await get_photos_links(message, photos),
+#         {
+#             "role": "user",
+#             "content": text
+#         },
+#     ])
+#     chat_completion = openai.chat.completions.create(
+#         model="gpt-4o-mini",
+#         messages=[
+#             {
+#                 "role": "user",
+#                 "content": await get_photos_links(message, photos)
+#             },
+#             {
+#                 "role": "user",
+#                 "content": text
+#             },
+#         ],
+#         stream=False,
+#     )
+
+#     tokens = int(chat_completion.usage.total_tokens / 20)
+
+#     await message.bot.send_chat_action(message.chat.id, "typing")
+
+#     await tokenizeService.update_user_token(message.from_user.id, tokens, 'subtract')
+
+#     content = chat_completion.choices[0].message.content
+
+#     await message.bot.send_chat_action(message.chat.id, "typing")
+
+#     await send_message(message, content)
+#     await message.answer(get_tokens_message(tokens))
