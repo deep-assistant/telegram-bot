@@ -10,17 +10,18 @@ from aiogram.fsm.storage.memory import MemoryStorage
 import config
 from bot.agreement import agreementRouter
 from bot.api.router import apiRouter
-
 from bot.gpt import gptRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
 from bot.start import startRouter
+from bot.suno import sunoRouter
 
 
 def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(referralRouter)
     dp.include_router(imagesRouter)
+    dp.include_router(sunoRouter)
     dp.include_router(startRouter)
     dp.include_router(agreementRouter)
     dp.include_router(paymentsRouter)
