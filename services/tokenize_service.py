@@ -8,6 +8,7 @@ from services.utils import async_get, async_post
 
 max_tokens = 50000
 
+
 headers = {'Content-Type': 'application/json'}
 
 
@@ -118,11 +119,23 @@ class TokenizeService:
         }
 
         response = await async_post(f"{PROXY_URL}/clear-dialog", json=payload, headers=headers)
-
         if response.status_code == 200:
             return {"response": response.json(), "status": response.status_code}
         elif response.status_code == 404:
             return {"response": response.json(), "status": response.status_code}
+        else:
+            return None
+
+    async def history(self, user_id: str):
+        payload = {
+            "token": ADMIN_TOKEN,
+            "dialogName": get_user_name(user_id),
+        }
+        response = await async_get(f"{PROXY_URL}/dialog-history", params=payload, headers=headers)
+        if response.status_code == 200:
+            return {"response": response.json(), "status": response.status_code}
+        elif response.status_code == 404:
+            return {"status": response.status_code}
         else:
             return None
 

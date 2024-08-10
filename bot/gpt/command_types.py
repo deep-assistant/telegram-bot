@@ -32,3 +32,20 @@ def clear_command():
 
 def multimodal_command():
     return "/multimodal"
+
+
+def get_history_command():
+    return "/history"
+
+
+def get_history_text():
+    return "📖 Получить историю диалога"
+
+
+def help_command():
+    return "/help"
+
+
+def help_text():
+    return "🆘 Помощь"
+    
