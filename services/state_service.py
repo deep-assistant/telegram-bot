@@ -7,6 +7,8 @@ class StateTypes(Enum):
     Default = "default"
     Image = "image"
     Dalle3 = "dalle3"
+    Midjourney = "midjourney"
+    Suno = "suno"
 
 
 class StateService:
@@ -32,5 +34,14 @@ class StateService:
     def is_dalle3_state(self, user_id: str) -> bool:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.Dalle3.value
+
+    def is_midjourney_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.Midjourney.value
+
+    def is_suno_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.Suno.value
+
 
 stateService = StateService()

@@ -9,7 +9,7 @@ from bot.images.command_types import images_command, images_command_text
 from bot.utils import divide_into_chunks
 from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
-    steps_values, cgf_values
+    steps_values, cgf_values, size_values
 from bot.utils import send_photo_as_file
 
 imagesRouter = Router()
@@ -22,11 +22,6 @@ async def handle_generate_image(message: types.Message):
     if not stateService.is_image_state(user_id):
         return
 
-    is_waiting_image = imageService.get_waiting_image(user_id)
-
-    if is_waiting_image:
-        return
-
     try:
         wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
 
@@ -36,12 +31,26 @@ async def handle_generate_image(message: types.Message):
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
-        image = await imageService.generate(message.text, user_id)
+        async def wait_image():
+            stateService.set_current_state(message.from_user.id, StateTypes.Default)
+
+            await message.answer("Генерация изображения ушла в фоновый режим. \n"
+                                 "Пришлем вам изображение через 40-120 секунд. \n"
+                                 "Можете продолжать работать с ботом 😉")
+
+        image = await imageService.generate(message.text, user_id, wait_image)
 
         await message.bot.send_chat_action(message.chat.id, "typing")
         await message.reply_photo(image["output"][0])
         await send_photo_as_file(message, image["output"][0], "Вот картинка в оригинальном качестве")
+        await tokenizeService.update_user_token(user_id, 30, "subtract")
+        await message.answer(f"""
+🤖 Затрачено на генерацию  30 `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
+""")
         await wait_message.delete()
+
     except Exception as e:
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
         logging.log(logging.INFO, e)
@@ -69,11 +78,6 @@ async def handle_generate_image(message: types.Message):
         return
 
     if not stateService.is_dalle3_state(user_id):
-        return
-
-    is_waiting_image = imageService.get_waiting_image(user_id)
-
-    if is_waiting_image:
         return
 
     try:
@@ -104,8 +108,138 @@ async def handle_generate_image(message: types.Message):
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
         logging.log(logging.INFO, e)
 
-    imageService.set_waiting_image(user_id, False)
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
+
+
+async def send_variation_image(message, image, task_id):
+    await send_photo_as_file(
+        message,
+        image,
+        "Вот вариации изображения в оригинальном качестве.\n\n"
+        "Выберите нужное действие:",
+        reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="U1", callback_data=f'upscale-midjourney {task_id} 1'),
+                    InlineKeyboardButton(text="U2", callback_data=f'upscale-midjourney {task_id} 2'),
+                    InlineKeyboardButton(text="U3", callback_data=f'upscale-midjourney {task_id} 3'),
+                    InlineKeyboardButton(text="U4", callback_data=f'upscale-midjourney {task_id} 4')
+                ],
+                [
+                    InlineKeyboardButton(text="V1", callback_data=f'variation-midjourney {task_id} 1'),
+                    InlineKeyboardButton(text="V2", callback_data=f'variation-midjourney {task_id} 2'),
+                    InlineKeyboardButton(text="V3", callback_data=f'variation-midjourney {task_id} 3'),
+                    InlineKeyboardButton(text="V4", callback_data=f'variation-midjourney {task_id} 4')
+                ],
+            ],
+
+        )
+    )
+
+
+@imagesRouter.message(StateCommand(StateTypes.Midjourney))
+async def handle_generate_image(message: types.Message):
+    user_id = message.from_user.id
+
+    tokens = await tokenizeService.get_tokens(message.from_user.id)
+
+    print(tokens)
+    if tokens.get("tokens") < 0:
+        await message.answer("""
+У вас не хватает `energy` ⚡!
+
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - Пригласить друга, чтобы получить бесплатные `energy` ⚡!       
+""")
+        stateService.set_current_state(message.from_user.id, StateTypes.Default)
+        return
+
+    if not stateService.is_midjourney_state(user_id):
+        return
+
+    stateService.set_current_state(message.from_user.id, StateTypes.Default)
+
+    try:
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 50-150 секунд.")
+
+        await message.bot.send_chat_action(message.chat.id, "typing")
+
+        image = await imageService.generate_midjourney(user_id, message.text)
+
+        await message.bot.send_chat_action(message.chat.id, "typing")
+
+        await send_variation_image(
+            message,
+            image["task_result"]["discord_image_url"],
+            image["task_id"]
+        )
+
+        await wait_message.delete()
+
+        await tokenizeService.update_user_token(user_id, 2500, "subtract")
+        await message.answer(f"""
+🤖 Затрачено на генерацию 2500 `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
+""")
+    except Exception as e:
+        await message.answer("Что-то пошло не так попробуйте позже! 😔")
+        logging.log(logging.INFO, e)
+
+    stateService.set_current_state(message.from_user.id, StateTypes.Default)
+
+
+@imagesRouter.callback_query(StartWithQuery("upscale-midjourney"))
+async def upscale_midjourney_callback_query(callback: CallbackQuery):
+    task_id = callback.data.split(" ")[1]
+    index = callback.data.split(" ")[2]
+
+    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
+
+    image = await imageService.upscale_image(task_id, index)
+
+    await callback.message.reply_photo(image["task_result"]["discord_image_url"])
+    await send_photo_as_file(
+        callback.message,
+        image["task_result"]["discord_image_url"],
+        "Вот выше изображение в оригинальном качестве"
+    )
+
+    await tokenizeService.update_user_token(callback.from_user.id, 1000, "subtract")
+    await callback.message.answer(f"""
+🤖 Затрачено на генерацию 1000 `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
+""")
+
+    await wait_message.delete()
+
+
+@imagesRouter.callback_query(StartWithQuery("variation-midjourney"))
+async def variation_midjourney_callback_query(callback: CallbackQuery):
+    task_id = callback.data.split(" ")[1]
+    index = callback.data.split(" ")[2]
+
+    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 50-150 секунд.")
+
+    image = await imageService.variation_image(task_id, index)
+
+    await send_variation_image(
+        callback.message,
+        image["task_result"]["discord_image_url"],
+        image["task_id"]
+    )
+
+    await tokenizeService.update_user_token(callback.from_user.id, 2500, "subtract")
+    await callback.message.answer(f"""
+🤖 Затрачено на генерацию 2500 `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
+""")
+
+    await wait_message.delete()
 
 
 @imagesRouter.message(TextCommand([images_command(), images_command_text()]))
@@ -117,6 +251,7 @@ async def handle_start_generate_image(message: types.Message):
                 # todo придумать callback data утилиту
                 InlineKeyboardButton(text="Stable Duffusion", callback_data="image-model SD"),
                 InlineKeyboardButton(text="Dall-e-3", callback_data="image-model Dalle3"),
+                InlineKeyboardButton(text="Midjourney", callback_data="image-model Midjourney"),
             ],
         ]))
 
@@ -127,7 +262,7 @@ async def generate_base_stable_diffusion_keyboard(callback_query: CallbackQuery)
     user_id = callback_query.from_user.id
 
     current_image = imageService.get_current_image(user_id)
-    current_sampler = imageService.get_sampler(user_id)
+    current_size = imageService.get_size_model(user_id)
     current_steps = imageService.get_steps(user_id)
     current_cfg = imageService.get_cfg_model(user_id)
 
@@ -141,8 +276,8 @@ async def generate_base_stable_diffusion_keyboard(callback_query: CallbackQuery)
                     callback_data="image-model choose-model 0 5"
                 )],
                 [InlineKeyboardButton(
-                    text=f"Сэмплер: {current_sampler}",
-                    callback_data="image-model choose-sampler 0 5"
+                    text=f"Размер: {current_size}",
+                    callback_data="image-model choose-size 0 5"
                 )],
                 [
                     InlineKeyboardButton(
@@ -158,6 +293,65 @@ async def generate_base_stable_diffusion_keyboard(callback_query: CallbackQuery)
                     text=f"Сгенерировать 🔥",
                     callback_data="sd-generate"
                 )],
+            ],
+
+        )
+    )
+
+
+async def generate_base_midjourney_keyboard(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+
+    current_size = imageService.get_midjourney_size(user_id)
+
+    def size_text(size: str):
+        if current_size == size:
+            return checked_text(size)
+        return size
+
+    await callback_query.message.edit_text("Параметры *Midjourney*:")
+    await callback_query.message.edit_reply_markup(
+        reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=size_text("1:1"),
+                        callback_data="image-model update-size-midjourney 1:1"
+                    ),
+                    InlineKeyboardButton(
+                        text=size_text("2:3"),
+                        callback_data="image-model update-size-midjourney 2:3"
+                    ),
+                    InlineKeyboardButton(
+                        text=size_text("4:5"),
+                        callback_data="image-model update-size-midjourney 3:2"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text=size_text("4:5"),
+                        callback_data="image-model update-size-midjourney 4:5"
+                    ),
+                    InlineKeyboardButton(
+                        text=size_text("5:4"),
+                        callback_data="image-model update-size-midjourney 5:4"
+                    ),
+                    InlineKeyboardButton(
+                        text=size_text("4:7"),
+                        callback_data="image-model update-size-midjourney 4:7"
+                    ),
+                    InlineKeyboardButton(
+                        text=size_text("7:4"),
+                        callback_data="image-model update-size-midjourney 7:4"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text=f"Сгенерировать 🔥",
+                        callback_data="midjourney-generate"
+                    )
+                ],
             ],
 
         )
@@ -229,6 +423,16 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 """)
 
 
+@imagesRouter.callback_query(StartWithQuery("midjourney-generate"))
+async def handle_image_model_query(callback_query: CallbackQuery):
+    stateService.set_current_state(callback_query.from_user.id, StateTypes.Midjourney)
+    await callback_query.message.answer(""" 
+Напишите на английском запрос для генерации изображения! ‍🔥
+
+Например: `A fantastic photorealistic photo of a black hole that destroys other galaxies`
+""")
+
+
 @imagesRouter.callback_query(StartWithQuery("image-model"))
 async def handle_image_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
@@ -240,6 +444,16 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 
     if model == "Dalle3":
         await generate_base_dalle3_keyboard(callback_query)
+
+    if model == "Midjourney":
+        await generate_base_midjourney_keyboard(callback_query)
+
+    if model == "update-size-midjourney":
+        size = callback_query.data.split(" ")[2]
+
+        imageService.set_midjourney_size(user_id, size)
+
+        await generate_base_midjourney_keyboard(callback_query)
 
     if model == "update-size-dalle":
         dalle_size = callback_query.data.split(" ")[2]
@@ -299,6 +513,32 @@ async def handle_image_model_query(callback_query: CallbackQuery):
             reply_markup=InlineKeyboardMarkup(
                 resize_keyboard=True,
                 inline_keyboard=copy_stable_models
+            )
+        )
+
+    if model == "update-size":
+        size = callback_query.data.split(" ")[2]
+
+        imageService.set_size_state(user_id, size)
+
+        await generate_base_stable_diffusion_keyboard(callback_query)
+
+    if model == "choose-size":
+        keyboard = divide_into_chunks(
+            list(
+                map(lambda x: InlineKeyboardButton(text=str(x), callback_data=f"image-model update-size {x}"),
+                    size_values)),
+            2
+        )
+
+        keyboard.append([InlineKeyboardButton(text="❌ Отменить",
+                                              callback_data=f"image-model SD")])
+
+        await callback_query.message.edit_text("👾 Шаги Stable Diffusion: ")
+        await callback_query.message.edit_reply_markup(
+            reply_markup=InlineKeyboardMarkup(
+                resize_keyboard=True,
+                inline_keyboard=keyboard
             )
         )
 

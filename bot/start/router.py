@@ -137,6 +137,7 @@ async def buy(message: types.Message):
     await apply_ref(message, message.from_user.id, ref_user_id)
 
 
+
 @startRouter.callback_query(StartWithQuery("ref-is-subscribe"))
 async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
     ref_user_id = callback_query.data.split(" ")[1]
@@ -153,7 +154,7 @@ async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
 
 @startRouter.message(TextCommand([help_command(), help_text()]))
 async def help_command(message: types.Message):
-    await message.bot.send_message(message.chat.id, text="""
+    await message.answer(text="""
 Основной ресурc для доступа нейросети - `energy`⚡.
 Это универсальный ресурс для всего функционала нейросети.
 
@@ -166,8 +167,10 @@ async def help_command(message: types.Message):
 /model - 🤖 Сменить модель, перезапускает бот, позволяет сменить модель бота.
 /system - ⚙️ Системное сообщение, позволяет сменить системное сообщение, чтобы изменить взаимодействие с ботом.   
 /clear - 🧹 Очистить контекст, помогает забыть боту всю историю.  
-/balance - ✨ Баланс, позволяет узнать оставшиеся количество `energy`⚡.
+/balance - ✨ Баланс, позволяет узнать баланс `energy`⚡.
 /image - 🖼️ Сгенерировать картинку, вызывает нейросеть Stable Diffusion для генерации изображений.
 /buy - 💎 Пополнить баланс, позволяет пополнить баланс `energy`⚡.
 /referral - ✉️ Получить реферальную ссылку
+/suno - 🎵 Генерация песен через suno
+/text - Отправить текстовое сообщение
 """)
