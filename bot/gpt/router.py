@@ -70,7 +70,7 @@ async def handle_gpt_request(message: Message, text: str):
 /buy - 💎 Пополнить баланс 
 /referral - Пригласить друга, чтобы получить бесплатно `energy` ⚡!
 /model - Сменить модель
-""") 
+""")
             return
         system_message = get_system_message(system_message)
         if system_message == "question-answer":
@@ -140,19 +140,21 @@ async def get_photos_links(message, photos):
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message, album):
+    print(album)
+    print(message.chat.type)
+    # if message.chat.type in ['group', 'supergroup']:
+    #     if message.caption_entities is None:
+    #         return
+    #     mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
+    #     if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+    #         return
 
-    if message.chat.type in ['group', 'supergroup']:
-        if message.caption_entities is None:
-            return
-        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
-        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-            return
-            
     photos = []
 
     for item in album:
         photos.append(item.photo[-1])
 
+    print(photos)
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     if tokens.get("tokens") <= 0:
@@ -255,7 +257,7 @@ async def handle_voice(message: Message):
             return
         mentions = [entity for entity in message.entities if entity.type == 'mention']
         if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-            return  
+            return
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     if tokens.get("tokens") <= 0:
@@ -297,7 +299,6 @@ async def handle_voice(message: Message):
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
-
     if message.chat.type in ['group', 'supergroup']:
         if message.caption_entities is None:
             return
@@ -467,7 +468,6 @@ async def handle_change_model_query(callback_query: CallbackQuery):
     await callback_query.message.delete()
 
 
-
 @gptRouter.message(TextCommand([get_history_command(), get_history_text()]))
 async def handle_get_history(message: types.Message):
     is_agreement = await agreement_handler(message)
@@ -494,7 +494,7 @@ async def handle_get_history(message: types.Message):
 
     json_data = json.dumps(history_data, ensure_ascii=False, indent=4)
     file_stream = io.BytesIO(json_data.encode('utf-8'))
-    file_stream.name = "dialog_history.json"  
+    file_stream.name = "dialog_history.json"
 
     input_file = BufferedInputFile(file_stream.read(), filename=file_stream.name)
 
@@ -504,24 +504,45 @@ async def handle_get_history(message: types.Message):
     await message.delete()
 
 
-
-    
-@gptRouter.message()
+@gptRouter.message(TextCommand("/bot"))
 async def handle_completion(message: Message, batch_messages):
-    if message.chat.type in ['group', 'supergroup']:
-        if message.entities is None:
-            return
-        mentions = [entity for entity in message.entities if entity.type == 'mention']
-        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-            return  
+    print(message)
+
+    print(message.chat.type)
+    print(message.entities)
+    print(message.text)
+
+    # if message.chat.type in ['group', 'supergroup']:
+    #
+    #     if message.entities is None:
+    #         return
+    #     mentions = [entity for entity in message.entities if entity.type == 'mention']
+    #
+    #     if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+    #         return
 
     text = ''
     for message in batch_messages:
         text = text + message.text + "\n"
     text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
-    print(text, 'text11111111111')
 
     await handle_gpt_request(message, text)
 
 
+@gptRouter.message()
+async def handle_completion(message: Message, batch_messages):
+    if message.chat.type in ['group', 'supergroup']:
 
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+
+        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+            return
+
+    text = ''
+    for message in batch_messages:
+        text = text + message.text + "\n"
+    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
+
+    await handle_gpt_request(message, text)

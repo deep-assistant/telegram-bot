@@ -154,7 +154,7 @@ async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
 
 @startRouter.message(TextCommand([help_command(), help_text()]))
 async def help_command(message: types.Message):
-    await message.bot.send_message(message.chat.id, text="""
+    await message.answer(text="""
 Основной ресурc для доступа нейросети - `energy`⚡.
 Это универсальный ресурс для всего функционала нейросети.
 
@@ -171,4 +171,6 @@ async def help_command(message: types.Message):
 /image - 🖼️ Сгенерировать картинку, вызывает нейросеть Stable Diffusion для генерации изображений.
 /buy - 💎 Пополнить баланс, позволяет пополнить баланс `energy`⚡.
 /referral - ✉️ Получить реферальную ссылку
+/suno - 🎵 Генерация песен через suno
+/text - Отправить текстовое сообщение
 """)
