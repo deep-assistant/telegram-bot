@@ -16,6 +16,7 @@ from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
 from bot.start import startRouter
 from bot.suno import sunoRouter
+from bot.tasks import taskRouter
 
 
 def apply_routers(dp: Dispatcher) -> None:
@@ -26,6 +27,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(agreementRouter)
     dp.include_router(paymentsRouter)
     dp.include_router(apiRouter)
+    dp.include_router(taskRouter)
     dp.include_router(gptRouter)
 
 

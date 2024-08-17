@@ -232,7 +232,7 @@ class ImageService:
 
             return result
 
-    async def generate_midjourney(self, user_id, prompt):
+    async def generate_midjourney(self, user_id, prompt, task_id_get):
         data = {
             "prompt": prompt,
             "aspect_ratio": self.get_midjourney_size(user_id),
@@ -245,13 +245,18 @@ class ImageService:
             json=data
         )
 
-        return await self.try_fetch_midjourney(response.json()['task_id'])
+        task_id = response.json()['task_id']
+
+        if task_id:
+            await task_id_get(task_id)
+
+        return await self.try_fetch_midjourney(task_id)
 
     async def task_fetch(self, task_id):
         response = await async_post("https://api.midjourneyapi.xyz/mj/v2/fetch", json={"task_id": task_id})
         return response.json()
 
-    async def upscale_image(self, task_id, index):
+    async def upscale_image(self, task_id, index, task_id_get):
         print(task_id)
         response = await async_post(
             "https://api.midjourneyapi.xyz/mj/v2/upscale",
@@ -259,16 +264,26 @@ class ImageService:
             json={"origin_task_id": task_id, "index": index, }
         )
 
-        return await self.try_fetch_midjourney(response.json()['task_id'])
+        task_id = response.json()['task_id']
 
-    async def variation_image(self, task_id, index):
-        print(task_id)
+        if task_id:
+            await task_id_get(task_id)
+
+        return await self.try_fetch_midjourney(task_id)
+
+    async def variation_image(self, task_id, index, task_id_get):
         response = await async_post(
             "https://api.midjourneyapi.xyz/mj/v2/variation",
             headers={"X-API-KEY": GO_API_KEY},
             json={"origin_task_id": task_id, "index": index, }
         )
 
-        return await self.try_fetch_midjourney(response.json()['task_id'])
+        task_id = response.json()['task_id']
+
+        if task_id:
+            await task_id_get(task_id)
+
+        return await self.try_fetch_midjourney(task_id)
+
 
 imageService = ImageService()

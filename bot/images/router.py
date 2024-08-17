@@ -96,6 +96,18 @@ async def handle_generate_image(message: types.Message):
         await message.answer(image["text"])
         await message.reply_photo(image["image"])
         await send_photo_as_file(message, image["image"], "Вот картинка в оригинальном качестве")
+        await message.answer(text="Cгенерировать Dalle3 еще? 🔥", reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"Сгенерировать 🔥",
+                        callback_data="dalle-generate"
+                    )
+                ]
+            ],
+        ))
+
         await wait_message.delete()
 
         await tokenizeService.update_user_token(user_id, image["total_tokens"], "subtract")
@@ -144,7 +156,6 @@ async def handle_generate_image(message: types.Message):
 
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
-    print(tokens)
     if tokens.get("tokens") < 0:
         await message.answer("""
 У вас не хватает `energy` ⚡!
@@ -166,7 +177,14 @@ async def handle_generate_image(message: types.Message):
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
-        image = await imageService.generate_midjourney(user_id, message.text)
+        async def task_id_get(task_id: str):
+            await message.answer(f"""
+ID вашей генерации: `1:midjourney:{task_id}:generate`.
+
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+""")
+
+        image = await imageService.generate_midjourney(user_id, message.text, task_id_get)
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -198,7 +216,14 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
 
     wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
 
-    image = await imageService.upscale_image(task_id, index)
+    async def task_id_get(task_id: str):
+        await callback.message.answer(f"""
+ID вашей генерации: `1:midjourney:{task_id}:upscale`.
+
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+""")
+
+    image = await imageService.upscale_image(task_id, index, task_id_get)
 
     await callback.message.reply_photo(image["task_result"]["discord_image_url"])
     await send_photo_as_file(
@@ -206,6 +231,18 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
         image["task_result"]["discord_image_url"],
         "Вот выше изображение в оригинальном качестве"
     )
+    await callback.message.answer(text="Cгенерировать Midjourney еще?", reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"Сгенерировать 🔥",
+                    callback_data="midjourney-generate"
+                )
+            ]
+        ],
+    )
+                                  )
 
     await tokenizeService.update_user_token(callback.from_user.id, 1000, "subtract")
     await callback.message.answer(f"""
@@ -224,7 +261,14 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
 
     wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 50-150 секунд.")
 
-    image = await imageService.variation_image(task_id, index)
+    async def task_id_get(task_id: str):
+        await callback.message.answer(f"""
+ID вашей генерации: `1:midjourney:{task_id}:generate`.
+
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+""")
+
+    image = await imageService.variation_image(task_id, index, task_id_get)
 
     await send_variation_image(
         callback.message,

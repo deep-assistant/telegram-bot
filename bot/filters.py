@@ -16,6 +16,16 @@ class TextCommand(BaseFilter):
         return include(self.text_command, message.text)
 
 
+class StartWith(BaseFilter):
+    def __init__(self, text_command: str):
+        self.text_command: str = text_command
+
+    async def __call__(self, message: Message) -> bool:
+        print(message.text)
+        print(self.text_command)
+        return message.text.startswith(self.text_command)
+
+
 class Document(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         return message.document is not None

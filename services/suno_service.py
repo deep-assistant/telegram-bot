@@ -5,7 +5,7 @@ from services.utils import async_post, async_get
 
 
 class SunoService:
-    async def generate_suno(self, prompt):
+    async def generate_suno(self, prompt, task_id_get):
         response = await async_post(
             "https://api.goapi.ai/api/suno/v1/music",
             headers={'X-API-Key': GO_API_KEY, 'Content-Type': 'application/json'},
@@ -21,6 +21,9 @@ class SunoService:
 
         task_id = response.json()['data']['task_id']
 
+        if task_id:
+            await task_id_get(task_id)
+
         attempts = 0
 
         while True:
@@ -30,9 +33,7 @@ class SunoService:
             await asyncio.sleep(30)
             attempts += 1
 
-            response = await self.task_fetch(task_id)
-
-            result = response.json()
+            result = await self.task_fetch(task_id)
 
             if result["data"]["status"] == "processing":
                 continue
@@ -42,10 +43,12 @@ class SunoService:
     async def task_fetch(self, task_id):
         url = "https://api.goapi.ai/api/suno/v1/music/" + task_id
 
-        return await async_get(url, headers={
+        response = await async_get(url, headers={
             'X-API-Key': GO_API_KEY,
             'Content-Type': 'application/json'
         })
+
+        return response.json()
 
 
 sunoService = SunoService()
