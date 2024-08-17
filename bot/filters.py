@@ -21,8 +21,9 @@ class StartWith(BaseFilter):
         self.text_command: str = text_command
 
     async def __call__(self, message: Message) -> bool:
-        print(message.text)
-        print(self.text_command)
+        if message.text is None:
+            return False
+
         return message.text.startswith(self.text_command)
 
 
