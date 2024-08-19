@@ -173,8 +173,8 @@ async def handle_image(message: Message, album):
         return
 
     openai = OpenAI(
-        api_key=GUO_GUO_KEY,
-        base_url="https://api.aiguoguo199.com/v1/",
+        api_key=GO_API_KEY,
+        base_url="https://api.goapi.xyz/v1/"
     )
 
     text = "Опиши" if message.caption is None else message.caption
