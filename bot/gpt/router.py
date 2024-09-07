@@ -251,7 +251,6 @@ async def transcribe_voice(voice_file_url: str):
 
 @gptRouter.message(Voice())
 async def handle_voice(message: Message):
-    print(message.chat.type)
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
             return

@@ -11,6 +11,7 @@ import config
 from bot.agreement import agreementRouter
 from bot.api.router import apiRouter
 from bot.gpt import gptRouter
+from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
@@ -28,6 +29,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(paymentsRouter)
     dp.include_router(apiRouter)
     dp.include_router(taskRouter)
+    dp.include_router(imageEditingRouter)
     dp.include_router(gptRouter)
 
 

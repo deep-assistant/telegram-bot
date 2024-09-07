@@ -42,11 +42,11 @@ class GPTService:
             model = data_base[db_key(user_id, self.CURRENT_MODEL_KEY)].decode('utf-8')
             return GPTModels(model)
         except KeyError:
-            self.set_current_model(user_id, GPTModels.GPT_4o)
-            return GPTModels.GPT_4o
+            self.set_current_model(user_id, GPTModels.GPT_4o_mini)
+            return GPTModels.GPT_4o_mini
         except Exception:
-            self.set_current_model(user_id, GPTModels.GPT_4o)
-            return GPTModels.GPT_4o
+            self.set_current_model(user_id, GPTModels.GPT_4o_mini)
+            return GPTModels.GPT_4o_mini
 
     def set_current_model(self, user_id: str, model: GPTModels):
         with data_base.transaction():

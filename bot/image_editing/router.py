@@ -1,0 +1,57 @@
+from aiogram import Router
+from aiogram.types import Message
+
+from bot.filters import TextCommand, Photo, StateCommand, CompositeFilters
+from bot.image_editing.commad_types import get_remove_background_command
+from bot.utils import send_photo_as_file
+from config import TOKEN
+from services import stateService, StateTypes, imageEditing, tokenizeService
+
+imageEditingRouter = Router()
+
+
+@imageEditingRouter.message(TextCommand([get_remove_background_command()]))
+async def handle_remove_background_start(message: Message):
+    await message.answer("Пришлите фотографию, чтобы удалить фон.")
+    stateService.set_current_state(message.from_user.id, StateTypes.ImageEditing)
+
+
+@imageEditingRouter.message(CompositeFilters([Photo(), StateCommand(StateTypes.ImageEditing)]))
+async def handle_remove_background(message: Message, album):
+    stateService.set_current_state(message.from_user.id, StateTypes.Default)
+    wait_message = await message.answer("**⌛️Ожидайте ответ...**")
+
+    photos = []
+
+    for item in album:
+        photos.append(item.photo[-1])
+
+    image = photos[0]
+
+    try:
+
+        file_info = await message.bot.get_file(image.file_id)
+        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_info.file_path}"
+
+        result = await imageEditing.remove_background(file_url)
+
+        image_url = result["data"]["task_result"]["task_output"]["image_url"]
+        await message.reply_photo(image_url)
+        await send_photo_as_file(
+            message,
+            image_url,
+            "Вот картинка в оригинальном качестве",
+            ext=".png"
+        )
+
+        await tokenizeService.update_user_token(message.from_user.id, 400, "subtract")
+        await message.answer(f"""
+🤖 Затрачено на генерацию  400 `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
+""")
+
+    except Exception as e:
+        print(e)
+    finally:
+        await wait_message.delete()

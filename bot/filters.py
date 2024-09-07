@@ -5,6 +5,20 @@ from bot.utils import include
 from services import StateTypes, stateService
 
 
+class CompositeFilters(BaseFilter):
+    def __init__(self, filters):
+        self.filters = filters
+
+    async def __call__(self, message: Message) -> bool:
+        for Filter in self.filters:
+            print(message)
+            print(await Filter(message))
+            if not await Filter(message):
+                return False
+
+        return True
+
+
 class TextCommand(BaseFilter):
     def __init__(self, text_command: [str]):
         self.text_command: [str] = text_command
