@@ -296,7 +296,7 @@ ID вашей генерации: `1:midjourney:{task_id}:upscale`.
     await send_photo_as_file(
         callback.message,
         image["task_result"]["discord_image_url"],
-        "Вот выше изображение в оригинальном качестве"
+        "Вот ваше изображение в оригинальном качестве"
     )
     await callback.message.answer(text="Cгенерировать Midjourney еще?", reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,

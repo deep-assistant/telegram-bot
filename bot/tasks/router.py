@@ -31,7 +31,7 @@ async def handle_midjourney_message(message: Message):
             await send_photo_as_file(
                 message,
                 image,
-                "Вот выше изображение в оригинальном качестве"
+                "Вот ваше изображение в оригинальном качестве"
             )
             await message.answer(text="Cгенерировать Midjourney еще? 🔥", reply_markup=InlineKeyboardMarkup(
                 resize_keyboard=True,
