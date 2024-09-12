@@ -140,21 +140,11 @@ async def get_photos_links(message, photos):
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message, album):
-    print(album)
-    print(message.chat.type)
-    # if message.chat.type in ['group', 'supergroup']:
-    #     if message.caption_entities is None:
-    #         return
-    #     mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
-    #     if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-    #         return
-
     photos = []
 
     for item in album:
         photos.append(item.photo[-1])
 
-    print(photos)
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     if tokens.get("tokens") <= 0:
@@ -172,49 +162,25 @@ async def handle_image(message: Message, album):
     if not is_subscribe:
         return
 
-    openai = OpenAI(
-        api_key=GO_API_KEY,
-        base_url="https://api.goapi.xyz/v1/"
-    )
-
     text = "Опиши" if message.caption is None else message.caption
 
     await message.bot.send_chat_action(message.chat.id, "typing")
-    print([
 
-        *await get_photos_links(message, photos),
-        {
-            "role": "user",
-            "content": text
-        },
-    ])
-    chat_completion = openai.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "user",
-                "content": await get_photos_links(message, photos)
-            },
-            {
-                "role": "user",
-                "content": text
-            },
-        ],
-        stream=False,
-    )
+    content = await get_photos_links(message, photos)
 
-    tokens = int(chat_completion.usage.total_tokens / 20)
+    content.append({"type": "text", "text": text})
 
-    await message.bot.send_chat_action(message.chat.id, "typing")
+    bot_model = gptService.get_current_model(message.from_user.id)
 
-    await tokenizeService.update_user_token(message.from_user.id, tokens, 'subtract')
+    if bot_model.value != GPTModels.GPT_4o_mini.value:
+        gptService.set_current_model(message.from_user.id, GPTModels.GPT_4o_mini)
+        await message.answer("""
+Для взаимодействия с картинками модель автоматически была сменена на `GPT-4o-mini`.        
 
-    content = chat_completion.choices[0].message.content
+Сменить модель - /models
+        """)
 
-    await message.bot.send_chat_action(message.chat.id, "typing")
-
-    await send_message(message, content)
-    await message.answer(get_tokens_message(tokens))
+    await handle_gpt_request(message, content)
 
 
 async def transcribe_voice_sync(voice_file_url: str):
