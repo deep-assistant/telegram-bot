@@ -3,11 +3,14 @@ from aiogram.types import Message
 
 from bot.filters import TextCommand, Photo, StateCommand, CompositeFilters
 from bot.image_editing.commad_types import get_remove_background_command
+from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import send_photo_as_file
 from config import TOKEN
 from services import stateService, StateTypes, imageEditing, tokenizeService
 
 imageEditingRouter = Router()
+
+imageEditingRouter.message.middleware(MiddlewareAward())
 
 
 @imageEditingRouter.message(TextCommand([get_remove_background_command()]))

@@ -4,6 +4,8 @@ from db import data_base, db_key
 
 
 class GPTModels(Enum):
+    O1_mini = "o1-mini"
+    O1_preview = "o1-preview"
     GPT_4o = "gpt-4o"
     GPT_4o_mini = "gpt-4o-mini"
     GPT_3_5 = "gpt-3.5"
@@ -23,6 +25,8 @@ class SystemMessages(Enum):
 is_requesting = {}
 
 gpt_models = {
+    GPTModels.O1_mini.value: "o1-mini",
+    GPTModels.O1_preview.value: "o1-preview",
     GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
     GPTModels.GPT_4o.value: "gpt-4o-plus",
     GPTModels.GPT_4o_mini.value: 'gpt-4o-mini',

@@ -33,7 +33,6 @@ async def check_subscription(message: Message, id: str = None) -> bool:
 
 
 async def is_chat_member(message: Message) -> bool:
-    await tokenizeService.check_tokens_update_tokens(message.from_user.id)
     is_subscribe = await check_subscription(message)
 
     if not is_subscribe:
@@ -76,6 +75,16 @@ async def send_message(message: Message, text: str):
 
 def create_change_model_keyboard(current_model: GPTModels):
     return InlineKeyboardMarkup(resize_keyboard=True, inline_keyboard=[
+        # [
+        #     InlineKeyboardButton(
+        #         text=get_model_text(GPTModels.O1_preview, current_model),
+        #         callback_data=GPTModels.O1_preview.value
+        #     ),
+        #     InlineKeyboardButton(
+        #         text=get_model_text(GPTModels.O1_mini, current_model),
+        #         callback_data=GPTModels.O1_mini.value
+        #     ),
+        # ],
         [
             InlineKeyboardButton(
                 text=get_model_text(GPTModels.GPT_4o, current_model),

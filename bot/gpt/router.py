@@ -1,18 +1,16 @@
 import asyncio
-import logging
-from concurrent.futures import ThreadPoolExecutor
-from tempfile import NamedTemporaryFile
-
 import io
 import json
+import logging
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+from tempfile import NamedTemporaryFile
 
 import aiofiles
 from aiogram import Router
-from aiogram.types import Message, CallbackQuery
-from aiogram.types import InputFile
 from aiogram import types
 from aiogram.types import BufferedInputFile
-from openai import OpenAI
+from aiogram.types import Message, CallbackQuery
 
 from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice
@@ -23,17 +21,21 @@ from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
+from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import include
-from config import TOKEN, GO_API_KEY, GUO_GUO_KEY
-from services import gptService, GPTModels, completionsService, tokenizeService
+from bot.utils import send_photo_as_file
+from config import TOKEN, GO_API_KEY
+from services import gptService, GPTModels, completionsService, tokenizeService, referralsService
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
-from bot.utils import send_photo_as_file
 
 gptRouter = Router()
 
 questionAnswer = False
+
+gptRouter.message.middleware(MiddlewareAward())
+
 
 async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
@@ -85,8 +87,6 @@ async def handle_gpt_request(message: Message, text: str):
             bot_model,
             questionAnswer,
         )
-
-        print(answer)
 
         if not answer.get("success"):
             if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
@@ -293,13 +293,37 @@ async def handle_document(message: Message):
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
 async def handle_balance(message: Message):
-    await tokenizeService.check_tokens_update_tokens(message.from_user.id)
     gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)
 
-    await message.answer(f"""
-💵 Текущий баланс: 
+    referral = await referralsService.get_referral(message.from_user.id)
+    last_update = datetime.fromisoformat(referral["lastUpdate"].replace('Z', '+00:00'))
+    new_date = last_update + timedelta(days=1)
+    current_date = datetime.now()
 
-*{gpt_tokens.get("tokens")}* `energy` ⚡ 
+    def get_date():
+        if new_date.strftime("%d") == current_date.strftime("%d"):
+            return f"Сегодня в {new_date.strftime('%H:%M')}"
+        else:
+            return f"Завтра в {new_date.strftime('%H:%M')}"
+
+    def get_date_line():
+        if gpt_tokens.get("tokens") >= 30000:
+            return "🕒 Автопополнение доступно, если меньше *30000* `energy`⚡"
+
+        return f"🕒 Следующее аптопополнение будет: *{get_date()}*   "
+
+    def accept_account():
+        if referral['isActivated']:
+            return "🔑 Ваш аккаунт подтвержден!"
+        else:
+            return "🔑 Ваш аккаунт не подтвержден, зайдите через сутки и совершите любое действие!"
+
+    await message.answer(f""" 
+👩🏻‍💻 Количество рефералов: *{len(referral['children'])}*
+🤑 Ежедневное автопополнение: *{referral['award']}* `energy` ⚡
+{accept_account()}
+    
+💵 Текущий баланс: *{gpt_tokens.get("tokens")}* `energy` ⚡ 
 """)
 
 
@@ -367,14 +391,16 @@ async def handle_change_model(message: Message):
 Выберите модель: 🤖  
 
 Как рассчитывается energy для моделей?
+
+1000 *o1-preview* токенов = 4000 `energy` ⚡️
 1000 *GPT-4o* токенов = 1000 `energy` ⚡️
+1000 *o1-mini* токенов = 800 `energy` ⚡️
 1000 *GPT-4o-mini* токенов = 70 `energy` ⚡️
 1000 *GPT-3.5-turbo* токенов = 70 `energy` ⚡️
 
-1000 *Llama3.1-405B* токенов = 800 `energy` ⚡️
+1000 *Llama3.1-405B* токенов = 500 `energy` ⚡️
 
-1000 *Llama-3-70B* токенов = 285 `energy` ⚡️
-1000 *Llama3.1-70B* токенов = 285 `energy` ⚡️
+1000 *Llama3.1-70B* токенов = 250 `energy` ⚡️
 
 1000 *Llama-3.1-8B* токенов = 20 `energy` ⚡️
 """

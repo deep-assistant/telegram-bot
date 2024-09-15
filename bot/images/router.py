@@ -6,13 +6,16 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.gpt.utils import checked_text
 from bot.images.command_types import images_command, images_command_text
+from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import divide_into_chunks
+from bot.utils import send_photo_as_file
 from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
     steps_values, cgf_values, size_values
-from bot.utils import send_photo_as_file
 
 imagesRouter = Router()
+
+imagesRouter.message.middleware(MiddlewareAward())
 
 
 @imagesRouter.message(StateCommand(StateTypes.Image))
