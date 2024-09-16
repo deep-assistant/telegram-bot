@@ -2,7 +2,6 @@ import logging
 
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
-from services import tokenizeService
 from services.gpt_service import GPTModels
 
 
@@ -58,12 +57,45 @@ def get_tokens_message(tokens: int):
 """
 
 
-def split_string_by_length(string: str, length=4096):
-    return [string[i:i + length] for i in range(0, len(string), length)]
+def split_message(message):
+    max_symbols = 3990
+    messages = []
+    current_message = ''
+    current_language = ''
+    in_code_block = False
+    lines = message.split('\n')
+
+    for line in lines:
+        is_code_block_line = line.startswith('```')
+        if is_code_block_line:
+            current_language = line[3:].strip()
+            in_code_block = not in_code_block
+
+        potential_message = (current_message + '\n' if current_message else '') + line
+
+        if len(potential_message) > max_symbols:
+            if in_code_block:
+                current_message += '\n```'
+
+            messages.append(current_message)
+
+            if in_code_block:
+                current_message = f'```{current_language}\n{line}'
+            else:
+                current_message = line
+        else:
+            current_message = potential_message
+
+    if current_message:
+        if in_code_block:
+            current_message += '\n```'
+        messages.append(current_message)
+
+    return messages
 
 
 async def send_message(message: Message, text: str):
-    parts = split_string_by_length(text)
+    parts = split_message(text)
 
     for part in parts:
         try:
