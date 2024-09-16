@@ -2,6 +2,8 @@ import asyncio
 import io
 import json
 import logging
+import os
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from tempfile import NamedTemporaryFile
@@ -9,7 +11,7 @@ from tempfile import NamedTemporaryFile
 import aiofiles
 from aiogram import Router
 from aiogram import types
-from aiogram.types import BufferedInputFile
+from aiogram.types import BufferedInputFile, FSInputFile
 from aiogram.types import Message, CallbackQuery
 
 from bot.agreement import agreement_handler
@@ -35,6 +37,19 @@ gptRouter = Router()
 questionAnswer = False
 
 gptRouter.message.middleware(MiddlewareAward())
+
+
+async def answer_markdown_file(message: Message, md_content: str):
+    file_path = f"markdown_files/{uuid.uuid4()}.md"
+
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(md_content)
+
+    await message.answer_document(FSInputFile(file_path), caption="Сообщение в формате markdown")
+
+    os.remove(file_path)
 
 
 async def handle_gpt_request(message: Message, text: str):
@@ -79,6 +94,7 @@ async def handle_gpt_request(message: Message, text: str):
             questionAnswer = True
         else:
             questionAnswer = False
+
         answer = await completionsService.query_chatgpt(
             user_id,
             text,
@@ -116,7 +132,11 @@ async def handle_gpt_request(message: Message, text: str):
         format_text = format_image_from_request(answer.get("response"))
         image = format_text["image"]
 
-        await send_message(message, format_text["text"])
+        messages = await send_message(message, format_text["text"])
+
+        if len(messages) > 1:
+            await answer_markdown_file(message, format_text["text"])
+
         if image is not None:
             await message.answer_photo(image)
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")

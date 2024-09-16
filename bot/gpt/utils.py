@@ -104,6 +104,7 @@ async def send_message(message: Message, text: str):
             logging.log(logging.INFO, e)
             await message.answer(part, parse_mode=None)
 
+    return parts
 
 def create_change_model_keyboard(current_model: GPTModels):
     return InlineKeyboardMarkup(resize_keyboard=True, inline_keyboard=[
