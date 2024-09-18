@@ -1,9 +1,10 @@
 import logging
 
+from aiogram.enums import ParseMode
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from services.gpt_service import GPTModels
-
+import telegramify_markdown
 
 def checked_text(value: str):
     return f"✅ {value}"
@@ -99,7 +100,7 @@ async def send_message(message: Message, text: str):
 
     for part in parts:
         try:
-            await message.answer(part)
+            await message.answer(telegramify_markdown.markdownify(part), parse_mode=ParseMode.MARKDOWN_V2)
         except Exception as e:
             logging.log(logging.INFO, e)
             await message.answer(part, parse_mode=None)
