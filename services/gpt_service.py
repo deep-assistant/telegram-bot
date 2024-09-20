@@ -4,6 +4,9 @@ from db import data_base, db_key
 
 
 class GPTModels(Enum):
+    Claude_3 = "claude-3-opus"
+    Claude_3_5 = "claude-3-5-sonnet"
+    Uncensored = "uncensored"
     O1_mini = "o1-mini"
     O1_preview = "o1-preview"
     GPT_4o = "gpt-4o"
@@ -25,6 +28,10 @@ class SystemMessages(Enum):
 is_requesting = {}
 
 gpt_models = {
+
+    GPTModels.Claude_3.value: "claude-3",
+    GPTModels.Claude_3_5.value: "claude-3-5",
+    GPTModels.Uncensored.value: "uncensored",
     GPTModels.O1_mini.value: "o1-mini",
     GPTModels.O1_preview.value: "o1-preview",
     GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
