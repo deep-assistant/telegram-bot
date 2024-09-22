@@ -46,6 +46,10 @@ def help_command():
     return "/help"
 
 
+def app_command():
+    return "/app"
+
+
 def help_text():
     return "🆘 Помощь"
     
