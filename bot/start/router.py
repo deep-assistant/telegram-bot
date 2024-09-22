@@ -1,20 +1,18 @@
-import asyncio
-import logging
 import re
 
 from aiogram import types, Router
-from aiogram.filters import CommandStart, Command
-from aiogram.types import CallbackQuery
+from aiogram.filters import CommandStart
+from aiogram.types import CallbackQuery, Message
 
 from bot.filters import StartWithQuery
+from bot.filters import TextCommand
 from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text, \
-    get_history_text, help_text, help_command
+    get_history_text, help_text, help_command, app_command
 from bot.gpt.utils import check_subscription
 from bot.images import images_command_text
 from bot.payment.command_types import balance_payment_command_text
 from bot.referral import referral_command_text
-from services import GPTModels, tokenizeService, referralsService
-from bot.filters import TextCommand
+from services import tokenizeService, referralsService
 
 startRouter = Router()
 
@@ -30,6 +28,9 @@ hello_text = """
 Приводи друзей и получай еще больше бесплатных `energy` ⚡!
 
 🤖 Я готов помочь тебе с любой задачей, просто напиши сообщение! 
+
+Так же, у нас есть очень удобное приложение, встроенное прямо в телеграм!
+https://t.me/DeepGPTBot/DeepGPT
 
 /help - Обзор все команд бота.
 /balance - ✨ Узнать свой баланс
@@ -151,6 +152,7 @@ async def help_command(message: types.Message):
 Количество затраченных `energy`⚡ зависит от длины диалога, ответов нейросети и ваших вопросов.
 Для экономии используйте команду - /clear, чтобы не засорять диалог!
 
+/app - 🔥 Получить ссылку к приложению!
 /start - 🔄 Рестарт бота, перезапускает бот, помогает обновить бота до последней версии.
 /model - 🤖 Сменить модель, перезапускает бот, позволяет сменить модель бота.
 /system - ⚙️ Системное сообщение, позволяет сменить системное сообщение, чтобы изменить взаимодействие с ботом.   
@@ -162,3 +164,8 @@ async def help_command(message: types.Message):
 /suno - 🎵 Генерация песен через suno
 /text - Отправить текстовое сообщение
 """)
+
+
+@startRouter.message(TextCommand([app_command()]))
+async def app_handler(message: Message):
+    await message.answer("""Ссылка на приложение: https://t.me/DeepGPTBot/DeepGPT""")
