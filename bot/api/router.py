@@ -14,6 +14,8 @@ def get_api_message(token):
     return {
         "text": f"""API KEY: `{token['id']}` \n"""
                 f"""API URL: https://api.deep-foundation.tech/v1/ \n\n"""
+                f"""API URL https://api.deep-foundation.tech/v1/audio/transcriptions  \n\n"""
+                f"""API Completions https://api.deep-foundation.tech/v1/chat/completions \n\n"""
                 f"""Ваш баланс: {token['tokens_gpt']} `energy` ⚡️  \n\n"""
                 f"""https://github.com/deep-foundation/deep-gpt/blob/main/docs.md - 📄 Документация по работе с API""",
         "reply_markup": InlineKeyboardMarkup(
