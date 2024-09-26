@@ -6,13 +6,16 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.gpt.utils import checked_text
 from bot.images.command_types import images_command, images_command_text
+from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import divide_into_chunks
+from bot.utils import send_photo_as_file
 from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
     steps_values, cgf_values, size_values
-from bot.utils import send_photo_as_file
 
 imagesRouter = Router()
+
+imagesRouter.message.middleware(MiddlewareAward())
 
 
 @imagesRouter.message(StateCommand(StateTypes.Image))
@@ -46,6 +49,73 @@ async def handle_generate_image(message: types.Message):
         await tokenizeService.update_user_token(user_id, 30, "subtract")
         await message.answer(f"""
 🤖 Затрачено на генерацию  30 `energy` ⚡
+
+❔ /help - Информация по `energy` ⚡
+""")
+        await wait_message.delete()
+
+    except Exception as e:
+        await message.answer("Что-то пошло не так попробуйте позже! 😔")
+        logging.log(logging.INFO, e)
+
+    imageService.set_waiting_image(user_id, False)
+    stateService.set_current_state(message.from_user.id, StateTypes.Default)
+
+
+@imagesRouter.message(StateCommand(StateTypes.Flux))
+async def handle_generate_image(message: types.Message):
+    user_id = message.from_user.id
+
+    if not stateService.is_flux_state(user_id):
+        return
+
+    stateService.set_current_state(user_id, StateTypes.Default)
+
+    try:
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
+
+        await message.bot.send_chat_action(message.chat.id, "typing")
+
+        imageService.set_waiting_image(user_id, True)
+
+        await message.bot.send_chat_action(message.chat.id, "typing")
+
+        async def task_id_get(task_id: str):
+            await message.answer(f"""
+ID вашей генерации: `1:flux:{task_id}:generate`.
+
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+""")
+
+        result = await imageService.generate_flux(user_id, message.text, task_id_get)
+
+        image = result['data']["output"]["image_url"]
+
+        await message.bot.send_chat_action(message.chat.id, "typing")
+        await message.reply_photo(image)
+        await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
+        await message.answer(text="Cгенерировать Flux еще? 🔥", reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"Сгенерировать 🔥",
+                        callback_data="flux-generate"
+                    )
+                ]
+            ],
+        ))
+
+        model = imageService.get_flux_model(user_id)
+
+        energy = 600
+
+        if model == "Qubico/flux1-dev":
+            energy = 2000
+
+        await tokenizeService.update_user_token(user_id, energy, "subtract")
+        await message.answer(f"""
+🤖 Затрачено на генерацию {energy} `energy` ⚡
 
 ❔ /help - Информация по `energy` ⚡
 """)
@@ -96,6 +166,18 @@ async def handle_generate_image(message: types.Message):
         await message.answer(image["text"])
         await message.reply_photo(image["image"])
         await send_photo_as_file(message, image["image"], "Вот картинка в оригинальном качестве")
+        await message.answer(text="Cгенерировать Dalle3 еще? 🔥", reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"Сгенерировать 🔥",
+                        callback_data="dalle-generate"
+                    )
+                ]
+            ],
+        ))
+
         await wait_message.delete()
 
         await tokenizeService.update_user_token(user_id, image["total_tokens"], "subtract")
@@ -144,7 +226,6 @@ async def handle_generate_image(message: types.Message):
 
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
-    print(tokens)
     if tokens.get("tokens") < 0:
         await message.answer("""
 У вас не хватает `energy` ⚡!
@@ -166,7 +247,14 @@ async def handle_generate_image(message: types.Message):
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
-        image = await imageService.generate_midjourney(user_id, message.text)
+        async def task_id_get(task_id: str):
+            await message.answer(f"""
+ID вашей генерации: `1:midjourney:{task_id}:generate`.
+
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+""")
+
+        image = await imageService.generate_midjourney(user_id, message.text, task_id_get)
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -198,14 +286,33 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
 
     wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
 
-    image = await imageService.upscale_image(task_id, index)
+    async def task_id_get(task_id: str):
+        await callback.message.answer(f"""
+ID вашей генерации: `1:midjourney:{task_id}:upscale`.
+
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+""")
+
+    image = await imageService.upscale_image(task_id, index, task_id_get)
 
     await callback.message.reply_photo(image["task_result"]["discord_image_url"])
     await send_photo_as_file(
         callback.message,
         image["task_result"]["discord_image_url"],
-        "Вот выше изображение в оригинальном качестве"
+        "Вот ваше изображение в оригинальном качестве"
     )
+    await callback.message.answer(text="Cгенерировать Midjourney еще?", reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"Сгенерировать 🔥",
+                    callback_data="midjourney-generate"
+                )
+            ]
+        ],
+    )
+                                  )
 
     await tokenizeService.update_user_token(callback.from_user.id, 1000, "subtract")
     await callback.message.answer(f"""
@@ -224,7 +331,14 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
 
     wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 50-150 секунд.")
 
-    image = await imageService.variation_image(task_id, index)
+    async def task_id_get(task_id: str):
+        await callback.message.answer(f"""
+ID вашей генерации: `1:midjourney:{task_id}:generate`.
+
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+""")
+
+    image = await imageService.variation_image(task_id, index, task_id_get)
 
     await send_variation_image(
         callback.message,
@@ -251,8 +365,11 @@ async def handle_start_generate_image(message: types.Message):
                 # todo придумать callback data утилиту
                 InlineKeyboardButton(text="Stable Duffusion", callback_data="image-model SD"),
                 InlineKeyboardButton(text="Dall-e-3", callback_data="image-model Dalle3"),
-                InlineKeyboardButton(text="Midjourney", callback_data="image-model Midjourney"),
             ],
+            [
+                InlineKeyboardButton(text="Midjourney", callback_data="image-model Midjourney"),
+                InlineKeyboardButton(text="Flux", callback_data="image-model Flux"),
+            ]
         ]))
 
     await message.bot.send_chat_action(message.chat.id, "typing")
@@ -395,6 +512,39 @@ async def generate_base_dalle3_keyboard(callback_query: CallbackQuery):
     )
 
 
+async def generate_base_flux_keyboard(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+
+    current_model = imageService.get_flux_model(user_id)
+
+    def model_text(model: str, text):
+        if current_model == model:
+            return checked_text(text)
+        return text
+
+    await callback_query.message.edit_text("Параметры *Flux*:")
+    await callback_query.message.edit_reply_markup(
+        reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [InlineKeyboardButton(
+                    text=model_text("Qubico/flux1-dev", "Модель: Flux-Dev"),
+                    callback_data="image-model update-flux-model Qubico/flux1-dev"
+                )],
+                [InlineKeyboardButton(
+                    text=model_text("Qubico/flux1-schnell", "Модель: Flux-Schnell"),
+                    callback_data="image-model update-flux-model Qubico/flux1-schnell"
+                )],
+                [InlineKeyboardButton(
+                    text=f"Сгенерировать 🔥",
+                    callback_data="flux-generate"
+                )],
+            ],
+
+        )
+    )
+
+
 def normalize_start_index(index_start: int):
     return index_start if index_start > 0 else 0
 
@@ -406,6 +556,16 @@ def normalize_end_index(index_end: int, max_index: int):
 @imagesRouter.callback_query(StartWithQuery("sd-generate"))
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Image)
+    await callback_query.message.answer("""
+Напишите запрос на английком языке для генерации изображения! ‍🔥
+
+Например: `an astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed`
+""")
+
+
+@imagesRouter.callback_query(StartWithQuery("flux-generate"))
+async def handle_image_model_query(callback_query: CallbackQuery):
+    stateService.set_current_state(callback_query.from_user.id, StateTypes.Flux)
     await callback_query.message.answer("""
 Напишите запрос на английком языке для генерации изображения! ‍🔥
 
@@ -447,6 +607,16 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 
     if model == "Midjourney":
         await generate_base_midjourney_keyboard(callback_query)
+
+    if model == "Flux":
+        await generate_base_flux_keyboard(callback_query)
+
+    if model == "update-flux-model":
+        value = callback_query.data.split(" ")[2]
+
+        imageService.set_flux_model(user_id, value)
+
+        await generate_base_flux_keyboard(callback_query)
 
     if model == "update-size-midjourney":
         size = callback_query.data.split(" ")[2]

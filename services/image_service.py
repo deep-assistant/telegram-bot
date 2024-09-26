@@ -5,7 +5,7 @@ from openai import OpenAI
 from config import GO_API_KEY
 from db import data_base, db_key
 from services.image_utils import format_image_from_request, get_image_model_by_label
-from services.utils import async_post
+from services.utils import async_post, async_get
 
 generating_map = {}
 
@@ -63,6 +63,7 @@ class ImageService:
     CURRENT_SIZE = 'current_size'
     DALLE_SIZE = 'dalee_size'
     MIDJOURNEY_SIZE = 'midjourney_size'
+    FLUX_MODEL = 'flux_model'
 
     default_model = "cyberrealistic"
     default_sampler = "DPM++SDEKarras"
@@ -71,6 +72,7 @@ class ImageService:
     default_size = "512x512"
     default_dalle_size = "1024x1024"
     default_midjourney_size = "1:1"
+    default_flux_model = "Qubico/flux1-dev"
 
     def set_waiting_image(self, user_id, value: bool):
         generating_map[user_id] = value
@@ -166,6 +168,18 @@ class ImageService:
             data_base[db_key(user_id, self.MIDJOURNEY_SIZE)] = state
         data_base.commit()
 
+    def get_flux_model(self, user_id: str) -> str:
+        try:
+            return data_base[db_key(user_id, self.FLUX_MODEL)].decode('utf-8')
+        except KeyError:
+            self.set_flux_model(user_id, self.default_flux_model)
+            return self.default_flux_model
+
+    def set_flux_model(self, user_id: str, state: str):
+        with data_base.transaction():
+            data_base[db_key(user_id, self.FLUX_MODEL)] = state
+        data_base.commit()
+
     async def generate(self, prompt: str, user_id: str, wait_image):
 
         model = get_image_model_by_label(self.get_current_image(user_id))
@@ -232,7 +246,7 @@ class ImageService:
 
             return result
 
-    async def generate_midjourney(self, user_id, prompt):
+    async def generate_midjourney(self, user_id, prompt, task_id_get):
         data = {
             "prompt": prompt,
             "aspect_ratio": self.get_midjourney_size(user_id),
@@ -245,13 +259,18 @@ class ImageService:
             json=data
         )
 
-        return await self.try_fetch_midjourney(response.json()['task_id'])
+        task_id = response.json()['task_id']
+
+        if task_id:
+            await task_id_get(task_id)
+
+        return await self.try_fetch_midjourney(task_id)
 
     async def task_fetch(self, task_id):
         response = await async_post("https://api.midjourneyapi.xyz/mj/v2/fetch", json={"task_id": task_id})
         return response.json()
 
-    async def upscale_image(self, task_id, index):
+    async def upscale_image(self, task_id, index, task_id_get):
         print(task_id)
         response = await async_post(
             "https://api.midjourneyapi.xyz/mj/v2/upscale",
@@ -259,16 +278,81 @@ class ImageService:
             json={"origin_task_id": task_id, "index": index, }
         )
 
-        return await self.try_fetch_midjourney(response.json()['task_id'])
+        task_id = response.json()['task_id']
 
-    async def variation_image(self, task_id, index):
-        print(task_id)
+        if task_id:
+            await task_id_get(task_id)
+
+        return await self.try_fetch_midjourney(task_id)
+
+    async def variation_image(self, task_id, index, task_id_get):
         response = await async_post(
             "https://api.midjourneyapi.xyz/mj/v2/variation",
             headers={"X-API-KEY": GO_API_KEY},
             json={"origin_task_id": task_id, "index": index, }
         )
 
-        return await self.try_fetch_midjourney(response.json()['task_id'])
+        task_id = response.json()['task_id']
+
+        if task_id:
+            await task_id_get(task_id)
+
+        return await self.try_fetch_midjourney(task_id)
+
+    async def generate_flux(self, user_id, prompt, task_id_get):
+        payload = {
+            "model": self.get_flux_model(user_id),
+            "task_type": "txt2img",
+            "input": {"prompt": prompt}
+        }
+
+        headers = {
+            'X-API-Key': GO_API_KEY,
+            'Content-Type': 'application/json'
+        }
+
+        response = await async_post("https://api.goapi.ai/api/v1/task", headers=headers, json=payload)
+
+        task_id = response.json()["data"]['task_id']
+
+        attempts = 0
+
+        await task_id_get(task_id)
+
+        while True:
+            if attempts == 10:
+                return
+
+            await asyncio.sleep(10)
+
+            attempts += 1
+
+            headers = {
+                'X-API-Key': GO_API_KEY,
+                'Content-Type': 'application/json'
+            }
+
+            response = await async_get(f"https://api.goapi.ai/api/v1/task/{task_id}", headers=headers)
+
+            result = response.json()
+
+            if result['data']['status'] == "pending":
+                continue
+
+            if result['data']['status'] == "processing":
+                continue
+
+            if result['data']['status'] == "completed":
+                return result
+
+    async def task_flux_fetch(self, task_id):
+        headers = {
+            'X-API-Key': GO_API_KEY,
+            'Content-Type': 'application/json'
+        }
+
+        response = await async_get(f"https://api.goapi.ai/api/v1/task/{task_id}", headers=headers)
+        return response.json()
+
 
 imageService = ImageService()

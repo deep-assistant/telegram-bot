@@ -5,6 +5,20 @@ from bot.utils import include
 from services import StateTypes, stateService
 
 
+class CompositeFilters(BaseFilter):
+    def __init__(self, filters):
+        self.filters = filters
+
+    async def __call__(self, message: Message) -> bool:
+        for Filter in self.filters:
+            print(message)
+            print(await Filter(message))
+            if not await Filter(message):
+                return False
+
+        return True
+
+
 class TextCommand(BaseFilter):
     def __init__(self, text_command: [str]):
         self.text_command: [str] = text_command
@@ -14,6 +28,17 @@ class TextCommand(BaseFilter):
             return False
 
         return include(self.text_command, message.text)
+
+
+class StartWith(BaseFilter):
+    def __init__(self, text_command: str):
+        self.text_command: str = text_command
+
+    async def __call__(self, message: Message) -> bool:
+        if message.text is None:
+            return False
+
+        return message.text.startswith(self.text_command)
 
 
 class Document(BaseFilter):

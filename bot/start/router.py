@@ -1,34 +1,40 @@
-import asyncio
-import logging
 import re
 
 from aiogram import types, Router
-from aiogram.filters import CommandStart, Command
-from aiogram.types import CallbackQuery
+from aiogram.filters import CommandStart
+from aiogram.types import CallbackQuery, Message
 
 from bot.filters import StartWithQuery
-from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text, get_history_text, help_text, help_command
+from bot.filters import TextCommand
+from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text, \
+    get_history_text, help_text, help_command, app_command
 from bot.gpt.utils import check_subscription
 from bot.images import images_command_text
 from bot.payment.command_types import balance_payment_command_text
 from bot.referral import referral_command_text
-from services import GPTModels, tokenizeService
-from bot.filters import TextCommand
+from services import tokenizeService, referralsService
 
 startRouter = Router()
 
 hello_text = """
 👋 Привет! Я бот от deep.foundation!
 
-Бот бесплатный, каждый день тебе будет начисляться базовый баланс *10,000* `energy` ⚡!
+Бот бесплатный, каждый день тебе будет начисляться базовый баланс от *10,000* `energy` ⚡!
+
+/referral - Увеличивай свои награды с реферальной системой!
+15 000 energy ⚡️ за каждого приглашенного пользователя. 
++500 energy ⚡️ к ежедневному пополнению баланса за каждого пользователя. 
+
+Приводи друзей и получай еще больше бесплатных `energy` ⚡!
 
 🤖 Я готов помочь тебе с любой задачей, просто напиши сообщение! 
 
-Приводи друзей и получай еще больше бесплатных `energy` ⚡!
-/referral - получить свою реферальную ссылку.
+Так же, у нас есть очень удобное приложение, встроенное прямо в телеграм!
+https://t.me/DeepGPTBot/DeepGPT
 
 /help - Обзор все команд бота.
 /balance - ✨ Узнать свой баланс
+/referral - 🔗 Подробности рефералки
 """
 
 ref_text = """
@@ -36,40 +42,29 @@ ref_text = """
 """
 
 
-async def create_token_if_not_exist(user_id):
-    user_token = await tokenizeService.get_user_tokens(user_id)
+async def handle_referral(message, user_id, ref_user_id):
+    result = await referralsService.create_referral(user_id, ref_user_id)
 
-    if user_token is None:
-        await tokenizeService.get_tokens(user_id)
-        await tokenizeService.update_user_token(user_id, 15000 - 1500)
-        await tokenizeService.check_tokens_update_tokens(user_id)
-
-    return user_token
-
-
-async def apply_ref(message: types.Message, user_id, ref_user_id: str):
-    user_token = await tokenizeService.get_user_tokens(user_id)
-
-    if user_token is None and str(ref_user_id) != str(user_id):
-        if ref_user_id:
-            logging.log(logging.INFO, f"Новый реферал {ref_user_id} -> {user_id}!")
-
-        await create_token_if_not_exist(user_id)
-        await tokenizeService.update_user_token(user_id, 5000)
+    if result["parent"] is not None:
         await message.answer(text="""
 🎉 Вы получили *5 000* `energy`⚡!
 
 /balance - ✨ Узнать баланс
+/referral - 🔗 Подробности рефералки
 """)
 
-        await create_token_if_not_exist(ref_user_id)
-
-        await tokenizeService.update_user_token(ref_user_id, 15000)
         await message.bot.send_message(chat_id=ref_user_id, text="""
-🎉 Добавлен новый реферал! Вы получили *15 000* `energy`⚡!
+🎉 Добавлен новый реферал! 
+Вы получили *5 000* `energy`⚡!
+Ваш реферал должен проявить любую активность в боте через 24 часа, чтобы вы получили еще *5 000* `energy`⚡ и +500 energy ⚡️ к ежедневному пополнению баланса.
 
 /balance - ✨ Узнать баланс
+/referral - 🔗 Подробности рефералки
 """)
+
+
+async def create_token_if_not_exist(user_id):
+    return await tokenizeService.get_tokens(user_id)
 
 
 @startRouter.message(CommandStart())
@@ -106,8 +101,7 @@ async def buy(message: types.Message):
 
     is_subscribe = await check_subscription(message)
 
-    if ref_user_id is None:
-        await create_token_if_not_exist(message.from_user.id)
+    await create_token_if_not_exist(message.from_user.id)
 
     if not is_subscribe:
         if str(ref_user_id) == str(message.from_user.id):
@@ -131,11 +125,7 @@ async def buy(message: types.Message):
 
         return
 
-    if ref_user_id is None:
-        return
-    print(ref_user_id, '129')
-    await apply_ref(message, message.from_user.id, ref_user_id)
-
+    await handle_referral(message, message.from_user.id, ref_user_id)
 
 
 @startRouter.callback_query(StartWithQuery("ref-is-subscribe"))
@@ -149,7 +139,7 @@ async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
         await callback_query.message.answer(text="Вы не подписались! 😡")
         return
 
-    await apply_ref(callback_query.message, user_id, ref_user_id)
+    await handle_referral(callback_query.message, user_id, ref_user_id)
 
 
 @startRouter.message(TextCommand([help_command(), help_text()]))
@@ -161,8 +151,8 @@ async def help_command(message: types.Message):
 Каждый функционал тратит разное количество `energy`⚡.
 Количество затраченных `energy`⚡ зависит от длины диалога, ответов нейросети и ваших вопросов.
 Для экономии используйте команду - /clear, чтобы не засорять диалог!
-Распознование изображений тратит много `energy`⚡, будьте внимательны!
 
+/app - 🔥 Получить ссылку к приложению!
 /start - 🔄 Рестарт бота, перезапускает бот, помогает обновить бота до последней версии.
 /model - 🤖 Сменить модель, перезапускает бот, позволяет сменить модель бота.
 /system - ⚙️ Системное сообщение, позволяет сменить системное сообщение, чтобы изменить взаимодействие с ботом.   
@@ -170,7 +160,12 @@ async def help_command(message: types.Message):
 /balance - ✨ Баланс, позволяет узнать баланс `energy`⚡.
 /image - 🖼️ Сгенерировать картинку, вызывает нейросеть Stable Diffusion для генерации изображений.
 /buy - 💎 Пополнить баланс, позволяет пополнить баланс `energy`⚡.
-/referral - ✉️ Получить реферальную ссылку
+/referral - 🔗 Получить реферальную ссылку
 /suno - 🎵 Генерация песен через suno
 /text - Отправить текстовое сообщение
 """)
+
+
+@startRouter.message(TextCommand([app_command()]))
+async def app_handler(message: Message):
+    await message.answer("""Ссылка на приложение: https://t.me/DeepGPTBot/DeepGPT""")

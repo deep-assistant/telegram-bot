@@ -6,16 +6,19 @@ from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import Message
 
 import config
 from bot.agreement import agreementRouter
 from bot.api.router import apiRouter
 from bot.gpt import gptRouter
+from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
 from bot.start import startRouter
 from bot.suno import sunoRouter
+from bot.tasks import taskRouter
 
 
 def apply_routers(dp: Dispatcher) -> None:
@@ -26,6 +29,8 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(agreementRouter)
     dp.include_router(paymentsRouter)
     dp.include_router(apiRouter)
+    dp.include_router(taskRouter)
+    dp.include_router(imageEditingRouter)
     dp.include_router(gptRouter)
 
 

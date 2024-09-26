@@ -1,18 +1,18 @@
 import asyncio
-import logging
-from concurrent.futures import ThreadPoolExecutor
-from tempfile import NamedTemporaryFile
-
 import io
 import json
+import logging
+import os
+import uuid
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+from tempfile import NamedTemporaryFile
 
 import aiofiles
 from aiogram import Router
-from aiogram.types import Message, CallbackQuery
-from aiogram.types import InputFile
 from aiogram import types
-from aiogram.types import BufferedInputFile
-from openai import OpenAI
+from aiogram.types import BufferedInputFile, FSInputFile
+from aiogram.types import Message, CallbackQuery
 
 from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice
@@ -23,17 +23,34 @@ from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
+from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import include
-from config import TOKEN, GO_API_KEY, GUO_GUO_KEY
-from services import gptService, GPTModels, completionsService, tokenizeService
+from bot.utils import send_photo_as_file
+from config import TOKEN, GO_API_KEY
+from services import gptService, GPTModels, completionsService, tokenizeService, referralsService
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
-from bot.utils import send_photo_as_file
 
 gptRouter = Router()
 
 questionAnswer = False
+
+gptRouter.message.middleware(MiddlewareAward())
+
+
+async def answer_markdown_file(message: Message, md_content: str):
+    file_path = f"markdown_files/{uuid.uuid4()}.md"
+
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(md_content)
+
+    await message.answer_document(FSInputFile(file_path), caption="Сообщение в формате markdown")
+
+    os.remove(file_path)
+
 
 async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
@@ -77,6 +94,7 @@ async def handle_gpt_request(message: Message, text: str):
             questionAnswer = True
         else:
             questionAnswer = False
+
         answer = await completionsService.query_chatgpt(
             user_id,
             text,
@@ -85,8 +103,6 @@ async def handle_gpt_request(message: Message, text: str):
             bot_model,
             questionAnswer,
         )
-
-        print(answer)
 
         if not answer.get("success"):
             if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
@@ -116,7 +132,11 @@ async def handle_gpt_request(message: Message, text: str):
         format_text = format_image_from_request(answer.get("response"))
         image = format_text["image"]
 
-        await send_message(message, format_text["text"])
+        messages = await send_message(message, format_text["text"])
+
+        if len(messages) > 1:
+            await answer_markdown_file(message, format_text["text"])
+
         if image is not None:
             await message.answer_photo(image)
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
@@ -140,21 +160,11 @@ async def get_photos_links(message, photos):
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message, album):
-    print(album)
-    print(message.chat.type)
-    # if message.chat.type in ['group', 'supergroup']:
-    #     if message.caption_entities is None:
-    #         return
-    #     mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
-    #     if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-    #         return
-
     photos = []
 
     for item in album:
         photos.append(item.photo[-1])
 
-    print(photos)
     tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     if tokens.get("tokens") <= 0:
@@ -172,49 +182,25 @@ async def handle_image(message: Message, album):
     if not is_subscribe:
         return
 
-    openai = OpenAI(
-        api_key=GUO_GUO_KEY,
-        base_url="https://api.aiguoguo199.com/v1/",
-    )
-
     text = "Опиши" if message.caption is None else message.caption
 
     await message.bot.send_chat_action(message.chat.id, "typing")
-    print([
 
-        *await get_photos_links(message, photos),
-        {
-            "role": "user",
-            "content": text
-        },
-    ])
-    chat_completion = openai.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "user",
-                "content": await get_photos_links(message, photos)
-            },
-            {
-                "role": "user",
-                "content": text
-            },
-        ],
-        stream=False,
-    )
+    content = await get_photos_links(message, photos)
 
-    tokens = int(chat_completion.usage.total_tokens / 20)
+    content.append({"type": "text", "text": text})
 
-    await message.bot.send_chat_action(message.chat.id, "typing")
+    bot_model = gptService.get_current_model(message.from_user.id)
 
-    await tokenizeService.update_user_token(message.from_user.id, tokens, 'subtract')
+    if bot_model.value != GPTModels.GPT_4o_mini.value:
+        gptService.set_current_model(message.from_user.id, GPTModels.GPT_4o_mini)
+        await message.answer("""
+Для взаимодействия с картинками модель автоматически была сменена на `GPT-4o-mini`.        
 
-    content = chat_completion.choices[0].message.content
+Сменить модель - /models
+        """)
 
-    await message.bot.send_chat_action(message.chat.id, "typing")
-
-    await send_message(message, content)
-    await message.answer(get_tokens_message(tokens))
+    await handle_gpt_request(message, content)
 
 
 async def transcribe_voice_sync(voice_file_url: str):
@@ -251,7 +237,6 @@ async def transcribe_voice(voice_file_url: str):
 
 @gptRouter.message(Voice())
 async def handle_voice(message: Message):
-    print(message.chat.type)
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
             return
@@ -328,13 +313,37 @@ async def handle_document(message: Message):
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
 async def handle_balance(message: Message):
-    await tokenizeService.check_tokens_update_tokens(message.from_user.id)
     gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)
 
-    await message.answer(f"""
-💵 Текущий баланс: 
+    referral = await referralsService.get_referral(message.from_user.id)
+    last_update = datetime.fromisoformat(referral["lastUpdate"].replace('Z', '+00:00'))
+    new_date = last_update + timedelta(days=1)
+    current_date = datetime.now()
 
-*{gpt_tokens.get("tokens")}* `energy` ⚡ 
+    def get_date():
+        if new_date.strftime("%d") == current_date.strftime("%d"):
+            return f"Сегодня в {new_date.strftime('%H:%M')}"
+        else:
+            return f"Завтра в {new_date.strftime('%H:%M')}"
+
+    def get_date_line():
+        if gpt_tokens.get("tokens") >= 30000:
+            return "🕒 Автопополнение доступно, если меньше *30000* `energy`⚡"
+
+        return f"🕒 Следующее аптопополнение будет: *{get_date()}*   "
+
+    def accept_account():
+        if referral['isActivated']:
+            return "🔑 Ваш аккаунт подтвержден!"
+        else:
+            return "🔑 Ваш аккаунт не подтвержден, зайдите через сутки и совершите любое действие!"
+
+    await message.answer(f""" 
+👩🏻‍💻 Количество рефералов: *{len(referral['children'])}*
+🤑 Ежедневное автопополнение: *{referral['award']}* `energy` ⚡
+{accept_account()}
+    
+💵 Текущий баланс: *{gpt_tokens.get("tokens")}* `energy` ⚡ 
 """)
 
 
@@ -402,14 +411,19 @@ async def handle_change_model(message: Message):
 Выберите модель: 🤖  
 
 Как рассчитывается energy для моделей?
+
+1000 *claude-3.5* токенов = 5000 `energy` ⚡️
+1000 *o1-preview* токенов = 5000 `energy` ⚡️
 1000 *GPT-4o* токенов = 1000 `energy` ⚡️
+1000 *claude-3* токенов = 1000 `energy` ⚡️
+1000 *o1-mini* токенов = 800 `energy` ⚡️
+1000 *uncensored* токенов = 100 `energy` ⚡️
 1000 *GPT-4o-mini* токенов = 70 `energy` ⚡️
 1000 *GPT-3.5-turbo* токенов = 70 `energy` ⚡️
 
-1000 *Llama3.1-405B* токенов = 800 `energy` ⚡️
+1000 *Llama3.1-405B* токенов = 500 `energy` ⚡️
 
-1000 *Llama-3-70B* токенов = 285 `energy` ⚡️
-1000 *Llama3.1-70B* токенов = 285 `energy` ⚡️
+1000 *Llama3.1-70B* токенов = 250 `energy` ⚡️
 
 1000 *Llama-3.1-8B* токенов = 20 `energy` ⚡️
 """

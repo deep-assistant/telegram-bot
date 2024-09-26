@@ -9,6 +9,8 @@ class StateTypes(Enum):
     Dalle3 = "dalle3"
     Midjourney = "midjourney"
     Suno = "suno"
+    Flux = "flux"
+    ImageEditing = "image_editing"
 
 
 class StateService:
@@ -31,6 +33,10 @@ class StateService:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.Image.value
 
+    def is_flux_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.Flux.value
+
     def is_dalle3_state(self, user_id: str) -> bool:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.Dalle3.value
@@ -42,6 +48,10 @@ class StateService:
     def is_suno_state(self, user_id: str) -> bool:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.Suno.value
+
+    def is_image_editing_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.ImageEditing.value
 
 
 stateService = StateService()

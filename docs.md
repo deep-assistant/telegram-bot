@@ -8,6 +8,8 @@ The key must be obtained in the bot https://t.me/DeepGPTBot , call the `/api` co
 
 ## Using the API in `JavaScript`
 
+### LLM
+
 ### Installation
 
 ```commandline
@@ -62,6 +64,30 @@ async function main() {
 main();
 ```
 
+### Whisper
+
+```js
+
+const formData = new FormData();
+formData.append("file", file.buffer, file.originalname);
+formData.append("model", "whisper-1");
+formData.append("language", "RU");
+
+const response = await fetch("https://api.deep-foundation.tech/v1/audio/transcriptions", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${YOUR KEY}`,
+    ...formData.getHeaders(),
+  },
+  body: formData,
+});
+
+const responseData = await response.json();
+
+console.log(responseData) // {"text": "hello"}
+
+```
+
 ## Using the API in `Python`
 
 ### Installation
@@ -71,6 +97,8 @@ pip install openai
 ```
 
 ### Usage
+
+### LLM
 
 ```python
 from openai import OpenAI
@@ -111,6 +139,32 @@ for chunk in stream:
     print(chunk.choices[0].message.content or "", end="")
 
 ```
+### Whisper
+
+```python
+
+import requests
+
+API_KEY = 'YOUR_KEY'  
+url = "https://api.deep-foundation.tech/v1/audio/transcriptions"
+
+file_buffer = b'...'
+file_name = 'your_file_name.mp3' 
+
+files = {'file': (file_name, file_buffer)}
+data = {
+    'model': 'whisper-1',
+    'language': 'RU',
+}
+
+headers = { 'Authorization': f'Bearer {YOUR KEY}' }
+
+response = requests.post(url, headers=headers, files=files, data=data)
+response_data = response.json()
+
+print(response_data)  # {"text": "hello"}
+
+```
 
 ### List of all available models:
 1000 energy = 0.8 RUB = 0,009 USD
@@ -122,3 +176,6 @@ for chunk in stream:
 - `meta-llama/Meta-Llama-3.1-70B`: 1000  tokens = 285 energy
 - `meta-llama/Meta-Llama-3-70B-Instruct`: 1000  tokens = 285 energy
 - `meta-llama/Meta-Llama-3.1-8B`: 1000 tokens = 20 energy
+
+### Whisper price
+- `whisper-1`: 1 minute = 6000 energy

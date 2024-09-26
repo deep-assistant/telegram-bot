@@ -8,7 +8,6 @@ from services.utils import async_get, async_post
 
 max_tokens = 50000
 
-
 headers = {'Content-Type': 'application/json'}
 
 
@@ -26,38 +25,6 @@ class TokenizeService:
             data_base[db_key(user_id, self.LAST_CHECK_DATE)] = value
         data_base.commit()
 
-    async def check_tokens_update_tokens(self, user_id):
-        now = datetime.now()
-        last_check_data = self.get_check_date(user_id)
-        TOKENS = 10000
-
-        if last_check_data is not None:
-            last_check = datetime.fromisoformat(last_check_data)
-            midnight_today = datetime.combine(last_check.date() + timedelta(days=1), time(0, 0))
-
-            if last_check < now and now > midnight_today:
-                token_entity = await self.get_tokens(user_id)
-                tokens = token_entity.get('tokens')
-
-                if tokens >= TOKENS:
-                    return
-
-                if tokens < 0:
-                    await self.update_user_token(user_id, -1 * tokens + TOKENS)
-                    self.set_check_date(user_id, now.isoformat())
-                    return
-
-                print(50000 - tokens)
-                await self.update_user_token(user_id, TOKENS - tokens)
-                self.set_check_date(user_id, now.isoformat())
-
-            else:
-                print("Пока ещё не новый день 😴")
-        else:
-            token_entity = await self.get_tokens(user_id)
-            await self.update_user_token(user_id, TOKENS - token_entity.get('tokens'))
-            self.set_check_date(user_id, now.isoformat())
-
     async def get_tokens(self, user_id: str):
         user_token = await self.get_user_tokens(user_id)
         if user_token is not None:
@@ -70,7 +37,7 @@ class TokenizeService:
         payload = {
             "admin_token": ADMIN_TOKEN,
             "userName": get_user_name(user_id),
-            "tokenNum": 1500,
+            "tokenNum": 10000,
             "type": "user"
         }
 
