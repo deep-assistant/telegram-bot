@@ -48,9 +48,9 @@ async def handle_generate_image(message: types.Message):
         await send_photo_as_file(message, image["output"][0], "Вот картинка в оригинальном качестве")
         await tokenizeService.update_user_token(user_id, 30, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию  30 `energy` ⚡
+🤖 Затрачено на генерацию  30⚡️
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
 """)
         await wait_message.delete()
 
@@ -84,7 +84,7 @@ async def handle_generate_image(message: types.Message):
             await message.answer(f"""
 ID вашей генерации: `1:flux:{task_id}:generate`.
 
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
 """)
 
         result = await imageService.generate_flux(user_id, message.text, task_id_get)
@@ -115,9 +115,9 @@ ID вашей генерации: `1:flux:{task_id}:generate`.
 
         await tokenizeService.update_user_token(user_id, energy, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию {energy} `energy` ⚡
+🤖 Затрачено на генерацию {energy}⚡️ 
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
 """)
         await wait_message.delete()
 
@@ -138,11 +138,11 @@ async def handle_generate_image(message: types.Message):
     print(tokens)
     if tokens.get("tokens") < 0:
         await message.answer("""
-У вас не хватает `energy` ⚡!
+У вас не хватает ⚡️!
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
-/referral - Пригласить друга, чтобы получить бесплатные `energy` ⚡!       
+/referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
 """)
         stateService.set_current_state(message.from_user.id, StateTypes.Default)
         return
@@ -182,9 +182,9 @@ async def handle_generate_image(message: types.Message):
 
         await tokenizeService.update_user_token(user_id, image["total_tokens"], "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию  *{image["total_tokens"]}* `energy` ⚡
+🤖 Затрачено на генерацию  *{image["total_tokens"]}*⚡️
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
 """)
     except Exception as e:
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
@@ -228,11 +228,11 @@ async def handle_generate_image(message: types.Message):
 
     if tokens.get("tokens") < 0:
         await message.answer("""
-У вас не хватает `energy` ⚡!
+У вас не хватает ⚡️!
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
-/referral - Пригласить друга, чтобы получить бесплатные `energy` ⚡!       
+/referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
 """)
         stateService.set_current_state(message.from_user.id, StateTypes.Default)
         return
@@ -251,7 +251,7 @@ async def handle_generate_image(message: types.Message):
             await message.answer(f"""
 ID вашей генерации: `1:midjourney:{task_id}:generate`.
 
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
 """)
 
         image = await imageService.generate_midjourney(user_id, message.text, task_id_get)
@@ -268,9 +268,9 @@ ID вашей генерации: `1:midjourney:{task_id}:generate`.
 
         await tokenizeService.update_user_token(user_id, 2500, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию 2500 `energy` ⚡
+🤖 Затрачено на генерацию 2500⚡️
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
 """)
     except Exception as e:
         await message.answer("Что-то пошло не так попробуйте позже! 😔")
@@ -290,7 +290,7 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
         await callback.message.answer(f"""
 ID вашей генерации: `1:midjourney:{task_id}:upscale`.
 
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
 """)
 
     image = await imageService.upscale_image(task_id, index, task_id_get)
@@ -316,9 +316,9 @@ ID вашей генерации: `1:midjourney:{task_id}:upscale`.
 
     await tokenizeService.update_user_token(callback.from_user.id, 1000, "subtract")
     await callback.message.answer(f"""
-🤖 Затрачено на генерацию 1000 `energy` ⚡
+🤖 Затрачено на генерацию 1000⚡️
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
 """)
 
     await wait_message.delete()
@@ -335,7 +335,7 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
         await callback.message.answer(f"""
 ID вашей генерации: `1:midjourney:{task_id}:generate`.
 
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
 """)
 
     image = await imageService.variation_image(task_id, index, task_id_get)
@@ -348,9 +348,9 @@ ID вашей генерации: `1:midjourney:{task_id}:generate`.
 
     await tokenizeService.update_user_token(callback.from_user.id, 2500, "subtract")
     await callback.message.answer(f"""
-🤖 Затрачено на генерацию 2500 `energy` ⚡
+🤖 Затрачено на генерацию 2500⚡️
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
 """)
 
     await wait_message.delete()

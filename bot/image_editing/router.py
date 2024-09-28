@@ -49,9 +49,9 @@ async def handle_remove_background(message: Message, album):
 
         await tokenizeService.update_user_token(message.from_user.id, 400, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию  400 `energy` ⚡
+🤖 Затрачено на генерацию  400⚡️
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
 """)
 
     except Exception as e:

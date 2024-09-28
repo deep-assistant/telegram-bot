@@ -134,7 +134,7 @@ def get_rub_price_keyboard(base_callback: str, prices: [int], model):
 
         buttons.append([
             InlineKeyboardButton(
-                text=f"{format_price} energy ⚡ ({star_price} RUB)",
+                text=f"{format_price}⚡️ ({star_price} RUB)",
                 callback_data=f"{base_callback} {format_price} {star_price} {model}"
             ),
         ])
@@ -151,7 +151,7 @@ def get_star_price_keyboard(base_callback: str, prices: [int], model):
 
         buttons.append([
             InlineKeyboardButton(
-                text=f"{format_price} energy ⚡ ({star_price} ⭐️)",
+                text=f"{format_price}⚡️ ({star_price} ⭐️)",
                 callback_data=f"{base_callback} {format_price} {star_price} {model}"
             ),
         ])
@@ -162,7 +162,7 @@ def get_star_price_keyboard(base_callback: str, prices: [int], model):
 @paymentsRouter.callback_query(StartWithQuery("buy_method_stars"))
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text("Насколько `energy` вы хотите пополнить баланс?")
+    await callback_query.message.edit_text("Насколько ⚡️ вы хотите пополнить баланс?")
 
     await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
@@ -182,7 +182,7 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
 @paymentsRouter.callback_query(StartWithQuery("buy_method_card"))
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text("Насколько `energy` вы хотите пополнить баланс?")
+    await callback_query.message.edit_text("Насколько ⚡️ вы хотите пополнить баланс?")
 
     await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
@@ -206,8 +206,8 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     tokens = callback_query.data.split(" ")[1]
     model = callback_query.data.split(" ")[3]
     await callback_query.message.answer_invoice(
-        title="Покупка energy ⚡",
-        description=f"Купить {tokens} energy ⚡?",
+        title="Покупка ⚡️",
+        description=f"Купить {tokens}⚡️?",
         prices=[LabeledPrice(label="XTR", amount=amount)],
         provider_token="",
         payload=f"buy_balance {tokens.replace(',', '')} {model} stars",
@@ -228,14 +228,14 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     await callback_query.bot.send_invoice(
         callback_query.message.chat.id,
         **buy_balance_product,
-        description=f"🤩 Покупка {tokens} energy ⚡",
+        description=f"🤩 Покупка {tokens}⚡️",
         payload=f"buy_balance {tokens.replace(',', '')} {model} card",
-        prices=[types.LabeledPrice(label=f"Покупка {tokens} energy ⚡", amount=amount)],
+        prices=[types.LabeledPrice(label=f"Покупка {tokens}⚡️", amount=amount)],
         provider_data=json.dumps(
             {
                 "receipt": {
                     "items": [{
-                        "description": f"🤩 Покупка {tokens} energy ⚡",
+                        "description": f"🤩 Покупка {tokens}⚡️",
                         "quantity": "1",
                         "amount": {
                             "value": str(int(amount / 100)) + ".00",
@@ -296,15 +296,15 @@ async def successful_payment(message: types.Message):
 
         if message.successful_payment.invoice_payload.split(" ")[3] == "stars":
             await message.answer(
-                f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}* energy ⚡!")
+                f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
         else:
             await message.answer(
-                f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}* energy ⚡!")
+                f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
 
         gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)
 
         await message.answer(f"""
 💵 Текущий баланс:
 
-*{gpt_tokens.get("tokens")}* `energy` ⚡ 
+*{gpt_tokens.get("tokens")}*⚡️ 
 """)

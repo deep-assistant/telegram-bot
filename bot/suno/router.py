@@ -50,7 +50,7 @@ async def suno_generate_handler(message: Message):
         await message.answer(f"""
 ID вашей генерации: `1:suno:{task_id}:generate`.
 
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡.
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
 """)
 
     generation = await sunoService.generate_suno(message.text, task_id_get)
@@ -59,9 +59,9 @@ ID вашей генерации: `1:suno:{task_id}:generate`.
 
     await tokenizeService.update_user_token(message.from_user.id, 5000, "subtract")
     await message.answer(f"""
-🤖 Затрачено на генерацию  5000 `energy` ⚡
+🤖 Затрачено на генерацию  5000⚡️
 
-❔ /help - Информация по `energy` ⚡
+❔ /help - Информация по ⚡️
     """)
 
     await wait_message.delete()
