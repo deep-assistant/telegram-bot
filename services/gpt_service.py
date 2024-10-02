@@ -32,7 +32,7 @@ is_requesting = {}
 gpt_models = {
 
     GPTModels.Claude_3_Haiku.value: "claude-3-haiku",
-    GPTModels.Claude_3_Opus.value: "claude-3-5-sonnet",
+    GPTModels.Claude_3_Opus.value: "claude-3-opus",
     GPTModels.Claude_3_5_Sonnet.value: "claude-3-5-sonnet",
     GPTModels.Uncensored.value: "uncensored",
     GPTModels.O1_mini.value: "o1-mini",
