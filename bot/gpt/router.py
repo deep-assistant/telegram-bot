@@ -11,11 +11,11 @@ from tempfile import NamedTemporaryFile
 import aiofiles
 from aiogram import Router
 from aiogram import types
-from aiogram.types import BufferedInputFile, FSInputFile
+from aiogram.types import BufferedInputFile, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types import Message, CallbackQuery
 
 from bot.agreement import agreement_handler
-from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice
+from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, StateCommand, StartWithQuery, Video
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
     balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text
@@ -27,7 +27,8 @@ from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import include
 from bot.utils import send_photo_as_file
 from config import TOKEN, GO_API_KEY
-from services import gptService, GPTModels, completionsService, tokenizeService, referralsService
+from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
+    StateTypes, systemMessage
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
@@ -156,6 +157,11 @@ async def get_photos_links(message, photos):
         images.append({"type": "image_url", "image_url": {"url": file_url}})
 
     return images
+
+
+@gptRouter.message(Video())
+async def handle_image(message: Message):
+    print(message.video)
 
 
 @gptRouter.message(Photo())
@@ -433,6 +439,30 @@ async def handle_change_model(message: Message):
     await message.delete()
 
 
+@gptRouter.message(StateCommand(StateTypes.SystemMessageEditing))
+async def edit_system_message(message: Message):
+    user_id = message.from_user.id
+
+    stateService.set_current_state(user_id, StateTypes.Default)
+    await systemMessage.edit_system_message(user_id, message.text)
+
+    await message.answer("Системное сообщение успешно изменено!")
+    await message.delete()
+
+
+@gptRouter.callback_query(StartWithQuery("cancel-system-edit"))
+async def cancel_state(callback_query: CallbackQuery):
+    system_message = callback_query.data.replace("cancel-system-edit ", "")
+
+    user_id = callback_query.from_user.id
+
+    gptService.set_current_system_message(user_id, system_message)
+    stateService.set_current_state(user_id, StateTypes.Default)
+
+    await callback_query.message.delete()
+    await callback_query.answer("Успеншно отменено!")
+
+
 @gptRouter.callback_query(TextCommandQuery(system_messages_list))
 async def handle_change_system_message_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
@@ -443,6 +473,17 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
     if system_message == current_system_message:
         await callback_query.answer(f"Данный режим уже выбран!")
         return
+
+    if system_message == SystemMessages.Custom.value:
+        stateService.set_current_state(user_id, StateTypes.SystemMessageEditing)
+
+        await callback_query.message.answer("Напишите ваше системное сообщение", reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [InlineKeyboardButton(text="Отменить изменение ❌",
+                                      callback_data=f"cancel-system-edit {current_system_message}"), ],
+            ]
+        ))
 
     gptService.set_current_system_message(user_id, system_message)
 

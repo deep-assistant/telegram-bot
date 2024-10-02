@@ -4,8 +4,9 @@ from db import data_base, db_key
 
 
 class GPTModels(Enum):
-    Claude_3 = "claude-3-opus"
-    Claude_3_5 = "claude-3-5-sonnet"
+    Claude_3_Opus = "claude-3-opus"
+    Claude_3_5_Sonnet = "claude-3-5-sonnet"
+    Claude_3_Haiku = "claude-3-haiku"
     Uncensored = "uncensored"
     O1_mini = "o1-mini"
     O1_preview = "o1-preview"
@@ -19,6 +20,7 @@ class GPTModels(Enum):
 
 
 class SystemMessages(Enum):
+    Custom = "custom"
     Default = "default"
     SoftwareDeveloper = "software_developer"
     Happy = "happy"
@@ -29,8 +31,9 @@ is_requesting = {}
 
 gpt_models = {
 
-    GPTModels.Claude_3.value: "claude-3",
-    GPTModels.Claude_3_5.value: "claude-3-5",
+    GPTModels.Claude_3_Haiku.value: "claude-3-haiku",
+    GPTModels.Claude_3_Opus.value: "claude-3-5-sonnet",
+    GPTModels.Claude_3_5_Sonnet.value: "claude-3-5-sonnet",
     GPTModels.Uncensored.value: "uncensored",
     GPTModels.O1_mini.value: "o1-mini",
     GPTModels.O1_preview.value: "o1-preview",

@@ -14,6 +14,7 @@ system_messages = {
 }
 
 text_system_messages = {
+    SystemMessages.Custom.value: "💎 Указать свое",
     SystemMessages.Default.value: "🤖 Стандартный",
     SystemMessages.Happy.value: "🥳 Веселый",
     SystemMessages.SoftwareDeveloper.value: "👨‍💻 Программист",
@@ -41,6 +42,15 @@ def get_system_message_text(system_message: str, current_system_message: str):
 
 def create_system_message_keyboard(current_system_message: str):
     return InlineKeyboardMarkup(resize_keyboard=True, inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_system_message_text(
+                    text_system_messages[SystemMessages.Custom.value],
+                    text_system_messages[current_system_message]
+                ),
+                callback_data=SystemMessages.Custom.value
+            )
+        ],
         [
             InlineKeyboardButton(
                 text=get_system_message_text(
