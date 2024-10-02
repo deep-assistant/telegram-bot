@@ -418,14 +418,14 @@ async def handle_change_model(message: Message):
 
 Как рассчитывается energy для моделей?
 
-1000 *claude-3.5* токенов = 5000 `energy` ⚡️
+1000 *claude-3-opus* токенов = 6000 `energy` ⚡️
 1000 *o1-preview* токенов = 5000 `energy` ⚡️
 1000 *GPT-4o* токенов = 1000 `energy` ⚡️
-1000 *claude-3* токенов = 1000 `energy` ⚡️
+1000 *claude-3.5-sonnet* токенов = 1000 `energy` ⚡️
 1000 *o1-mini* токенов = 800 `energy` ⚡️
-1000 *uncensored* токенов = 100 `energy` ⚡️
+1000 *claude-3-haiku* токенов = 100 `energy` ⚡️
 1000 *GPT-4o-mini* токенов = 70 `energy` ⚡️
-1000 *GPT-3.5-turbo* токенов = 70 `energy` ⚡️
+1000 *GPT-3.5-turbo* токенов = 50 `energy` ⚡️
 
 1000 *Llama3.1-405B* токенов = 500 `energy` ⚡️
 
