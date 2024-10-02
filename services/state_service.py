@@ -11,6 +11,7 @@ class StateTypes(Enum):
     Suno = "suno"
     Flux = "flux"
     ImageEditing = "image_editing"
+    SystemMessageEditing = "system_message_editing"
 
 
 class StateService:

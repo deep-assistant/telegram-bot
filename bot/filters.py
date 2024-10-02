@@ -51,6 +51,11 @@ class Photo(BaseFilter):
         return message.photo is not None
 
 
+class Video(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        return message.video is not None
+
+
 class Voice(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         return message.voice is not None

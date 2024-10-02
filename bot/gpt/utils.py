@@ -121,12 +121,16 @@ def create_change_model_keyboard(current_model: GPTModels):
         ],
         [
             InlineKeyboardButton(
-                text=get_model_text(GPTModels.Claude_3_5, current_model),
-                callback_data=GPTModels.Claude_3_5.value
+                text=get_model_text(GPTModels.Claude_3_5_Sonnet, current_model),
+                callback_data=GPTModels.Claude_3_5_Sonnet.value
             ),
             InlineKeyboardButton(
-                text=get_model_text(GPTModels.Claude_3, current_model),
-                callback_data=GPTModels.Claude_3.value
+                text=get_model_text(GPTModels.Claude_3_Opus, current_model),
+                callback_data=GPTModels.Claude_3_Opus.value
+            ),
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.Claude_3_Haiku, current_model),
+                callback_data=GPTModels.Claude_3_Haiku.value
             ),
         ],
         [

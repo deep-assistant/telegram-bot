@@ -6,4 +6,5 @@ from services.image_service import imageService
 from services.referrals_service import referralsService
 from services.state_service import stateService, StateTypes
 from services.suno_service import sunoService
+from services.system_message_service import systemMessage
 from services.tokenize_service import tokenizeService
