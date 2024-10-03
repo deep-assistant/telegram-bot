@@ -250,7 +250,7 @@ class ImageService:
         data = {
             "prompt": prompt,
             "aspect_ratio": self.get_midjourney_size(user_id),
-            "process_mode": "turbo",
+            "process_mode": "relax",
         }
 
         response = await async_post(
