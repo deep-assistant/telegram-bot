@@ -13,9 +13,10 @@ from aiogram import Router
 from aiogram import types
 from aiogram.types import BufferedInputFile, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types import Message, CallbackQuery
+# from aiogram.filters import Document, MediaGroup
 
 from bot.agreement import agreement_handler
-from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, StateCommand, StartWithQuery, Video
+from bot.filters import TextCommand, Document, MediaGroup, Photo, TextCommandQuery, Voice, StateCommand, StartWithQuery, Video
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
     balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text
@@ -315,6 +316,75 @@ async def handle_document(message: Message):
             """)
     except Exception as e:
         logging.log(logging.INFO, e)
+
+async def process_document(document, bot):
+    try:
+        with NamedTemporaryFile(delete=False) as temp_file:
+            await bot.download(document, temp_file.name)
+        async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:
+            text = await file.read()
+        return text
+    except UnicodeDecodeError:
+        raise UnicodeDecodeError(f"Ошибка декодирования: не удалось прочитать файл '{document.file_name}'")
+    except Exception as e:
+        raise Exception(f"Ошибка: не удалось обработать файл '{document.file_name}' - {str(e)}")
+
+def is_valid_group_message(message: Message):
+    if message.chat.type in ['group', 'supergroup']:
+        if message.caption_entities is None:
+            return False
+        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
+        return any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions)
+    return True
+
+x
+async def handle_documents(message: Message, documents):
+    bot = message.bot
+    combined_text = ""
+    errors = []
+
+    for document in documents:
+        if document.mime_type == 'text/plain':  # Check for valid text documents
+            try:
+                text = await process_document(document, bot)
+                combined_text += f"\n\n=== Файл: {document.file_name} ===\n{text}"
+            except Exception as e:
+                errors.append(str(e))
+        else:
+            errors.append(f"Неподдерживаемый тип файла для '{document.file_name}'")
+
+    caption = message.caption if message.caption else ""
+    result_text = f"{caption}\n{combined_text}"
+
+    if errors:
+        error_text = "\n\n".join(errors)
+        result_text += f"\n\n😔 К сожалению, при обработке файлов произошли ошибки:\n{error_text}\n\nСледите за обновлениями в канале @gptDeep"
+
+    await handle_gpt_request(message, result_text)
+
+# Handler for single document
+@gptRouter.message(Document())
+async def handle_document(message: Message):
+    # Check message validity in group/supergroup
+    if not is_valid_group_message(message):
+        return
+
+    # Process single document
+    user_document = message.document if message.document else None
+    if user_document:
+        await handle_documents(message, [user_document])
+
+# Handler for media group (multiple documents)
+@gptRouter.message(MediaGroup())
+async def handle_media_group(message: Message):
+    # Check message validity in group/supergroup
+    if not is_valid_group_message(message):
+        return
+
+    # Process all documents in the media group
+    user_documents = message.media_group if message.media_group else None
+    if user_documents:
+        await handle_documents(message, user_documents)
 
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
