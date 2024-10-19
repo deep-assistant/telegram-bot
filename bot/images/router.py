@@ -266,9 +266,9 @@ ID вашей генерации: `1:midjourney:{task_id}:generate`.
 
         await wait_message.delete()
 
-        await tokenizeService.update_user_token(user_id, 2500, "subtract")
+        await tokenizeService.update_user_token(user_id, 3300, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию 2500⚡️
+🤖 Затрачено на генерацию 3300⚡️
 
 ❔ /help - Информация по ⚡️
 """)

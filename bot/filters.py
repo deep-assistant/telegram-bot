@@ -45,9 +45,6 @@ class Document(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         return message.document is not None
 
-class MediaGroup(BaseFilter):
-    async def __call__(self, message: Message) -> bool:
-        return message.media_group is not None
 
 class Photo(BaseFilter):
     async def __call__(self, message: Message) -> bool:
