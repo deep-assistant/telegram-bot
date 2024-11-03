@@ -12,6 +12,7 @@ class GPTModels(Enum):
     O1_preview = "o1-preview"
     GPT_4o = "gpt-4o"
     GPT_4o_mini = "gpt-4o-mini"
+    GPT_4_Unofficial = "gpt-4o-unofficial"
     GPT_3_5 = "gpt-3.5"
     Llama3_1_405B = "Llama3_1_405B"
     Llama3_1_70B = "Llama3_1_70B"
@@ -39,6 +40,7 @@ gpt_models = {
     GPTModels.O1_preview.value: "o1-preview",
     GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
     GPTModels.GPT_4o.value: "gpt-4o-plus",
+    GPTModels.GPT_4_Unofficial.value: "gpt-4o-unofficial",
     GPTModels.GPT_4o_mini.value: 'gpt-4o-mini',
     GPTModels.Llama3_1_405B.value: "meta-llama/Meta-Llama-3.1-405B",
     GPTModels.Llama3_1_70B.value: "meta-llama/Meta-Llama-3.1-70B",

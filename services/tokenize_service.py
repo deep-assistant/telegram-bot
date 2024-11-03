@@ -1,10 +1,7 @@
-from datetime import datetime, time, timedelta
-
 from bot.utils import get_user_name
 from config import PROXY_URL, ADMIN_TOKEN
 from db import data_base, db_key
-from services import GPTModels, StateTypes
-from services.utils import async_get, async_post
+from services.utils import async_get, async_post, async_delete, async_put
 
 max_tokens = 50000
 
@@ -35,13 +32,11 @@ class TokenizeService:
 
     async def create_new_token(self, user_id: str):
         payload = {
-            "admin_token": ADMIN_TOKEN,
-            "userName": get_user_name(user_id),
-            "tokenNum": 10000,
-            "type": "user"
+            "masterToken": ADMIN_TOKEN,
+            "userId": get_user_name(user_id),
         }
 
-        response = await async_post(f"{PROXY_URL}/generate-token", json=payload, headers=headers)
+        response = await async_post(f"{PROXY_URL}/token", params=payload, headers=headers)
         if response.status_code == 200:
             return response.json()
         else:
@@ -49,30 +44,31 @@ class TokenizeService:
 
     async def get_user_tokens(self, user_id: str):
         params = {
-            "admin_token": ADMIN_TOKEN,
-            "tokenName": get_user_name(user_id),
-            "type": "user"
+            "masterToken": ADMIN_TOKEN,
+            "userId": get_user_name(user_id),
         }
 
-        response = await async_get(f"{PROXY_URL}/tokens", params=params, headers=headers)
+        response = await async_get(f"{PROXY_URL}/token", params=params, headers=headers)
 
         if response.status_code == 200:
             data = response.json()
             if "id" in data:
-                return data
+                return {**data, "tokens": response.json()["tokens_gpt"]}
 
         return None
 
-    async def update_user_token(self, user_id: str, tokens: int, operation='add'):
-        payload = {
-            "tokenAdmin": ADMIN_TOKEN,
-            "userToken": get_user_name(user_id),
-            "type": "user",
-            "addTokenNum": tokens,
-            "operation": operation
+    async def update_token(self, user_id: str, tokens: int, operation='add'):
+        params = {
+            "masterToken": ADMIN_TOKEN,
+            "userId": get_user_name(user_id),
         }
 
-        response = await async_post(f"{PROXY_URL}/update-token", json=payload, headers=headers)
+        json = {
+            "operation": operation,
+            "amount": tokens
+        }
+
+        response = await async_put(f"{PROXY_URL}/token", params=params, json=json, headers=headers)
 
         if response.status_code == 200:
             return response.json()
@@ -80,16 +76,15 @@ class TokenizeService:
             return None
 
     async def clear_dialog(self, user_id: str):
-        payload = {
-            "token": ADMIN_TOKEN,
-            "dialogName": get_user_name(user_id),
+        params = {
+            "masterToken": ADMIN_TOKEN,
+            "userId": get_user_name(user_id),
         }
 
-        response = await async_post(f"{PROXY_URL}/clear-dialog", json=payload, headers=headers)
+        response = await async_delete(f"{PROXY_URL}/dialogs", params=params, headers=headers)
         if response.status_code == 200:
-            return {"response": response.json(), "status": response.status_code}
-        elif response.status_code == 404:
-            return {"response": response.json(), "status": response.status_code}
+            print(response.json())
+            return response.json()
         else:
             return None
 
@@ -106,13 +101,13 @@ class TokenizeService:
         else:
             return None
 
-    async def get_api_token(self, user_id: str):
+    async def get_token(self, user_id: str):
         params = {
             "masterToken": ADMIN_TOKEN,
             "userId": user_id,
         }
 
-        response = await async_get(f"{PROXY_URL}/token/admin", params=params, headers=headers)
+        response = await async_get(f"{PROXY_URL}/token", params=params, headers=headers)
 
         if response.status_code == 200:
             return response.json()
@@ -125,7 +120,7 @@ class TokenizeService:
             "userId": user_id,
         }
 
-        response = await async_post(f"{PROXY_URL}/token/admin", params=params, headers=headers)
+        response = await async_post(f"{PROXY_URL}/token", params=params, headers=headers)
         if response.status_code == 200:
             return response.json()
         else:

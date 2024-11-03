@@ -2,13 +2,10 @@ from aiogram import Router
 from aiogram.types import Message, InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup
 
 from bot.filters import TextCommand, StateCommand, StartWithQuery
-from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.suno.command_types import suno_command
 from services import StateTypes, stateService, sunoService, tokenizeService
 
 sunoRouter = Router()
-
-sunoRouter.message.middleware(MiddlewareAward())
 
 
 async def suno_create_messages(message, generation):
@@ -57,7 +54,7 @@ ID вашей генерации: `1:suno:{task_id}:generate`.
 
     await suno_create_messages(message, generation)
 
-    await tokenizeService.update_user_token(message.from_user.id, 5000, "subtract")
+    await tokenizeService.update_token(message.from_user.id, 5000, "subtract")
     await message.answer(f"""
 🤖 Затрачено на генерацию  5000⚡️
 

@@ -292,7 +292,7 @@ async def successful_payment(message: types.Message):
         await tokenizeService.get_tokens(message.from_user.id)
 
         tokens = int(message.successful_payment.invoice_payload.split(" ")[1])
-        await tokenizeService.update_user_token(message.from_user.id, tokens)
+        await tokenizeService.update_token(message.from_user.id, tokens)
 
         if message.successful_payment.invoice_payload.split(" ")[3] == "stars":
             await message.answer(
@@ -303,8 +303,4 @@ async def successful_payment(message: types.Message):
 
         gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)
 
-        await message.answer(f"""
-💵 Текущий баланс:
-
-*{gpt_tokens.get("tokens")}*⚡️ 
-""")
+        await message.answer(f"""💵 Текущий баланс: *{gpt_tokens.get("tokens")}*⚡️ """)

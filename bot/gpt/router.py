@@ -24,7 +24,6 @@ from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
-from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import include
 from bot.utils import send_photo_as_file
 from config import TOKEN, GO_API_KEY
@@ -37,8 +36,6 @@ from services.utils import async_post, async_get
 gptRouter = Router()
 
 questionAnswer = False
-
-gptRouter.message.middleware(MiddlewareAward())
 
 
 async def answer_markdown_file(message: Message, md_content: str):
@@ -80,6 +77,7 @@ async def handle_gpt_request(message: Message, text: str):
 
         gpt_tokens_before = await tokenizeService.get_tokens(user_id)
 
+        print(gpt_tokens_before)
         if gpt_tokens_before.get("tokens", 0) <= 0:
             await message.answer(
                 text=f"""
@@ -144,6 +142,8 @@ async def handle_gpt_request(message: Message, text: str):
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
         await asyncio.sleep(0.5)
         await message_loading.delete()
+        print(gpt_tokens_before.get("tokens", 0))
+        print(gpt_tokens_after.get("tokens", 0))
         await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0)))
     except Exception as e:
         logging.log(logging.INFO, e)
@@ -281,7 +281,7 @@ async def handle_voice(message: Message):
 
 ❔ /help - Информация по ⚡️
 """)
-        await tokenizeService.update_user_token(message.from_user.id, tokens, 'subtract')
+        await tokenizeService.update_token(message.from_user.id, tokens, 'subtract')
 
         await handle_gpt_request(message, response_json.get('text'))
         return
@@ -436,13 +436,13 @@ async def handle_balance(message: Message):
 async def handle_clear_context(message: Message):
     user_id = message.from_user.id
 
-    hello = await tokenizeService.clear_dialog(user_id)
+    response = await tokenizeService.clear_dialog(user_id)
 
-    if hello.get("status") == 404:
+    if not response.get("status"):
         await message.answer("Диалог уже пуст!")
         return
 
-    if hello is None:
+    if response is None:
         await message.answer("Ошибка 😔: Не удалось очистить контекст!")
         return
 

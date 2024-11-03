@@ -79,22 +79,25 @@ class CompletionsService:
 
     async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
 
+        params = {
+            "masterToken": ADMIN_TOKEN
+        }
+
         payload = {
-            'token': ADMIN_TOKEN,
-            'dialogName': get_user_name(user_id),
-            'query': message,
-            'tokenLimit': self.TOKEN_LIMIT,
-            "userNameToken": get_user_name(user_id),
-            'singleMessage': singleMessage,
-            'systemMessageContent': system_message,
+            'userId': get_user_name(user_id),
+            'content': message,
+            'systemMessage': system_message,
             'model': gpt_model
         }
 
-        response = await async_post(f"{PROXY_URL}/chatgpt", json=payload)
+        response = await async_post(f"{PROXY_URL}/completions", json=payload, params=params)
 
         if response.status_code == 200:
-            print(response.json())
-            return response.json()
+            completions = response.json()
+
+            print(completions)
+
+            return {'success': True, "response": completions['choices'][0]['message']['content']}
         else:
             return {"success": False, "response": f"Ошибка 😔: {response.json().get('message')}"}
 

@@ -6,7 +6,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.gpt.utils import checked_text
 from bot.images.command_types import images_command, images_command_text
-from bot.middlewares.MiddlewareAward import MiddlewareAward
 from bot.utils import divide_into_chunks
 from bot.utils import send_photo_as_file
 from services import stateService, StateTypes, imageService, tokenizeService
@@ -14,8 +13,6 @@ from services.image_utils import image_models_values, samplers_values, \
     steps_values, cgf_values, size_values
 
 imagesRouter = Router()
-
-imagesRouter.message.middleware(MiddlewareAward())
 
 
 @imagesRouter.message(StateCommand(StateTypes.Image))
@@ -46,7 +43,7 @@ async def handle_generate_image(message: types.Message):
         await message.bot.send_chat_action(message.chat.id, "typing")
         await message.reply_photo(image["output"][0])
         await send_photo_as_file(message, image["output"][0], "Вот картинка в оригинальном качестве")
-        await tokenizeService.update_user_token(user_id, 30, "subtract")
+        await tokenizeService.update_token(user_id, 30, "subtract")
         await message.answer(f"""
 🤖 Затрачено на генерацию  30⚡️
 
@@ -113,7 +110,7 @@ ID вашей генерации: `1:flux:{task_id}:generate`.
         if model == "Qubico/flux1-dev":
             energy = 2000
 
-        await tokenizeService.update_user_token(user_id, energy, "subtract")
+        await tokenizeService.update_token(user_id, energy, "subtract")
         await message.answer(f"""
 🤖 Затрачено на генерацию {energy}⚡️ 
 
@@ -180,7 +177,7 @@ async def handle_generate_image(message: types.Message):
 
         await wait_message.delete()
 
-        await tokenizeService.update_user_token(user_id, image["total_tokens"], "subtract")
+        await tokenizeService.update_token(user_id, image["total_tokens"] * 2, "subtract")
         await message.answer(f"""
 🤖 Затрачено на генерацию  *{image["total_tokens"]}*⚡️
 
@@ -266,7 +263,7 @@ ID вашей генерации: `1:midjourney:{task_id}:generate`.
 
         await wait_message.delete()
 
-        await tokenizeService.update_user_token(user_id, 3300, "subtract")
+        await tokenizeService.update_token(user_id, 3300, "subtract")
         await message.answer(f"""
 🤖 Затрачено на генерацию 3300⚡️
 
@@ -314,7 +311,7 @@ ID вашей генерации: `1:midjourney:{task_id}:upscale`.
     )
                                   )
 
-    await tokenizeService.update_user_token(callback.from_user.id, 1000, "subtract")
+    await tokenizeService.update_token(callback.from_user.id, 1000, "subtract")
     await callback.message.answer(f"""
 🤖 Затрачено на генерацию 1000⚡️
 
@@ -346,7 +343,7 @@ ID вашей генерации: `1:midjourney:{task_id}:generate`.
         image["task_id"]
     )
 
-    await tokenizeService.update_user_token(callback.from_user.id, 2500, "subtract")
+    await tokenizeService.update_token(callback.from_user.id, 2500, "subtract")
     await callback.message.answer(f"""
 🤖 Затрачено на генерацию 2500⚡️
 

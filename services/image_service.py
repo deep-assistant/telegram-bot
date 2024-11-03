@@ -206,7 +206,7 @@ class ImageService:
         )
 
         chat_completion = openai.chat.completions.create(
-            model="gpt-4o-plus",
+            model="gpt-4-gizmo-g-pmuQfob8d",
             max_tokens=30000,
             messages=[
                 {

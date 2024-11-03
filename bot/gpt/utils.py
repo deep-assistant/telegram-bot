@@ -135,6 +135,10 @@ def create_change_model_keyboard(current_model: GPTModels):
         ],
         [
             InlineKeyboardButton(
+                text=get_model_text(GPTModels.GPT_4_Unofficial, current_model),
+                callback_data=GPTModels.GPT_4_Unofficial.value
+            ),
+            InlineKeyboardButton(
                 text=get_model_text(GPTModels.GPT_4o, current_model),
                 callback_data=GPTModels.GPT_4o.value
             ),
