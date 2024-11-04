@@ -11,6 +11,7 @@ class GPTModels(Enum):
     O1_mini = "o1-mini"
     O1_preview = "o1-preview"
     GPT_4o = "gpt-4o"
+    GPT_Auto = "gpt-auto"
     GPT_4o_mini = "gpt-4o-mini"
     GPT_4_Unofficial = "gpt-4o-unofficial"
     GPT_3_5 = "gpt-3.5"
@@ -31,7 +32,6 @@ class SystemMessages(Enum):
 is_requesting = {}
 
 gpt_models = {
-
     GPTModels.Claude_3_Haiku.value: "claude-3-haiku",
     GPTModels.Claude_3_Opus.value: "claude-3-opus",
     GPTModels.Claude_3_5_Sonnet.value: "claude-3-5-sonnet",
@@ -40,6 +40,7 @@ gpt_models = {
     GPTModels.O1_preview.value: "o1-preview",
     GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
     GPTModels.GPT_4o.value: "gpt-4o-plus",
+    GPTModels.GPT_Auto.value: "gpt-auto",
     GPTModels.GPT_4_Unofficial.value: "gpt-4o-unofficial",
     GPTModels.GPT_4o_mini.value: 'gpt-4o-mini',
     GPTModels.Llama3_1_405B.value: "meta-llama/Meta-Llama-3.1-405B",
@@ -94,6 +95,7 @@ class GPTService:
         data_base.commit()
 
     def get_mapping_gpt_model(self, user_id: str):
+        print(self.get_current_model(user_id).value)
         return gpt_models[self.get_current_model(user_id).value]
 
 

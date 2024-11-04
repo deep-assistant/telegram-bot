@@ -77,7 +77,6 @@ async def handle_gpt_request(message: Message, text: str):
 
         gpt_tokens_before = await tokenizeService.get_tokens(user_id)
 
-        print(gpt_tokens_before)
         if gpt_tokens_before.get("tokens", 0) <= 0:
             await message.answer(
                 text=f"""
@@ -142,11 +141,9 @@ async def handle_gpt_request(message: Message, text: str):
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
         await asyncio.sleep(0.5)
         await message_loading.delete()
-        print(gpt_tokens_before.get("tokens", 0))
-        print(gpt_tokens_after.get("tokens", 0))
         await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0)))
     except Exception as e:
-        logging.log(logging.INFO, e)
+        print(e)
 
 
 async def get_photos_links(message, photos):
@@ -204,7 +201,7 @@ async def handle_image(message: Message, album):
         await message.answer("""
 Для взаимодействия с картинками модель автоматически была сменена на `GPT-4o-mini`.        
 
-Сменить модель - /models
+Сменить модель - /model
         """)
 
     await handle_gpt_request(message, content)
@@ -499,9 +496,11 @@ async def handle_change_model(message: Message):
 
 1000 *claude-3-opus* токенов = 6000 ⚡️
 1000 *o1-preview* токенов = 5000 ⚡️
+1000 *GPT-4o-unofficial* токенов = 1100 ⚡️
 1000 *GPT-4o* токенов = 1000 ⚡️
 1000 *claude-3.5-sonnet* токенов = 1000 ⚡️
 1000 *o1-mini* токенов = 800 ⚡️
+1000 *GPT-Auto* токенов = 150 ⚡️
 1000 *claude-3-haiku* токенов = 100 ⚡️
 1000 *GPT-4o-mini* токенов = 70 ⚡️
 1000 *GPT-3.5-turbo* токенов = 50 ⚡️

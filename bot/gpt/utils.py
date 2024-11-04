@@ -135,9 +135,15 @@ def create_change_model_keyboard(current_model: GPTModels):
         ],
         [
             InlineKeyboardButton(
+                text=get_model_text(GPTModels.GPT_Auto, current_model),
+                callback_data=GPTModels.GPT_Auto.value
+            ),
+            InlineKeyboardButton(
                 text=get_model_text(GPTModels.GPT_4_Unofficial, current_model),
                 callback_data=GPTModels.GPT_4_Unofficial.value
             ),
+        ],
+        [
             InlineKeyboardButton(
                 text=get_model_text(GPTModels.GPT_4o, current_model),
                 callback_data=GPTModels.GPT_4o.value
@@ -157,12 +163,6 @@ def create_change_model_keyboard(current_model: GPTModels):
                 callback_data=GPTModels.Llama3_1_405B.value
             )
         ],
-        # [
-        #     InlineKeyboardButton(
-        #         text=get_model_text(GPTModels.Uncensored, current_model),
-        #         callback_data=GPTModels.Uncensored.value
-        #     ),
-        # ],
         [
             InlineKeyboardButton(
                 text=get_model_text(GPTModels.Llama3_1_70B, current_model),
