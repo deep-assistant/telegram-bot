@@ -195,8 +195,6 @@ async def handle_image(message: Message, album):
 
     content.append({"type": "text", "text": text})
 
-    bot_model = gptService.get_current_model(message.from_user.id)
-
     await handle_gpt_request(message, content)
 
 
