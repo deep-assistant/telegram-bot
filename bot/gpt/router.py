@@ -13,6 +13,7 @@ from aiogram import Router
 from aiogram import types
 from aiogram.types import BufferedInputFile, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types import Message, CallbackQuery
+from openai import OpenAI
 
 from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, StateCommand, StartWithQuery, \
@@ -26,7 +27,7 @@ from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
 from bot.utils import include
 from bot.utils import send_photo_as_file
-from config import TOKEN, GO_API_KEY
+from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
     StateTypes, systemMessage
 from services.gpt_service import SystemMessages
@@ -196,46 +197,37 @@ async def handle_image(message: Message, album):
 
     bot_model = gptService.get_current_model(message.from_user.id)
 
-    if bot_model.value != GPTModels.GPT_4o_mini.value:
-        gptService.set_current_model(message.from_user.id, GPTModels.GPT_4o_mini)
-        await message.answer("""
-Для взаимодействия с картинками модель автоматически была сменена на `GPT-4o-mini`.        
-
-Сменить модель - /model
-        """)
-
     await handle_gpt_request(message, content)
 
 
-async def transcribe_voice_sync(voice_file_url: str):
-    headers = {
-        "Authorization": f"Bearer {GO_API_KEY}",
-    }
+async def transcribe_voice_sync(user_id: str, voice_file_url: str):
+    token = await tokenizeService.get_token(user_id)
 
     voice_response = await async_get(voice_file_url)
     if voice_response.status_code == 200:
         voice_data = voice_response.content
 
-        files = {
-            'file': ('audio.ogg', voice_data, 'audio/ogg'),
-            'model': (None, 'whisper-1')
-        }
+        client = OpenAI(
+            api_key=token["id"],
+            base_url=f"{PROXY_URL}/v1/"
+        )
 
-        post_response = await async_post("https://api.goapi.ai/v1/audio/transcriptions", headers=headers, files=files)
-        if post_response.status_code == 200:
-            return {"success": True, "text": post_response.json()["text"]}
-        else:
-            return {"success": False, "text": f"Error: {post_response.status_code}"}
+        transcription = client.audio.transcriptions.create(file=('audio.ogg', voice_data, 'audio/ogg'),
+                                                           model="whisper-1", language="RU")
+
+        print(transcription.input_length_ms)
+        print( transcription.text)
+        return {"success": True, "text": transcription.text, 'energy': int(transcription.input_length_ms)}
     else:
-        return {"success": False, "text": f"Error: {voice_response.status_code}"}
+        return {"success": False, "text": f"Error: Голосовое сообщение не распознанок"}
 
 
 executor = ThreadPoolExecutor()
 
 
-async def transcribe_voice(voice_file_url: str):
+async def transcribe_voice(user_id: int, voice_file_url: str):
     loop = asyncio.get_event_loop()
-    response = await loop.run_in_executor(executor, transcribe_voice_sync, voice_file_url)
+    response = await loop.run_in_executor(executor, transcribe_voice_sync, user_id, voice_file_url)
     return await response
 
 
@@ -269,16 +261,14 @@ async def handle_voice(message: Message):
     file = await message.bot.get_file(voice_file_id)
     file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
-    response_json = await transcribe_voice(file_url)
+    response_json = await transcribe_voice(message.from_user.id, file_url)
 
-    tokens = duration * 30
     if response_json.get("success"):
         await message.answer(f"""
-🎤 Обработка аудио затратила `{tokens}`⚡️ 
+🎤 Обработка аудио затратила `{response_json.get("energy")}`⚡️ 
 
 ❔ /help - Информация по ⚡️
 """)
-        await tokenizeService.update_token(message.from_user.id, tokens, 'subtract')
 
         await handle_gpt_request(message, response_json.get('text'))
         return
