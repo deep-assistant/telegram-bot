@@ -213,9 +213,9 @@ async def transcribe_voice_sync(user_id: str, voice_file_url: str):
         transcription = client.audio.transcriptions.create(file=('audio.ogg', voice_data, 'audio/ogg'),
                                                            model="whisper-1", language="RU")
 
-        print(transcription.input_length_ms)
+        print(transcription.duration)
         print( transcription.text)
-        return {"success": True, "text": transcription.text, 'energy': int(transcription.input_length_ms)}
+        return {"success": True, "text": transcription.text, 'energy': int(transcription.duration)}
     else:
         return {"success": False, "text": f"Error: Голосовое сообщение не распознанок"}
 
@@ -272,21 +272,6 @@ async def handle_voice(message: Message):
         return
 
     await message.answer(response_json.get('text'))
-
-
-@gptRouter.message(Document())
-async def handle_media_group(message: Message, album):
-    print(message)
-    print(album)
-    # Check message validity in group/supergroup
-    # if not is_valid_group_message(message):
-    #     return
-    #
-    # # Process all documents in the media group
-    # user_documents = message.media_group if message.media_group else None
-    # print(user_documents)
-    # if user_documents:
-    #     await handle_documents(message, user_documents)
 
 
 @gptRouter.message(Document())
@@ -602,7 +587,6 @@ async def handle_get_history(message: types.Message):
     user_id = message.from_user.id
 
     history = await tokenizeService.history(user_id)
-
     if history.get("status") == 404:
         await message.answer("История диалога пуста.")
         return
@@ -611,7 +595,7 @@ async def handle_get_history(message: types.Message):
         await message.answer("Ошибка 😔: Не удалось получить историю диалога!")
         return
 
-    history_data = history.get("response").get("history")
+    history_data = history.get("response").get("messages")
 
     json_data = json.dumps(history_data, ensure_ascii=False, indent=4)
     file_stream = io.BytesIO(json_data.encode('utf-8'))
