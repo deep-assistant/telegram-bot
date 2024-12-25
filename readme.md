@@ -1,5 +1,9 @@
 # Запуск проекта
 
+0. Установить зависимости:
+```sh
+pip3 install -r requirements.txt
+```
 1. Получить токен в https://t.me/BotFather
 2. Создать config.py 
 ```sh
@@ -20,5 +24,5 @@ GUO_GUO_KEY = ""
 ```
 4. Запустить проект
 ```sh
-python __main__.py
+python3 __main__.py
 ```
