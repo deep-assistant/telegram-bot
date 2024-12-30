@@ -447,9 +447,10 @@ async def handle_change_model(message: Message):
     user_id = message.from_user.id
 
     current_system_message = gptService.get_current_system_message(user_id)
+    print(current_system_message, 'current_system_message')
 
     if not include(system_messages_list, current_system_message):
-        current_system_message = SystemMessages.Default.value
+        current_system_message = SystemMessages.Custom.value
         gptService.set_current_system_message(user_id, current_system_message)
 
     await message.answer(
@@ -459,13 +460,6 @@ async def handle_change_model(message: Message):
 
     await asyncio.sleep(0.5)
     await message.delete()
-
-# SystemMessages.Custom.value
-
-# @setCustomSystem.message(data == "custom")
-# async def handle_set_custom_message(message: Message):
-#     await message.answer("Отправьте системное сообщение:")
-
 
     
 @gptRouter.message(TextCommand([change_model_command(), change_model_text()]))
@@ -514,11 +508,23 @@ async def handle_change_model(message: Message):
 async def edit_system_message(message: Message):
     user_id = message.from_user.id
 
+    print('SystemMessageEditingSystemMessageEditingSystemMessageEditing')
     stateService.set_current_state(user_id, StateTypes.Default)
+
+    gptService.set_current_system_message(user_id, message.text)
+   
     await systemMessage.edit_system_message(user_id, message.text)
 
-    await message.answer("Системное сообщение успешно изменено!")
+    # await message.answer(
+    #     text="Установи режим работы бота: ⚙️",
+    #     reply_markup=create_system_message_keyboard(SystemMessages.Custom.value)
+    # )
+
+    await asyncio.sleep(0.5)
+
+    await message.answer(f"Режим успешно изменён!")
     await message.delete()
+
 
 
 @gptRouter.callback_query(StartWithQuery("cancel-system-edit"))
@@ -541,7 +547,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
     system_message = callback_query.data
     current_system_message = gptService.get_current_system_message(user_id)
 
-    if system_message == current_system_message:
+    if (system_message == current_system_message and system_message != SystemMessages.Custom.value):
         await callback_query.answer(f"Данный режим уже выбран!")
         return
 
@@ -551,11 +557,13 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
         await callback_query.message.answer("Напишите ваше системное сообщение", reply_markup=InlineKeyboardMarkup(
             resize_keyboard=True,
             inline_keyboard=[
-                [InlineKeyboardButton(text="Отменить изменение ❌",
+                [InlineKeyboardButton(text="Отмена ❌",
                                       callback_data=f"cancel-system-edit {current_system_message}"), ],
             ]
         ))
 
+
+    print(system_message, 'system_messagesystem_messagesystem_messagesystem_message')
     gptService.set_current_system_message(user_id, system_message)
 
     await callback_query.message.edit_reply_markup(

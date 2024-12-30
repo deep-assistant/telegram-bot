@@ -5,7 +5,6 @@ from db import data_base, db_key
 
 class StateTypes(Enum):
     Default = "default"
-    CustomSysMes = "custom"
     Image = "image"
     Dalle3 = "dalle3"
     Midjourney = "midjourney"
