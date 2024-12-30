@@ -12,6 +12,7 @@ from bot.gpt.utils import check_subscription
 from bot.images import images_command_text
 from bot.payment.command_types import balance_payment_command_text
 from bot.referral import referral_command_text
+from bot.suno.command_types import suno_text
 from services import tokenizeService, referralsService
 
 startRouter = Router()
@@ -67,6 +68,7 @@ async def create_token_if_not_exist(user_id):
     return await tokenizeService.get_tokens(user_id)
 
 
+
 @startRouter.message(CommandStart())
 async def buy(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(
@@ -81,11 +83,11 @@ async def buy(message: types.Message):
                 types.KeyboardButton(text=change_system_message_text())
             ],
             [
-                types.KeyboardButton(text=clear_text()),
+                types.KeyboardButton(text=suno_text()),
                 types.KeyboardButton(text=images_command_text())
             ],
             [
-                types.KeyboardButton(text=help_text()),
+                types.KeyboardButton(text=clear_text()),
                 types.KeyboardButton(text=get_history_text())
             ],
             [
