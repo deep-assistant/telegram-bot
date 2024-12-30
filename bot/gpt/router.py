@@ -16,7 +16,7 @@ from aiogram.types import Message, CallbackQuery
 from openai import OpenAI
 
 from bot.agreement import agreement_handler
-from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, StateCommand, StartWithQuery, \
+from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, Audio, StateCommand, StartWithQuery, \
     Video
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
@@ -213,9 +213,9 @@ async def transcribe_voice_sync(user_id: str, voice_file_url: str):
         transcription = client.audio.transcriptions.create(file=('audio.ogg', voice_data, 'audio/ogg'),
                                                            model="whisper-1", language="RU")
 
-        print(transcription.input_length_ms)
+        print(transcription.duration)
         print( transcription.text)
-        return {"success": True, "text": transcription.text, 'energy': int(transcription.input_length_ms)}
+        return {"success": True, "text": transcription.text, 'energy': int(transcription.duration*15)}
     else:
         return {"success": False, "text": f"Error: Голосовое сообщение не распознанок"}
 
@@ -230,6 +230,7 @@ async def transcribe_voice(user_id: int, voice_file_url: str):
 
 
 @gptRouter.message(Voice())
+@gptRouter.message(Audio())
 async def handle_voice(message: Message):
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
@@ -254,8 +255,15 @@ async def handle_voice(message: Message):
     if not is_subscribe:
         return
 
-    duration = message.voice.duration
-    voice_file_id = message.voice.file_id
+
+    if message.voice is not None:
+        messageData = message.voice
+    else: 
+        messageData = message.audio
+
+
+    duration = messageData.duration
+    voice_file_id = messageData.file_id
     file = await message.bot.get_file(voice_file_id)
     file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
@@ -274,19 +282,7 @@ async def handle_voice(message: Message):
     await message.answer(response_json.get('text'))
 
 
-@gptRouter.message(Document())
-async def handle_media_group(message: Message, album):
-    print(message)
-    print(album)
-    # Check message validity in group/supergroup
-    # if not is_valid_group_message(message):
-    #     return
-    #
-    # # Process all documents in the media group
-    # user_documents = message.media_group if message.media_group else None
-    # print(user_documents)
-    # if user_documents:
-    #     await handle_documents(message, user_documents)
+
 
 
 @gptRouter.message(Document())
@@ -410,9 +406,11 @@ async def handle_balance(message: Message):
 
     await message.answer(f""" 
 👩🏻‍💻 Количество рефералов: *{len(referral['children'])}*
-🤑 Ежедневное автопополнение: *{referral['award']}*⚡️
+🤑 Ежедневное автопополнение 🜹: *{referral['award']}*⚡️
 {accept_account()}
     
+🜹 - ежедневное автопополнение работает, если на балансе меньше 30 000⚡️
+
 💵 Текущий баланс: *{gpt_tokens.get("tokens")}*⚡️ 
 """)
 
@@ -462,7 +460,14 @@ async def handle_change_model(message: Message):
     await asyncio.sleep(0.5)
     await message.delete()
 
+# SystemMessages.Custom.value
 
+# @setCustomSystem.message(data == "custom")
+# async def handle_set_custom_message(message: Message):
+#     await message.answer("Отправьте системное сообщение:")
+
+
+    
 @gptRouter.message(TextCommand([change_model_command(), change_model_text()]))
 async def handle_change_model(message: Message):
     is_agreement = await agreement_handler(message)
@@ -602,7 +607,6 @@ async def handle_get_history(message: types.Message):
     user_id = message.from_user.id
 
     history = await tokenizeService.history(user_id)
-
     if history.get("status") == 404:
         await message.answer("История диалога пуста.")
         return
@@ -611,7 +615,7 @@ async def handle_get_history(message: types.Message):
         await message.answer("Ошибка 😔: Не удалось получить историю диалога!")
         return
 
-    history_data = history.get("response").get("history")
+    history_data = history.get("response").get("messages")
 
     json_data = json.dumps(history_data, ensure_ascii=False, indent=4)
     file_stream = io.BytesIO(json_data.encode('utf-8'))

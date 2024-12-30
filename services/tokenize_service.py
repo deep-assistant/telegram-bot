@@ -90,7 +90,7 @@ class TokenizeService:
 
     async def history(self, user_id: str):
         payload = {
-            "token": ADMIN_TOKEN,
+            "masterToken": ADMIN_TOKEN,
             "dialogName": get_user_name(user_id),
         }
         response = await async_get(f"{PROXY_URL}/dialog-history", params=payload, headers=headers)
