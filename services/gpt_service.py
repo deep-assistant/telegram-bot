@@ -28,6 +28,7 @@ class SystemMessages(Enum):
     Happy = "happy"
     QuestionAnswer = "question_answer"
     DeepPromt = "deep"
+    Transcribe = "transcribe"
 
 is_requesting = {}
 

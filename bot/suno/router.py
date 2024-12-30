@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import Message, InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup
 
 from bot.filters import TextCommand, StateCommand, StartWithQuery
-from bot.suno.command_types import suno_command
+from bot.suno.command_types import suno_command, suno_text
 from services import StateTypes, stateService, sunoService, tokenizeService
 
 sunoRouter = Router()
@@ -64,7 +64,7 @@ ID вашей генерации: `1:suno:{task_id}:generate`.
     await wait_message.delete()
 
 
-@sunoRouter.message(TextCommand([suno_command()]))
+@sunoRouter.message(TextCommand([suno_command(), suno_text()]))
 async def suno_prepare_handler(message: Message):
     stateService.set_current_state(message.from_user.id, StateTypes.Suno)
 

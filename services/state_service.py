@@ -5,13 +5,19 @@ from db import data_base, db_key
 
 class StateTypes(Enum):
     Default = "default"
+    SystemMessageEditing = "system_message_editing"
+
+
     Image = "image"
+    ImageEditing = "image_editing"
+
     Dalle3 = "dalle3"
     Midjourney = "midjourney"
     Suno = "suno"
     Flux = "flux"
-    ImageEditing = "image_editing"
-    SystemMessageEditing = "system_message_editing"
+
+
+    Transcribe = "transcribation"
 
  
 class StateService:

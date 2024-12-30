@@ -217,7 +217,7 @@ async def transcribe_voice_sync(user_id: str, voice_file_url: str):
         print( transcription.text)
         return {"success": True, "text": transcription.text, 'energy': int(transcription.duration*15)}
     else:
-        return {"success": False, "text": f"Error: Голосовое сообщение не распознанок"}
+        return {"success": False, "text": f"Error: Голосовое сообщение не распознано"}
 
 
 executor = ThreadPoolExecutor()
@@ -276,6 +276,14 @@ async def handle_voice(message: Message):
 ❔ /help - Информация по ⚡️
 """)
 
+        
+        current_state = stateService.get_current_state(message.from_user.id) 
+        print(current_state, 'current_state')
+        print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')
+        if current_state == StateTypes.Transcribe:  
+            await message.reply(response_json.get('text'))  
+            return
+            
         await handle_gpt_request(message, response_json.get('text'))
         return
 
@@ -457,7 +465,6 @@ async def handle_change_model(message: Message):
         text="Установи режим работы бота: ⚙️",
         reply_markup=create_system_message_keyboard(current_system_message)
     )
-
     await asyncio.sleep(0.5)
     await message.delete()
 
@@ -509,16 +516,12 @@ async def edit_system_message(message: Message):
     user_id = message.from_user.id
 
     print('SystemMessageEditingSystemMessageEditingSystemMessageEditing')
-    stateService.set_current_state(user_id, StateTypes.Default)
 
     gptService.set_current_system_message(user_id, message.text)
    
     await systemMessage.edit_system_message(user_id, message.text)
 
-    # await message.answer(
-    #     text="Установи режим работы бота: ⚙️",
-    #     reply_markup=create_system_message_keyboard(SystemMessages.Custom.value)
-    # )
+    stateService.set_current_state(user_id, StateTypes.Default)
 
     await asyncio.sleep(0.5)
 
@@ -562,9 +565,16 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
             ]
         ))
 
+    if system_message == SystemMessages.Transcribe.value:   
+        stateService.set_current_state(user_id, StateTypes.Transcribe)
+
+        await callback_query.message.answer("Режим 'Голос в Текст' включен. Бот будет транскрибировать все следующие аудио") 
 
     print(system_message, 'system_messagesystem_messagesystem_messagesystem_message')
     gptService.set_current_system_message(user_id, system_message)
+
+    if system_message != SystemMessages.Transcribe.value and system_message != SystemMessages.Custom.value: 
+        stateService.set_current_state(user_id, StateTypes.Default)
 
     await callback_query.message.edit_reply_markup(
         reply_markup=create_system_message_keyboard(system_message)
@@ -576,6 +586,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
 
     await callback_query.answer(f"Режим успешно изменён!")
     await callback_query.message.delete()
+
 
 
 @gptRouter.callback_query(
@@ -635,6 +646,7 @@ async def handle_get_history(message: types.Message):
 
     await asyncio.sleep(0.5)
     await message.delete()
+
 
 
 @gptRouter.message(TextCommand("/bot"))
