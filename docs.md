@@ -166,16 +166,25 @@ print(response_data)  # {"text": "hello"}
 
 ```
 
-### List of all available models:
-1000⚡️ = 0.8 RUB = 0,009 USD
+### List of All Available Models
 
-- `gpt-4o`: 1000 tokens = 1000⚡️
-- `gpt-4o-mini`: 1000 tokens = 70⚡️
-- `gpt-3.5-turbo`: 1000 tokens = 70⚡️
-- `meta-llama/Meta-Llama-3.1-405B`: 1000 tokens = 800⚡️
-- `meta-llama/Meta-Llama-3.1-70B`: 1000 tokens = 285⚡️
-- `meta-llama/Meta-Llama-3-70B-Instruct`: 1000 tokens = 285⚡️
-- `meta-llama/Meta-Llama-3.1-8B`: 1000 tokens = 20⚡️
+**1000⚡️ = 0.8 RUB = 0.009 USD**
+
+| Model                   | Price per 1000 tokens (⚡️) |
+|-------------------------|-----------------------------|
+| `claude-3-opus`         | 6000 ⚡️                      |
+| `claude-3-5-sonnet`     | 1000 ⚡️                      |
+| `claude-3-haiku`        | 100 ⚡️                       |
+| `o1-preview`            | 5000 ⚡️                      |
+| `o1-mini`               | 800 ⚡️                       |
+| `GPT-4o-unofficial`     | 1100 ⚡️                      |
+| `GPT-4o`                | 1000 ⚡️                      |
+| `GPT-Auto`              | 150 ⚡️                       |
+| `GPT-4o-mini`           | 70 ⚡️                        |
+| `GPT-3.5-turbo`         | 50 ⚡️                        |
+| `Llama3.1-405B`         | 500 ⚡️                       |
+| `Llama3.1-70B`          | 250 ⚡️                       |
+| `Llama-3.1-8B`          | 20 ⚡️                        |
 
 ### Whisper price
 - `whisper-1`: 1 minute = 6000⚡️
