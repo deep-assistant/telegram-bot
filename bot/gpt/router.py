@@ -16,7 +16,7 @@ from aiogram.types import Message, CallbackQuery
 from openai import OpenAI
 
 from bot.agreement import agreement_handler
-from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, StateCommand, StartWithQuery, \
+from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, Audio, StateCommand, StartWithQuery, \
     Video
 from bot.gpt import change_model_command
 from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
@@ -211,13 +211,13 @@ async def transcribe_voice_sync(user_id: str, voice_file_url: str):
         )
 
         transcription = client.audio.transcriptions.create(file=('audio.ogg', voice_data, 'audio/ogg'),
-                                                           model="whisper-1", language="RU")
+                                                           model="whisper-1", language="ru")
 
         print(transcription.duration)
         print( transcription.text)
-        return {"success": True, "text": transcription.text, 'energy': int(transcription.duration)}
+        return {"success": True, "text": transcription.text, 'energy': int(transcription.duration*15)}
     else:
-        return {"success": False, "text": f"Error: Голосовое сообщение не распознанок"}
+        return {"success": False, "text": f"Error: Голосовое сообщение не распознано"}
 
 
 executor = ThreadPoolExecutor()
@@ -230,6 +230,7 @@ async def transcribe_voice(user_id: int, voice_file_url: str):
 
 
 @gptRouter.message(Voice())
+@gptRouter.message(Audio())
 async def handle_voice(message: Message):
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
@@ -254,8 +255,15 @@ async def handle_voice(message: Message):
     if not is_subscribe:
         return
 
-    duration = message.voice.duration
-    voice_file_id = message.voice.file_id
+
+    if message.voice is not None:
+        messageData = message.voice
+    else: 
+        messageData = message.audio
+
+
+    duration = messageData.duration
+    voice_file_id = messageData.file_id
     file = await message.bot.get_file(voice_file_id)
     file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
@@ -268,10 +276,21 @@ async def handle_voice(message: Message):
 ❔ /help - Информация по ⚡️
 """)
 
+        
+        current_state = stateService.get_current_state(message.from_user.id) 
+        print(current_state, 'current_state')
+        print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')
+        if current_state == StateTypes.Transcribe:  
+            await message.reply(response_json.get('text'))  
+            return
+            
         await handle_gpt_request(message, response_json.get('text'))
         return
 
     await message.answer(response_json.get('text'))
+
+
+
 
 
 @gptRouter.message(Document())
@@ -395,9 +414,11 @@ async def handle_balance(message: Message):
 
     await message.answer(f""" 
 👩🏻‍💻 Количество рефералов: *{len(referral['children'])}*
-🤑 Ежедневное автопополнение: *{referral['award']}*⚡️
+🤑 Ежедневное автопополнение 🜹: *{referral['award']}*⚡️
 {accept_account()}
     
+🜹 - ежедневное автопополнение работает, если на балансе меньше 30 000⚡️
+
 💵 Текущий баланс: *{gpt_tokens.get("tokens")}*⚡️ 
 """)
 
@@ -434,20 +455,20 @@ async def handle_change_model(message: Message):
     user_id = message.from_user.id
 
     current_system_message = gptService.get_current_system_message(user_id)
+    print(current_system_message, 'current_system_message')
 
     if not include(system_messages_list, current_system_message):
-        current_system_message = SystemMessages.Default.value
+        current_system_message = SystemMessages.Custom.value
         gptService.set_current_system_message(user_id, current_system_message)
 
     await message.answer(
         text="Установи режим работы бота: ⚙️",
         reply_markup=create_system_message_keyboard(current_system_message)
     )
-
     await asyncio.sleep(0.5)
     await message.delete()
 
-
+    
 @gptRouter.message(TextCommand([change_model_command(), change_model_text()]))
 async def handle_change_model(message: Message):
     is_agreement = await agreement_handler(message)
@@ -494,11 +515,19 @@ async def handle_change_model(message: Message):
 async def edit_system_message(message: Message):
     user_id = message.from_user.id
 
-    stateService.set_current_state(user_id, StateTypes.Default)
+    print('SystemMessageEditingSystemMessageEditingSystemMessageEditing')
+
+    gptService.set_current_system_message(user_id, message.text)
+   
     await systemMessage.edit_system_message(user_id, message.text)
 
-    await message.answer("Системное сообщение успешно изменено!")
+    stateService.set_current_state(user_id, StateTypes.Default)
+
+    await asyncio.sleep(0.5)
+
+    await message.answer(f"Режим успешно изменён!")
     await message.delete()
+
 
 
 @gptRouter.callback_query(StartWithQuery("cancel-system-edit"))
@@ -521,7 +550,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
     system_message = callback_query.data
     current_system_message = gptService.get_current_system_message(user_id)
 
-    if system_message == current_system_message:
+    if (system_message == current_system_message and system_message != SystemMessages.Custom.value):
         await callback_query.answer(f"Данный режим уже выбран!")
         return
 
@@ -531,12 +560,21 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
         await callback_query.message.answer("Напишите ваше системное сообщение", reply_markup=InlineKeyboardMarkup(
             resize_keyboard=True,
             inline_keyboard=[
-                [InlineKeyboardButton(text="Отменить изменение ❌",
+                [InlineKeyboardButton(text="Отмена ❌",
                                       callback_data=f"cancel-system-edit {current_system_message}"), ],
             ]
         ))
 
+    if system_message == SystemMessages.Transcribe.value:   
+        stateService.set_current_state(user_id, StateTypes.Transcribe)
+
+        await callback_query.message.answer("Режим 'Голос в Текст' включен. Бот будет транскрибировать все следующие аудио") 
+
+    print(system_message, 'system_messagesystem_messagesystem_messagesystem_message')
     gptService.set_current_system_message(user_id, system_message)
+
+    if system_message != SystemMessages.Transcribe.value and system_message != SystemMessages.Custom.value: 
+        stateService.set_current_state(user_id, StateTypes.Default)
 
     await callback_query.message.edit_reply_markup(
         reply_markup=create_system_message_keyboard(system_message)
@@ -548,6 +586,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
 
     await callback_query.answer(f"Режим успешно изменён!")
     await callback_query.message.delete()
+
 
 
 @gptRouter.callback_query(
@@ -607,6 +646,7 @@ async def handle_get_history(message: types.Message):
 
     await asyncio.sleep(0.5)
     await message.delete()
+
 
 
 @gptRouter.message(TextCommand("/bot"))
