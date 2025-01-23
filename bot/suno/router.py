@@ -9,7 +9,7 @@ sunoRouter = Router()
 
 
 async def suno_create_messages(message, generation):
-    result = list(generation['data']['clips'].values())[0]
+    result = list(generation['data']['output']['clips'].values())[0]
 
     await message.answer_photo(
         photo=result["image_large_url"],

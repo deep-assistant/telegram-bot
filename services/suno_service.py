@@ -31,7 +31,17 @@ class SunoService:
         )
 
         # 2. Extract the task_id from the response
-        task_id = response.json()['data']['task_id']
+
+        # Handle error (if no data)
+        response_json = response.json()
+        print(response_json)
+
+        if 'data' not in response_json:
+            # Throw an error with the message from the response or a default message
+            error_message = response_json.get('message', 'Unknown error occurred while creating Suno task.')
+            raise Exception(f"API Error: {error_message}")
+
+        task_id = response_json['data'].get('task_id')
         if task_id:
             await task_id_get(task_id)  # If you need to store or log the task_id
 
