@@ -61,6 +61,11 @@ class Voice(BaseFilter):
         return message.voice is not None
 
 
+class Audio(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        return message.audio is not None
+
+
 class StartWithQuery(BaseFilter):
     def __init__(self, text_command: str):
         self.text_command: str = text_command
