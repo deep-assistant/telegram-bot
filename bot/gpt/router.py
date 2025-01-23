@@ -165,6 +165,23 @@ async def handle_image(message: Message):
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message, album):
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+
+
+        # Получаем список всех сущностей типа 'mention'
+        mentions = [
+            entity for entity in message.entities if entity.type == 'mention'
+        ]
+
+        # Проверяем, упомянут ли бот
+        if not any(
+            mention.offset <= 0 < mention.offset + mention.length and
+            message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
+            for mention in mentions
+        ):
+            return
     photos = []
 
     for item in album:
@@ -677,17 +694,30 @@ async def handle_completion(message: Message, batch_messages):
 @gptRouter.message()
 async def handle_completion(message: Message, batch_messages):
     if message.chat.type in ['group', 'supergroup']:
-
         if message.entities is None:
             return
-        mentions = [entity for entity in message.entities if entity.type == 'mention']
 
-        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+        # Получаем список всех сущностей типа 'mention'
+        mentions = [
+            entity for entity in message.entities if entity.type == 'mention'
+        ]
+
+        # Проверяем, упомянут ли бот
+        if not any(
+            mention.offset <= 0 < mention.offset + mention.length and
+            message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
+            for mention in mentions
+        ):
             return
 
+    # Собираем текст из сообщений
     text = ''
-    for message in batch_messages:
-        text = text + message.text + "\n"
-    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
+    for msg in batch_messages:
+        text += msg.text + "\n"
 
+    # Если сообщение является ответом, включаем текст исходного сообщения
+    if message.reply_to_message:
+        text += f"\n\n {message.reply_to_message.text}"
+
+    # Обрабатываем запрос
     await handle_gpt_request(message, text)
