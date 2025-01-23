@@ -3,7 +3,7 @@ def change_model_command():
 
 
 def change_model_text():
-    return "🤖 Сменить модель"
+    return "🛠️ Сменить модель"
 
 
 def change_system_message_command():
