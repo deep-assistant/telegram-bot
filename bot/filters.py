@@ -1,5 +1,6 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message, CallbackQuery
+from typing import Union, List  # Добавьте импорт
 
 from bot.utils import include
 from services import StateTypes, stateService
@@ -21,14 +22,22 @@ class CompositeFilters(BaseFilter):
 
 
 class TextCommand(BaseFilter):
-    def __init__(self, text_command: [str]):
-        self.text_command: [str] = text_command
+    def __init__(self, text_command: Union[str, List[str]]):  # Замените str | list на Union
+        self.text_commands = (
+            [text_command] 
+            if isinstance(text_command, str) 
+            else text_command
+        )
 
     async def __call__(self, message: Message) -> bool:
-        if message.text is None:
+        if not message.text:
             return False
 
-        return include(self.text_command, message.text)
+        return any(
+            message.text.strip().startswith(cmd) 
+            for cmd in self.text_commands
+        )
+
 
 
 class StartWith(BaseFilter):

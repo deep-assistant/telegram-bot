@@ -666,58 +666,42 @@ async def handle_get_history(message: types.Message):
 
 
 
-@gptRouter.message(TextCommand("/bot"))
-async def handle_completion(message: Message, batch_messages):
-    print(message)
-
-    print(message.chat.type)
-    print(message.entities)
-    print(message.text)
-
-    # if message.chat.type in ['group', 'supergroup']:
-    #
-    #     if message.entities is None:
-    #         return
-    #     mentions = [entity for entity in message.entities if entity.type == 'mention']
-    #
-    #     if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
-    #         return
-
-    text = ''
-    for message in batch_messages:
-        text = text + message.text + "\n"
-    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
-
+@gptRouter.message(TextCommand(["/bot", "/bot@DeepGPTBot"]))  # Укажите все возможные варианты
+async def handle_bot_command(message: Message, batch_messages):
+    # Логирование для отладки
+    print(f"Command received: {message.text}")
+    
+    # Собираем текст только из текущего сообщения (если batch не нужен)
+    text = message.text or ""
+    
+    # Добавляем текст из сообщения, на которое ответили
+    if message.reply_to_message and message.reply_to_message.text:
+        text += f"\n\n{message.reply_to_message.text}"
+    
     await handle_gpt_request(message, text)
 
 
 @gptRouter.message()
 async def handle_completion(message: Message, batch_messages):
     if message.chat.type in ['group', 'supergroup']:
-        if message.entities is None:
+        # Проверяем наличие упоминаний
+        if not message.entities:
             return
 
-        # Получаем список всех сущностей типа 'mention'
-        mentions = [
-            entity for entity in message.entities if entity.type == 'mention'
-        ]
+        # Ищем любое упоминание бота (включая @)
+        bot_username = "DeepGPTBot"  # Убедитесь, что username точный (без @)
+        mentioned = any(
+            entity.type == "mention" 
+            and message.text[entity.offset + 1 : entity.offset + entity.length] == bot_username
+            for entity in message.entities
+        )
 
-        # Проверяем, упомянут ли бот
-        if not any(
-            mention.offset <= 0 < mention.offset + mention.length and
-            message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
-            for mention in mentions
-        ):
+        if not mentioned:
             return
 
-    # Собираем текст из сообщений
-    text = ''
-    for msg in batch_messages:
-        text += msg.text + "\n"
+    # Обработка текста
+    text = message.text or ""
+    if message.reply_to_message and message.reply_to_message.text:
+        text += f"\n\n{message.reply_to_message.text}"
 
-    # Если сообщение является ответом, включаем текст исходного сообщения
-    if message.reply_to_message:
-        text += f"\n\n {message.reply_to_message.text}"
-
-    # Обрабатываем запрос
     await handle_gpt_request(message, text)
