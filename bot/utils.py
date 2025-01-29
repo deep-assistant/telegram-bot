@@ -3,10 +3,13 @@ import os
 from aiogram.client.session import aiohttp
 from aiogram.types import Message, FSInputFile
 
+# Old version intruduces a bug (the system message 'deep' also triggers to model 'deepseek-chat')
+# def include(arr: [str], value: str) -> bool:
+#     return len(list(filter(lambda x: value.startswith(x), arr))) > 0
 
-def include(arr: [str], value: str) -> bool:
-    return len(list(filter(lambda x: value.startswith(x), arr))) > 0
-
+def include(arr: list[str], value: str) -> bool:
+    trimmed_value = value.strip()
+    return any(x.strip() == trimmed_value for x in arr)
 
 def get_user_name(user_id: str):
     return str(user_id)
