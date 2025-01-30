@@ -45,23 +45,41 @@ ref_text = """
 
 async def handle_referral(message, user_id, ref_user_id):
     result = await referralsService.create_referral(user_id, ref_user_id)
-
-    if result["parent"] is not None:
-        await message.answer(text="""
+    
+    print(result, 'resuuuuult')
+    
+    # Проверяем, что ref_user_id валиден перед отправкой сообщения
+    if not ref_user_id:
+        return  # Прерываем выполнение, если ref_user_id отсутствует
+    
+    if not result or result.get("parent") is None:
+        return
+    
+    # Проверяем, что ref_user_id - число или строка (например, username)
+    try:
+        chat_id = int(ref_user_id)  # Если ref_user_id должен быть числом
+    except (TypeError, ValueError):
+        await message.answer("❌ Некорректный реферальный ID.")
+        return
+    
+    await message.answer(text="""
 🎉 Вы получили *5 000*⚡️!
 
 /balance - ✨ Узнать баланс
 /referral - 🔗 Подробности рефералки
 """)
 
-        await message.bot.send_message(chat_id=ref_user_id, text="""
+    await message.bot.send_message(
+        chat_id=chat_id,  # Используем проверенный chat_id
+        text="""
 🎉 Добавлен новый реферал! 
 Вы получили *5 000*⚡️!
 Ваш реферал должен проявить любую активность в боте через 24 часа, чтобы вы получили еще *5 000*⚡️ и +500⚡️️ к ежедневному пополнению баланса.
 
 /balance - ✨ Узнать баланс
 /referral - 🔗 Подробности рефералки
-""")
+"""
+    )
 
 
 async def create_token_if_not_exist(user_id):

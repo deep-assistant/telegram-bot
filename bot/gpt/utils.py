@@ -173,5 +173,14 @@ def create_change_model_keyboard(current_model: GPTModels):
                 callback_data=GPTModels.Llama3_1_8B.value
             ),
         ],
-
+        [
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.DeepSeek_Chat, current_model),
+                callback_data=GPTModels.DeepSeek_Chat.value
+            ),
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.DeepSeek_Reasoner, current_model),
+                callback_data=GPTModels.DeepSeek_Reasoner.value
+            ),
+        ]
     ])

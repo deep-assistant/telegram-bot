@@ -590,7 +590,9 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
 
         await callback_query.message.answer("Режим 'Голос в Текст' включен. Бот будет транскрибировать все следующие аудио") 
 
-    print(system_message, 'system_messagesystem_messagesystem_messagesystem_message')
+    
+    print('handle_change_system_message_query', 'system_message', system_message)
+
     gptService.set_current_system_message(user_id, system_message)
 
     if system_message != SystemMessages.Transcribe.value and system_message != SystemMessages.Custom.value: 
@@ -614,8 +616,15 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
 async def handle_change_model_query(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
 
+    print('handle_change_model_query', 'callback_query.data', callback_query.data)
+
     gpt_model = GPTModels(callback_query.data)
+
+    print('handle_change_model_query', 'gpt_model', gpt_model)
+
     current_gpt_model = gptService.get_current_model(user_id)
+
+    print('handle_change_model_query', 'current_gpt_model', current_gpt_model)
 
     if gpt_model.value == current_gpt_model.value:
         await callback_query.answer(f"Модель {current_gpt_model.value} уже выбрана!")

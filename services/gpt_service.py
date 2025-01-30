@@ -19,7 +19,8 @@ class GPTModels(Enum):
     Llama3_1_70B = "Llama3_1_70B"
     Llama3_1_8B = "Llama3_1_8B"
     Llama_3_70b = "Llama_3_70B"
-
+    DeepSeek_Chat = "deepseek-chat"
+    DeepSeek_Reasoner = "deepseek-reasoner"
 
 class SystemMessages(Enum):
     Custom = "custom"
@@ -48,6 +49,8 @@ gpt_models = {
     GPTModels.Llama3_1_70B.value: "meta-llama/Meta-Llama-3.1-70B",
     GPTModels.Llama3_1_8B.value: "meta-llama/Meta-Llama-3.1-8B",
     GPTModels.Llama_3_70b.value: "meta-llama/Meta-Llama-3-70B-Instruct",
+    GPTModels.DeepSeek_Chat.value: "deepseek-chat",
+    GPTModels.DeepSeek_Reasoner.value: "deepseek-reasoner",
 }
 
 
