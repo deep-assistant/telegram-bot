@@ -7,7 +7,8 @@ from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.gpt.utils import checked_text
 from bot.images.command_types import images_command, images_command_text
 from bot.utils import divide_into_chunks
-from bot.utils import send_photo_as_file
+from bot.utils import send_photo_as_file, send_photo
+from bot.constants import DEFAULT_ERROR_MESSAGE
 from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
     steps_values, cgf_values, size_values
@@ -23,7 +24,7 @@ async def handle_generate_image(message: types.Message):
         return
 
     try:
-        wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -52,7 +53,7 @@ async def handle_generate_image(message: types.Message):
         await wait_message.delete()
 
     except Exception as e:
-        await message.answer("Что-то пошло не так попробуйте позже! 😔")
+        await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.log(logging.INFO, e)
 
     imageService.set_waiting_image(user_id, False)
@@ -69,7 +70,7 @@ async def handle_generate_image(message: types.Message):
     stateService.set_current_state(user_id, StateTypes.Default)
 
     try:
-        wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -78,10 +79,12 @@ async def handle_generate_image(message: types.Message):
         await message.bot.send_chat_action(message.chat.id, "typing")
 
         async def task_id_get(task_id: str):
-            await message.answer(f"""
-ID вашей генерации: `1:flux:{task_id}:generate`.
+            await message.answer(f"`1:flux:{task_id}:generate`")
+            await message.answer(f"""Это ID вашей генерации.
 
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
+                                 
+Вы также получите результат генерации по готовности.
 """)
 
         result = await imageService.generate_flux(user_id, message.text, task_id_get)
@@ -119,7 +122,7 @@ ID вашей генерации: `1:flux:{task_id}:generate`.
         await wait_message.delete()
 
     except Exception as e:
-        await message.answer("Что-то пошло не так попробуйте позже! 😔")
+        await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.log(logging.INFO, e)
 
     imageService.set_waiting_image(user_id, False)
@@ -148,7 +151,7 @@ async def handle_generate_image(message: types.Message):
         return
 
     try:
-        wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -179,37 +182,53 @@ async def handle_generate_image(message: types.Message):
 
         await tokenizeService.update_token(user_id, image["total_tokens"] * 2, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию  *{image["total_tokens"]}*⚡️
+🤖 Затрачено на генерацию изображения через DALL·E 3 *{image["total_tokens"] * 2}*⚡️
 
 ❔ /help - Информация по ⚡️
 """)
     except Exception as e:
-        await message.answer("Что-то пошло не так попробуйте позже! 😔")
+        await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.log(logging.INFO, e)
 
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
 
 async def send_variation_image(message, image, task_id):
-    await send_photo_as_file(
+    await send_photo(
         message,
         image,
-        "Вот вариации изображения в оригинальном качестве.\n\n"
-        "Выберите нужное действие:",
+        """Номера вариаций:
+```
++-------+-------+
+|   1   |   2   |
++-------+-------+
+|   3   |   4   |
++-------+-------+
+```
+
+Доступные действия:
+U - Увеличить изображение (Upscale)
+V - Сгенерировать вариации выбранного изображения (Variation)
+
+Каждое действие можно выполнить над картинкой с соответствующим номером.
+
+Выберите нужное действие:
+""",
+        ext=".png",
         reply_markup=InlineKeyboardMarkup(
             resize_keyboard=True,
             inline_keyboard=[
                 [
                     InlineKeyboardButton(text="U1", callback_data=f'upscale-midjourney {task_id} 1'),
                     InlineKeyboardButton(text="U2", callback_data=f'upscale-midjourney {task_id} 2'),
-                    InlineKeyboardButton(text="U3", callback_data=f'upscale-midjourney {task_id} 3'),
-                    InlineKeyboardButton(text="U4", callback_data=f'upscale-midjourney {task_id} 4')
-                ],
-                [
                     InlineKeyboardButton(text="V1", callback_data=f'variation-midjourney {task_id} 1'),
                     InlineKeyboardButton(text="V2", callback_data=f'variation-midjourney {task_id} 2'),
+                ],
+                [
+                    InlineKeyboardButton(text="U3", callback_data=f'upscale-midjourney {task_id} 3'),
+                    InlineKeyboardButton(text="U4", callback_data=f'upscale-midjourney {task_id} 4'),
                     InlineKeyboardButton(text="V3", callback_data=f'variation-midjourney {task_id} 3'),
-                    InlineKeyboardButton(text="V4", callback_data=f'variation-midjourney {task_id} 4')
+                    InlineKeyboardButton(text="V4", callback_data=f'variation-midjourney {task_id} 4'),
                 ],
             ],
 
@@ -240,16 +259,17 @@ async def handle_generate_image(message: types.Message):
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
     try:
-        wait_message = await message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 50-150 секунд.")
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
         async def task_id_get(task_id: str):
-            await message.answer(f"""
-ID вашей генерации: `1:midjourney:{task_id}:generate`.
-
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
-""")
+            await message.answer(f"`1:midjourney:{task_id}:generate`")
+            await message.answer(f"""Это ID вашей генерации.
+                                 
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
+                                 
+Вы также получите результат генерации по готовности.""")
 
         image = await imageService.generate_midjourney(user_id, message.text, task_id_get)
 
@@ -270,7 +290,7 @@ ID вашей генерации: `1:midjourney:{task_id}:generate`.
 ❔ /help - Информация по ⚡️
 """)
     except Exception as e:
-        await message.answer("Что-то пошло не так попробуйте позже! 😔")
+        await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.log(logging.INFO, e)
 
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
@@ -281,14 +301,15 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
     task_id = callback.data.split(" ")[1]
     index = callback.data.split(" ")[2]
 
-    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 15-30 секунд.")
+    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
 
     async def task_id_get(task_id: str):
-        await callback.message.answer(f"""
-ID вашей генерации: `1:midjourney:{task_id}:upscale`.
-
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
-""")
+        await callback.message.answer(f"`1:midjourney:{task_id}:upscale`")
+        await callback.message.answer(f"""Это ID вашей генерации.
+                                      
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
+                                      
+Вы также получите результат генерации по готовности.""")
 
     image = await imageService.upscale_image(task_id, index, task_id_get)
 
@@ -296,7 +317,8 @@ ID вашей генерации: `1:midjourney:{task_id}:upscale`.
     await send_photo_as_file(
         callback.message,
         image["task_result"]["discord_image_url"],
-        "Вот ваше изображение в оригинальном качестве"
+        ext=".png",
+        caption="Вот ваше изображение в оригинальном качестве"
     )
     await callback.message.answer(text="Cгенерировать Midjourney еще?", reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
@@ -326,14 +348,15 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
     task_id = callback.data.split(" ")[1]
     index = callback.data.split(" ")[2]
 
-    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...** Примерное время ожидания 50-150 секунд.")
+    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.")
 
     async def task_id_get(task_id: str):
-        await callback.message.answer(f"""
-ID вашей генерации: `1:midjourney:{task_id}:generate`.
-
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации ⚡️.
-""")
+        await callback.message.answer(f"`1:midjourney:{task_id}:generate`")
+        await callback.message.answer(f"""Это ID вашей генерации.
+                                      
+Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
+                                      
+Вы также получите результат генерации по готовности.""")
 
     image = await imageService.variation_image(task_id, index, task_id_get)
 
@@ -352,22 +375,33 @@ ID вашей генерации: `1:midjourney:{task_id}:generate`.
 
     await wait_message.delete()
 
+# Черновик прайс листа для Midjourney (для остальных моделей нужно проводить исследование, чтобы составить хотя бы приблизительный прайс-лист)
+#   - Первичная генерация - 3300⚡️
+#   - Генерация вариаций - 2500⚡️
+#   - Увеличение изображения - 1000⚡️
 
 @imagesRouter.message(TextCommand([images_command(), images_command_text()]))
 async def handle_start_generate_image(message: types.Message):
-    await message.answer(text="🖼️ Выберите модель: ", reply_markup=InlineKeyboardMarkup(
+    await message.answer(text="""🖼️ Выберите модель:
+
+⦁ [Midjourney](https://en.wikipedia.org/wiki/Midjourney)
+⦁ [DALL·E 3](https://en.wikipedia.org/wiki/DALL-E)
+⦁ [Flux](https://en.wikipedia.org/wiki/FLUX.1)
+⦁ [Stable Diffusion](https://en.wikipedia.org/wiki/Stable_Diffusion)
+""", reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
         inline_keyboard=[
             [
-                # todo придумать callback data утилиту
-                InlineKeyboardButton(text="Stable Duffusion", callback_data="image-model SD"),
-                InlineKeyboardButton(text="Dall-e-3", callback_data="image-model Dalle3"),
+                InlineKeyboardButton(text="Midjourney", callback_data="image-model Midjourney"),
+                InlineKeyboardButton(text="DALL·E 3", callback_data="image-model Dalle3"),
             ],
             [
-                InlineKeyboardButton(text="Midjourney", callback_data="image-model Midjourney"),
+                # todo придумать callback data утилиту
                 InlineKeyboardButton(text="Flux", callback_data="image-model Flux"),
+                InlineKeyboardButton(text="Stable Duffusion", callback_data="image-model SD"),
             ]
-        ]))
+        ]),
+        link_preview_options={"is_disabled": True})
 
     await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -423,7 +457,10 @@ async def generate_base_midjourney_keyboard(callback_query: CallbackQuery):
             return checked_text(size)
         return size
 
-    await callback_query.message.edit_text("Параметры *Midjourney*:")
+    await callback_query.message.edit_text("""Параметры *Midjourney*:
+
+Выберите соотношение сторон изображения.
+""")
     await callback_query.message.edit_reply_markup(
         reply_markup=InlineKeyboardMarkup(
             resize_keyboard=True,
@@ -464,6 +501,10 @@ async def generate_base_midjourney_keyboard(callback_query: CallbackQuery):
                     InlineKeyboardButton(
                         text=f"Сгенерировать 🔥",
                         callback_data="midjourney-generate"
+                    ),
+                    InlineKeyboardButton(
+                        text="❌ Отменить",
+                        callback_data="cancel-midjourney-generate"
                     )
                 ],
             ],
@@ -583,12 +624,28 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 @imagesRouter.callback_query(StartWithQuery("midjourney-generate"))
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Midjourney)
+    await callback_query.message.delete()
     await callback_query.message.answer(""" 
 Напишите на английском запрос для генерации изображения! ‍🔥
 
 Например: `A fantastic photorealistic photo of a black hole that destroys other galaxies`
-""")
+""", reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Отмена ❌",
+                    callback_data="cancel-midjourney-generate"
+                )
+            ]
+        ],
+    ))
 
+@imagesRouter.callback_query(StartWithQuery("cancel-midjourney-generate"))
+async def handle_image_model_query(callback_query: CallbackQuery):
+    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)
+    await callback_query.message.delete()
+    await callback_query.answer("Режим генерации изображения в Midjourney успешно отменён!")
 
 @imagesRouter.callback_query(StartWithQuery("image-model"))
 async def handle_image_model_query(callback_query: CallbackQuery):
