@@ -30,6 +30,14 @@ class TextCommand(BaseFilter):
         )
 
     async def __call__(self, message: Message) -> bool:
+        # Если сообщение пересланное, пропускаем его.
+        if message.forward_date or message.forward_from:
+            return False
+
+        # Если сообщение является ответом на другое сообщение, пропускаем его.
+        if message.reply_to_message:
+            return False
+
         if not message.text:
             return False
 
