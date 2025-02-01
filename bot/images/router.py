@@ -301,7 +301,7 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
     task_id = callback.data.split(" ")[1]
     index = callback.data.split(" ")[2]
 
-    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
+    wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.")
 
     async def task_id_get(task_id: str):
         await callback.message.answer(f"`1:midjourney:{task_id}:upscale`")
