@@ -4,7 +4,7 @@ from aiogram.client.session import aiohttp
 from aiogram.types import Message, FSInputFile
 
 # Global constant to control SSL certificate verification.
-SKIP_SSL_CHECK = True
+SKIP_SSL_CHECK = False
 
 # Old version intruduces a bug (the system message 'deep' also triggers to model 'deepseek-chat')
 # def include(arr: [str], value: str) -> bool:
