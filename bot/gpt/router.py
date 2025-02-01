@@ -508,14 +508,22 @@ async def handle_change_model(message: Message):
 
 Как рассчитывается стоимость в ⚡️️ для моделей?
 
-*claude-3-opus:* 1000 токенов = 6000 ⚡️
+*o3-mini:* 1000 токенов = 800 ⚡️
+
 *o1-preview:* 1000 токенов = 5000 ⚡️
+*o1-mini:* 1000 токенов = 800 ⚡️
+
+*deepseek-reasoner:* 1000 токенов = 320 ⚡️
+*deepseek-chat:* 1000 токенов = 160 ⚡️
+
+*claude-3-opus:* 1000 токенов = 6000 ⚡️
+*claude-3.5-sonnet:* 1000 токенов = 1000 ⚡️
+*claude-3-haiku:* 1000 токенов = 100 ⚡️
+
 *GPT-4o-unofficial:* 1000 токенов = 1100 ⚡️
 *GPT-4o:* 1000 токенов = 1000 ⚡️
 *claude-3.5-sonnet:* 1000 токенов = 1000 ⚡️
-*o1-mini:* 1000 токенов = 800 ⚡️
 *GPT-Auto:* 1000 токенов = 150 ⚡️
-*claude-3-haiku:* 1000 токенов = 100 ⚡️
 *GPT-4o-mini:* 1000 токенов = 70 ⚡️
 *GPT-3.5-turbo:* 1000 токенов = 50 ⚡️
 
@@ -523,8 +531,6 @@ async def handle_change_model(message: Message):
 *Llama3.1-70B:* 1000 токенов = 250 ⚡️
 *Llama-3.1-8B:* 1000 токенов = 20 ⚡️
 
-*deepseek-chat:* 1000 токенов = 160 ⚡️
-*deepseek-reasoner:* 1000 токенов = 320 ⚡️
 """
 
     await message.answer(text=text, reply_markup=create_change_model_keyboard(current_model))

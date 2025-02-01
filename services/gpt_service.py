@@ -21,6 +21,7 @@ class GPTModels(Enum):
     Llama_3_70b = "Llama_3_70B"
     DeepSeek_Chat = "deepseek-chat"
     DeepSeek_Reasoner = "deepseek-reasoner"
+    O3_mini = "o3-mini"
 
 class SystemMessages(Enum):
     Custom = "custom"
@@ -51,6 +52,7 @@ gpt_models = {
     GPTModels.Llama_3_70b.value: "meta-llama/Meta-Llama-3-70B-Instruct",
     GPTModels.DeepSeek_Chat.value: "deepseek-chat",
     GPTModels.DeepSeek_Reasoner.value: "deepseek-reasoner",
+    GPTModels.O3_mini.value: "o3-mini",
 }
 
 
