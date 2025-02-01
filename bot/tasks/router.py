@@ -5,6 +5,7 @@ from bot.filters import StartWith
 from bot.images.router import send_variation_image
 from bot.suno import suno_create_messages
 from bot.utils import send_photo_as_file
+from bot.constants import GENERATION_FAILED_DEFAULT_ERROR_MESSAGE
 from services import imageService, sunoService
 
 taskRouter = Router()
@@ -51,7 +52,7 @@ async def handle_midjourney_message(message: Message):
         await message.answer("⌛️ Задача в процессе!")
         return
 
-    await message.answer("Генерация не удалась. Что-то пошло не так! 😔")
+    await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
 
 
 @taskRouter.message(StartWith("1:suno:"))
@@ -72,7 +73,7 @@ async def handle_syno_message(message: Message):
         await message.answer("⌛️ Задача в процессе!")
         return
 
-    await message.answer("Генерация не удалась. Что-то пошло не так! 😔")
+    await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
 
 
 @taskRouter.message(StartWith("1:flux:"))
@@ -113,4 +114,4 @@ async def handle_syno_message(message: Message):
 
         return
 
-    await message.answer("Генерация не удалась. Что-то пошло не так! 😔")
+    await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)

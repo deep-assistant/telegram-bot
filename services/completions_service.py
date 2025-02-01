@@ -6,6 +6,7 @@ from typing import Any
 from openai import OpenAI
 
 from bot.utils import get_user_name
+from bot.constants import DEFAULT_ERROR_MESSAGE
 from config import PROXY_URL, ADMIN_TOKEN, KEY_DEEPINFRA, GO_API_KEY
 from services.gpt_service import GPTModels
 from services.utils import async_post
@@ -118,7 +119,7 @@ class CompletionsService:
 
     async def get_multi_modal_conversation(self, prompt, attempt: int = 0):
         if attempt == 3:
-            return {"text": "Что-то пошло не так попробуйте позже! 😔", "url_image": None}
+            return {"text": DEFAULT_ERROR_MESSAGE, "url_image": None}
 
         conversation = await get_free_conversation()
 
@@ -187,7 +188,7 @@ class CompletionsService:
 
             await asyncio.sleep(10)
             await set_toggle_conversation(conversation, True)
-            return {"text": "Что-то пошло не так попробуйте позже! 😔", "url_image": None}
+            return {"text": DEFAULT_ERROR_MESSAGE, "url_image": None}
 
 
 completionsService = CompletionsService()

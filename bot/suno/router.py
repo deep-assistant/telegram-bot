@@ -65,7 +65,7 @@ async def suno_generate_handler(message: Message):
         return
 
     wait_message = await message.answer(
-        "**⌛️Ожидайте генерацию...**\nПримерное время ожидания: *1-5 минут*.\nМожете продолжать работать с ботом.")
+        "**⌛️Ожидайте генерацию...**\nПримерное время ожидания: *3-5 минут*.\nМожете продолжать работать с ботом.")
 
     await message.bot.send_chat_action(message.chat.id, "typing")
 

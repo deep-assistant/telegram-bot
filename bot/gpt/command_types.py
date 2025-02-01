@@ -39,7 +39,7 @@ def get_history_command():
 
 
 def get_history_text():
-    return "📖 Получить историю диалога"
+    return "📖 История диалога"
 
 
 def help_command():
