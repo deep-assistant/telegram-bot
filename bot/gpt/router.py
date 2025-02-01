@@ -561,7 +561,7 @@ async def cancel_state(callback_query: CallbackQuery):
     stateService.set_current_state(user_id, StateTypes.Default)
 
     await callback_query.message.delete()
-    await callback_query.answer("Успеншно отменено!")
+    await callback_query.answer("Успешно отменено!")
 
 
 @gptRouter.callback_query(TextCommandQuery(system_messages_list))
