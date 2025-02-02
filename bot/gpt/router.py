@@ -522,7 +522,6 @@ async def handle_change_model(message: Message):
 
 *GPT-4o-unofficial:* 1000 токенов = 1100 ⚡️
 *GPT-4o:* 1000 токенов = 1000 ⚡️
-*claude-3.5-sonnet:* 1000 токенов = 1000 ⚡️
 *GPT-Auto:* 1000 токенов = 150 ⚡️
 *GPT-4o-mini:* 1000 токенов = 70 ⚡️
 *GPT-3.5-turbo:* 1000 токенов = 50 ⚡️
@@ -719,8 +718,9 @@ async def handle_completion(message: Message, batch_messages):
             return
 
     # Обработка текста
-    text = message.text or ""
-    if message.reply_to_message and message.reply_to_message.text:
-        text += f"\n\n{message.reply_to_message.text}"
+    text = ''
+    for message in batch_messages:
+        text = text + message.text + "\n"
+    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
 
     await handle_gpt_request(message, text)
