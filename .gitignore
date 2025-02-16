@@ -3,5 +3,4 @@ __pycache__
 ./config.py
 data_base.db
 config.py
-config.py
 config.py.save
