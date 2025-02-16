@@ -6,7 +6,6 @@ from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message
 
 import config
 from bot.agreement import agreementRouter
@@ -85,28 +84,55 @@ class AlbumMiddleware(BaseMiddleware):
         return result
 
 
+# Startup and shutdown hooks for webhook mode.
+async def on_startup(dp: Dispatcher):
+    print("Bot is starting...")
+    if config.WEBHOOK_ENABLED:
+        await dp.bot.set_webhook(config.WEBHOOK_URL)
+
+
+async def on_shutdown(dp: Dispatcher):
+    print("Bot is shutting down...")
+    if config.WEBHOOK_ENABLED:
+        await dp.bot.delete_webhook()
+
+
 async def bot_run() -> None:
     dp = Dispatcher(storage=MemoryStorage())
     dp.message.middleware(AlbumMiddleware())
-
-    if config.IS_DEV:
-        bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
-
-        apply_routers(dp)
-
-        await bot.delete_webhook()
-        await dp.start_polling(bot, skip_updates=False, drop_pending_updates=True)
-        return
-
-    bot = Bot(
-        token=config.TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
-        session=AiohttpSession(
-            api=TelegramAPIServer.from_base(config.ANALYTICS_URL)
-        )
-    )
-
     apply_routers(dp)
 
-    await bot.delete_webhook()
-    await dp.start_polling(bot, skip_updates=False, drop_pending_updates=True)
+    # Initialize the bot based on the development flag.
+    if config.IS_DEV:
+        bot = Bot(
+            token=config.TOKEN,
+            default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
+        )
+    else:
+        bot = Bot(
+            token=config.TOKEN,
+            default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
+            session=AiohttpSession(
+                api=TelegramAPIServer.from_base(config.ANALYTICS_URL)
+            )
+        )
+
+    # Choose between webhook and polling modes.
+    if config.WEBHOOK_ENABLED:
+        # Set webhook and start webhook mode.
+        await bot.set_webhook(config.WEBHOOK_URL)
+        await dp.start_webhook(
+            webhook_path=config.WEBHOOK_PATH,  # e.g., '/webhook'
+            on_startup=on_startup,
+            on_shutdown=on_shutdown,
+            host=config.WEBHOOK_HOST,          # e.g., '0.0.0.0'
+            port=config.WEBHOOK_PORT           # e.g., 3000
+        )
+    else:
+        # Delete webhook if exists and start polling.
+        await bot.delete_webhook()
+        await dp.start_polling(
+            bot,
+            skip_updates=False,
+            drop_pending_updates=True
+        )
