@@ -1,7 +1,0 @@
-TOKEN = ""
-PAYMENTS_TOKEN = ""
-GPT_TOKEN = ""
-IS_DEV = True
-ANALYTICS_URL = ""
-PROXY_URL = ""
-ADMIN_TOKEN = ""
