@@ -6,14 +6,14 @@ from db import data_base, db_key
 class GPTModels(Enum):
     Claude_3_Opus = "claude-3-opus"
     Claude_3_5_Sonnet = "claude-3-5-sonnet"
-    Claude_3_Haiku = "claude-3-haiku"
+    Claude_3_5_Haiku = "claude-3-haiku"
     Uncensored = "uncensored"
     O1_mini = "o1-mini"
     O1_preview = "o1-preview"
+    GPT_4o_mini = "gpt-4o-mini" # it must be before "gpt-4o" to make detection of "gpt-4o-mini" work
+    GPT_4_Unofficial = "gpt-4o-unofficial"
     GPT_4o = "gpt-4o"
     GPT_Auto = "gpt-auto"
-    GPT_4o_mini = "gpt-4o-mini"
-    GPT_4_Unofficial = "gpt-4o-unofficial"
     GPT_3_5 = "gpt-3.5"
     Llama3_1_405B = "Llama3_1_405B"
     Llama3_1_70B = "Llama3_1_70B"
@@ -35,7 +35,7 @@ class SystemMessages(Enum):
 is_requesting = {}
 
 gpt_models = {
-    GPTModels.Claude_3_Haiku.value: "claude-3-haiku",
+    GPTModels.Claude_3_5_Haiku.value: "claude-3-haiku",
     GPTModels.Claude_3_Opus.value: "claude-3-opus",
     GPTModels.Claude_3_5_Sonnet.value: "claude-3-5-sonnet",
     GPTModels.Uncensored.value: "uncensored",

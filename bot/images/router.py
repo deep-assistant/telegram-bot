@@ -46,7 +46,7 @@ async def handle_generate_image(message: types.Message):
         await send_photo_as_file(message, image["output"][0], "Вот картинка в оригинальном качестве")
         await tokenizeService.update_token(user_id, 30, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию  30⚡️
+🤖 Затрачено на генерацию изображения Stable Diffusion 30⚡️
 
 ❔ /help - Информация по ⚡️
 """)
@@ -115,7 +115,7 @@ async def handle_generate_image(message: types.Message):
 
         await tokenizeService.update_token(user_id, energy, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию {energy}⚡️ 
+🤖 Затрачено на генерацию изображения Flux {energy}⚡️ 
 
 ❔ /help - Информация по ⚡️
 """)
@@ -182,7 +182,7 @@ async def handle_generate_image(message: types.Message):
 
         await tokenizeService.update_token(user_id, image["total_tokens"] * 2, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию изображения через DALL·E 3 *{image["total_tokens"] * 2}*⚡️
+🤖 Затрачено на генерацию изображения DALL·E 3 *{image["total_tokens"] * 2}*⚡️
 
 ❔ /help - Информация по ⚡️
 """)
@@ -285,7 +285,7 @@ async def handle_generate_image(message: types.Message):
 
         await tokenizeService.update_token(user_id, 3300, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию 3300⚡️
+🤖 Затрачено на генерацию изображений Midjourney 3300⚡️
 
 ❔ /help - Информация по ⚡️
 """)
@@ -335,7 +335,7 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
 
     await tokenizeService.update_token(callback.from_user.id, 1000, "subtract")
     await callback.message.answer(f"""
-🤖 Затрачено на генерацию 1000⚡️
+🤖 Затрачено на генерацию увеличенного изображения Midjourney 1000⚡️
 
 ❔ /help - Информация по ⚡️
 """)
@@ -368,7 +368,7 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
 
     await tokenizeService.update_token(callback.from_user.id, 2500, "subtract")
     await callback.message.answer(f"""
-🤖 Затрачено на генерацию 2500⚡️
+🤖 Затрачено на генерацию вариации изображения Midjourney 2500⚡️
 
 ❔ /help - Информация по ⚡️
 """)

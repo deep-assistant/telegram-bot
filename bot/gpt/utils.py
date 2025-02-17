@@ -47,15 +47,14 @@ async def is_chat_member(message: Message) -> bool:
     return is_subscribe
 
 
-def get_tokens_message(tokens: int):
+def get_tokens_message(tokens: int, tokens_left: int, model: str = None):
     if tokens <= 0:
         return None
-
-    return f"""
-🤖 Затрачено на запрос *{tokens}*⚡️
-
-❔ /help - Информация по ⚡️
-"""
+    
+    if model:
+        return f"🤖 Затрачено на ответ от *{model}*: *{tokens}⚡️*, осталось *{tokens_left}⚡️*."
+    else:
+        return f"🤖 Затрачено на ответ *{tokens}⚡️*, осталось *{tokens_left}⚡️*"
 
 
 def split_message(message):
@@ -145,8 +144,8 @@ def create_change_model_keyboard(current_model: GPTModels):
                 callback_data=GPTModels.Claude_3_Opus.value
             ),
             InlineKeyboardButton(
-                text=get_model_text(GPTModels.Claude_3_Haiku, current_model),
-                callback_data=GPTModels.Claude_3_Haiku.value
+                text=get_model_text(GPTModels.Claude_3_5_Haiku, current_model),
+                callback_data=GPTModels.Claude_3_5_Haiku.value
             ),
         ],
         [
