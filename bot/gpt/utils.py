@@ -47,7 +47,7 @@ async def is_chat_member(message: Message) -> bool:
     return is_subscribe
 
 
-def get_tokens_message(tokens_spent: int, tokens_left: int, requested_model: str, responded_model: str = None):
+def get_tokens_message(tokens_spent: int, tokens_left: int, requested_model: str = None, responded_model: str = None):
     if tokens_spent <= 0:
         return None
     
@@ -55,13 +55,18 @@ def get_tokens_message(tokens_spent: int, tokens_left: int, requested_model: str
         return f"""🤖 Ответ от: *{responded_model}*
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
-    elif responded_model:
+    elif requested_model and responded_model:
         return f"""🤖 Ответ от: *{responded_model}*
 ⚠️ Выбранная модель *{requested_model}* временно недоступна!
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
-    else:
+    elif requested_model:
         return f"""🤖 Ответ от: *{requested_model}* (но это *не точно*)
+⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.
+
+✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
+    else:
+        return f"""🤖 Ответ от: *неизвестно* (не удалось определить модель)
 ⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""

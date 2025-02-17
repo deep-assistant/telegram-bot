@@ -72,6 +72,10 @@ def detect_model(model: str):
         return GPTModels.Llama3_1_70B.value
     if "Llama-3.1-8B" in model:
         return GPTModels.Llama3_1_8B.value
+    if "gpt-3.5-turbo" in model:
+        return GPTModels.GPT_3_5.value
+    if "gpt-4o-plus" in model:
+        return GPTModels.GPT_4o
         
     return None
 
@@ -133,6 +137,10 @@ async def handle_gpt_request(message: Message, text: str):
 
         print(requested_gpt_model, 'requested_gpt_model')
 
+        detected_requested_gpt_model = detect_model(requested_gpt_model)
+
+        print(detected_requested_gpt_model, 'detected_requested_gpt_model')
+
         responded_gpt_model = answer.get("model")
 
         print(responded_gpt_model, 'responded_gpt_model')
@@ -179,7 +187,7 @@ async def handle_gpt_request(message: Message, text: str):
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
         await asyncio.sleep(0.5)
         await message_loading.delete()
-        token_message = await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), gpt_tokens_after.get("tokens", 0), requested_gpt_model, detected_responded_gpt_model))
+        token_message = await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), gpt_tokens_after.get("tokens", 0), detected_requested_gpt_model, detected_responded_gpt_model))
         if message.chat.type in ['group', 'supergroup']:
             await asyncio.sleep(2)
             await token_message.delete()
