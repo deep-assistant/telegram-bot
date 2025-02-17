@@ -96,11 +96,30 @@ class CompletionsService:
         if response.status_code == 200:
             completions = response.json()
 
-            print(completions)
+            print(json.dumps(completions, indent=4))
 
-            return {'success': True, "response": completions['choices'][0]['message']['content']}
+            response_content = completions['choices'][0]['message']['content']
+
+            response_model = completions['model']
+
+            reasoning_content = None
+
+            if "deepseek" in response_model:
+                first_think_tag_positon = response_content.find("<think>")
+                last_think_tag_positon = response_content.find("</think>")
+
+                if first_think_tag_positon != -1 and last_think_tag_positon != -1:
+                    reasoning_content = response_content[first_think_tag_positon:last_think_tag_positon + len("</think>")]
+                
+            print(f"reasoning_content: {reasoning_content}")
+
+            final_content = response_content.replace(reasoning_content, "").strip() if reasoning_content else response_content
+            
+            print(f"final_content: {final_content}")
+
+            return { 'success': True, "response": final_content, 'model': response_model}
         else:
-            return {"success": False, "response": f"Ошибка 😔: {response.json().get('message')}"}
+            return { "success": False, "response": f"Ошибка 😔: {response.json().get('message')}" }
 
     async def get_file(self, parts, conversation):
         url = f"https://api.goapi.xyz/api/chatgpt/v1/conversation/{conversation}/download"
