@@ -179,7 +179,7 @@ async def handle_gpt_request(message: Message, text: str):
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
         await asyncio.sleep(0.5)
         await message_loading.delete()
-        token_message = await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), gpt_tokens_after.get("tokens", 0), detected_responded_gpt_model))
+        token_message = await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), gpt_tokens_after.get("tokens", 0), requested_gpt_model, detected_responded_gpt_model))
         if message.chat.type in ['group', 'supergroup']:
             await asyncio.sleep(2)
             await token_message.delete()
