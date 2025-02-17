@@ -52,6 +52,29 @@ async def answer_markdown_file(message: Message, md_content: str):
     os.remove(file_path)
 
 
+def detect_model(model: str):
+    if model is None:
+        return None
+    
+    for model_enum in GPTModels:
+        if model_enum.value in model:
+            return model_enum.value
+
+    if "auto" in model:
+        return GPTModels.GPT_Auto.value
+    if "deepseek-r1" in model:
+        return GPTModels.DeepSeek_Reasoner.value
+    if "gpt-4-gizmo" in model:
+        return GPTModels.GPT_4_Unofficial.value
+    if "Llama-3.1-405B" in model:
+        return GPTModels.Llama3_1_405B.value
+    if "Llama-3.1-70B" in model:
+        return GPTModels.Llama3_1_70B.value
+    if "Llama-3.1-8B" in model:
+        return GPTModels.Llama3_1_8B.value
+        
+    return None
+
 async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
     message_loading = await message.answer("**⌛️Ожидайте ответ...**")
@@ -104,6 +127,20 @@ async def handle_gpt_request(message: Message, text: str):
             questionAnswer,
         )
 
+        print(json.dumps(answer, indent=4))
+
+        requested_gpt_model = gpt_model
+
+        print(requested_gpt_model, 'requested_gpt_model')
+
+        responded_gpt_model = answer.get("model")
+
+        print(responded_gpt_model, 'responded_gpt_model')
+
+        detected_responded_gpt_model = detect_model(responded_gpt_model)
+
+        print(detected_responded_gpt_model, 'detected_responded_gpt_model')
+
         if not answer.get("success"):
             if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
                 await message.answer(
@@ -142,7 +179,7 @@ async def handle_gpt_request(message: Message, text: str):
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
         await asyncio.sleep(0.5)
         await message_loading.delete()
-        token_message = await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0)))
+        token_message = await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), gpt_tokens_after.get("tokens", 0), detected_responded_gpt_model))
         if message.chat.type in ['group', 'supergroup']:
             await asyncio.sleep(2)
             await token_message.delete()

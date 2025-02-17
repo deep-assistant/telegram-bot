@@ -84,7 +84,7 @@ async def suno_generate_handler(message: Message):
 
     await tokenizeService.update_token(message.from_user.id, 5000, "subtract")
     await message.answer(f"""
-🤖 Затрачено на генерацию музыкальной композиции в *Suno*: *5000⚡️*
+🤖 Затрачено на генерацию музыкальной композиции *Suno*: *5000⚡️*
 
 ❔ /help - Информация по ⚡️
     """)

@@ -45,7 +45,7 @@ async def handle_remove_background(message: Message, album):
 
         await tokenizeService.update_token(message.from_user.id, 400, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию  400⚡️
+🤖 Затрачено на удаление фона изображения 400⚡️
 
 ❔ /help - Информация по ⚡️
 """)
