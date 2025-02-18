@@ -12,7 +12,7 @@ generating_map = {}
 
 async def txt2img(prompt, negative_prompt, model, width, height, guidance_scale, steps, wait_image):
     response = await async_post(
-        "https://api.midjourneyapi.xyz/sd/txt2img",
+        "https://api.goapi.ai/sd/txt2img",
         headers={'X-API-Key': GO_API_KEY, 'Content-Type': 'application/json'},
         json={
             "prompt": prompt,
@@ -41,7 +41,7 @@ async def txt2img(prompt, negative_prompt, model, width, height, guidance_scale,
                 return None
 
             await asyncio.sleep(30)
-            response = await async_post("https://api.midjourneyapi.xyz/sd/fetch", json={"id": id})
+            response = await async_post("https://api.goapi.ai/sd/fetch", json={"id": id})
 
             result = response.json()
 
@@ -254,7 +254,7 @@ class ImageService:
         }
 
         response = await async_post(
-            "https://api.midjourneyapi.xyz/mj/v2/imagine",
+            "https://api.goapi.ai/mj/v2/imagine",
             headers={"X-API-KEY": GO_API_KEY},
             json=data
         )
@@ -267,13 +267,13 @@ class ImageService:
         return await self.try_fetch_midjourney(task_id)
 
     async def task_fetch(self, task_id):
-        response = await async_post("https://api.midjourneyapi.xyz/mj/v2/fetch", json={"task_id": task_id})
+        response = await async_post("https://api.goapi.ai/mj/v2/fetch", json={"task_id": task_id})
         return response.json()
 
     async def upscale_image(self, task_id, index, task_id_get):
         print(task_id)
         response = await async_post(
-            "https://api.midjourneyapi.xyz/mj/v2/upscale",
+            "https://api.goapi.ai/mj/v2/upscale",
             headers={"X-API-KEY": GO_API_KEY},
             json={"origin_task_id": task_id, "index": index, }
         )
@@ -287,7 +287,7 @@ class ImageService:
 
     async def variation_image(self, task_id, index, task_id_get):
         response = await async_post(
-            "https://api.midjourneyapi.xyz/mj/v2/variation",
+            "https://api.goapi.ai/mj/v2/variation",
             headers={"X-API-KEY": GO_API_KEY},
             json={"origin_task_id": task_id, "index": index, }
         )
