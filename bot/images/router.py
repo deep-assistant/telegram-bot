@@ -1,4 +1,5 @@
 import logging
+import re
 
 from aiogram import Router, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
@@ -15,6 +16,95 @@ from services.image_utils import image_models_values, samplers_values, \
 
 imagesRouter = Router()
 
+# Confirmed banned words from error data
+confirmed_banned_words = [
+    "blood",
+    "chest",
+    "cutting",
+    "dick",
+    "flesh",
+    "miniskirt",
+    "naked",
+    "nude",
+    "provocative",
+    "sex",
+    "sexy",
+    "shirtless",
+    "shit",
+    "succubus",
+    "trump"
+]
+
+# Unconfirmed banned words from provided sources, categorized
+unconfirmed_banned_words = {
+    "gore_words": [
+        "blood", "bloodbath", "crucifixion", "bloody", "flesh", "bruises", "car crash", "corpse",
+        "crucified", "cutting", "decapitate", "infested", "gruesome", "kill", "infected", "sadist",
+        "slaughter", "teratoma", "tryphophobia", "wound", "cronenberg", "khorne", "cannibal",
+        "cannibalism", "visceral", "guts", "bloodshot", "gory", "killing", "surgery", "vivisection",
+        "massacre", "hemoglobin", "suicide"
+    ],
+    "adult_words": [
+        "ahegao", "pinup", "ballgag", "playboy", "bimbo", "pleasure", "bodily fluids", "pleasures",
+        "boudoir", "rule34", "brothel", "seducing", "dominatrix", "seductive", "erotic seductive",
+        "fuck", "sensual", "hardcore", "sexy", "hentai", "shag", "horny", "shibari", "incest",
+        "smut", "jav", "succubus", "jerk off king at pic", "thot", "kinbaku", "transparent",
+        "submissive", "dominant", "nasty", "indecent", "legs spread", "cussing", "flashy", "twerk",
+        "making love", "voluptuous", "naughty", "wincest", "orgy", "sultry", "xxx", "bondage",
+        "bdsm", "dog collar", "slavegirl", "transparent and translucent"
+    ],
+    "body_parts_words": [
+        "arse", "labia", "ass", "mammaries", "human centipede", "badonkers", "minge", "massive chests",
+        "big ass", "mommy milker", "booba", "nipple", "booty", "oppai", "bosom", "melons", "bulging",
+        "coochie", "head", "engorged", "organs", "breasts", "ovaries", "busty", "penis", "clunge",
+        "phallus", "crotch", "sexy female", "dick", "skimpy", "girth", "thick", "honkers", "vagina",
+        "hooters", "veiny", "knob", "seductress", "shaft"
+    ],
+    "nudity_words": [
+        "no clothes", "speedo", "au naturale", "no shirt", "bare chest", "nude", "barely dressed",
+        "bra", "risqué", "clear", "scantily", "clad", "cleavage", "stripped", "full frontal unclothed",
+        "invisible clothes", "wearing nothing", "lingerie with no shirt", "naked", "without clothes on",
+        "negligee", "zero clothes"
+    ],
+    "taboo_words": [
+        "taboo", "fascist", "nazi", "prophet mohammed", "slave", "coon", "honkey", "arrested", "jail",
+        "handcuffs", "torture", "disturbing", "1488"
+    ],
+    "drugs_words": [
+        "drugs", "cocaine", "heroin", "meth", "crack"
+    ],
+    "other_words": [
+        "farts", "fart", "poop", "warts", "xi jinping", "shit", "pleasure", "errect", "big black",
+        "brown pudding", "bunghole", "vomit", "voluptuous", "seductive", "sperm", "hot", "sexy",
+        "plebeian", "sensored", "censored", "uncouth", "silenced", "deepfake", "inappropriate",
+        "pus", "waifu", "mp5", "succubus", "surgery"
+    ]
+}
+
+# Create a single set of all banned words for efficient lookup
+banned_words_set = set(confirmed_banned_words)
+for category_words in unconfirmed_banned_words.values():
+    banned_words_set.update(category_words)
+
+def is_banned_word(word):
+    """Check if a word or phrase is in the banned words set.
+
+    Args:
+        word (str): The word or phrase to check.
+
+    Returns:
+        bool: True if the word is banned, False otherwise.
+    """
+    return word.lower() in banned_words_set
+
+# # Example usage
+# if __name__ == "__main__":
+#     test_words = ["blood", "sexy", "dog", "naked", "torture", "hello", "succubus"]
+#     for test_word in test_words:
+#         if is_banned_word(test_word):
+#             print(f"'{test_word}' is banned")
+#         else:
+#             print(f"'{test_word}' is not banned")
 
 @imagesRouter.message(StateCommand(StateTypes.Image))
 async def handle_generate_image(message: types.Message):
@@ -256,9 +346,48 @@ async def handle_generate_image(message: types.Message):
     if not stateService.is_midjourney_state(user_id):
         return
 
-    stateService.set_current_state(message.from_user.id, StateTypes.Default)
-
     try:
+        if (not any(char.isalnum() for char in message.text)) or (re.match(r'^/[a-zA-Z]+$', message.text.strip())):
+            await message.answer(
+                "🚫 В вашем запросе отсутствует описание изображения. Пожалуйста, попробуйте снова.",
+                reply_markup=InlineKeyboardMarkup(
+                    resize_keyboard=True,
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="Отмена ❌",
+                                callback_data="cancel-midjourney-generate"
+                            )
+                        ]
+                    ],
+                )
+            )
+            return
+
+        words = message.text.split(" ")
+        words = [word.lower() for word in words]
+        banned_words_in_request = [word for word in words if is_banned_word(word)]
+        if banned_words_in_request:
+            await message.answer(
+                f"""🚫 В вашем запросе обнаружены запрещенные слова: "{'", "'.join(banned_words_in_request)}".
+
+Пожалуйста, попробуйте изменить запрос и отправить его снова.
+Если вы считаете, что любое из слов было запрещено по ошибке, пожалуйста, напишите нам в раздел *Ошибки* в сообщество @deepGPT.""",            
+                reply_markup=InlineKeyboardMarkup(
+                resize_keyboard=True,
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="Отмена ❌",
+                            callback_data="cancel-midjourney-generate"
+                        )
+                    ]
+                ],
+            ))
+            return
+        
+        stateService.set_current_state(message.from_user.id, StateTypes.Default)
+
         wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
@@ -283,9 +412,9 @@ async def handle_generate_image(message: types.Message):
 
         await wait_message.delete()
 
-        await tokenizeService.update_token(user_id, 3300, "subtract")
+        await tokenizeService.update_token(user_id, 4200, "subtract")
         await message.answer(f"""
-🤖 Затрачено на генерацию изображений Midjourney 3300⚡️
+🤖 Затрачено на генерацию изображений Midjourney 4200⚡️
 
 ❔ /help - Информация по ⚡️
 """)
@@ -333,9 +462,9 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
     )
                                   )
 
-    await tokenizeService.update_token(callback.from_user.id, 1000, "subtract")
+    await tokenizeService.update_token(callback.from_user.id, 1600, "subtract")
     await callback.message.answer(f"""
-🤖 Затрачено на генерацию увеличенного изображения Midjourney 1000⚡️
+🤖 Затрачено на генерацию увеличенного изображения Midjourney 1600⚡️
 
 ❔ /help - Информация по ⚡️
 """)
@@ -366,9 +495,9 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
         image["task_id"]
     )
 
-    await tokenizeService.update_token(callback.from_user.id, 2500, "subtract")
+    await tokenizeService.update_token(callback.from_user.id, 8700, "subtract")
     await callback.message.answer(f"""
-🤖 Затрачено на генерацию вариации изображения Midjourney 2500⚡️
+🤖 Затрачено на генерацию вариации изображения Midjourney 8700⚡️
 
 ❔ /help - Информация по ⚡️
 """)
