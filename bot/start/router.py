@@ -6,13 +6,9 @@ from aiogram.types import CallbackQuery, Message
 
 from bot.filters import StartWithQuery
 from bot.filters import TextCommand
-from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text, \
-    get_history_text, help_text, help_command, app_command
+from bot.gpt.command_types import help_text, help_command, app_command
 from bot.gpt.utils import check_subscription
-from bot.images import images_command_text
-from bot.payment.command_types import balance_payment_command_text
-from bot.referral import referral_command_text
-from bot.suno.command_types import suno_text
+from bot.main_keyboard import create_main_keyboard
 from services import tokenizeService, referralsService
 
 startRouter = Router()
@@ -86,35 +82,9 @@ async def handle_referral(message, user_id, ref_user_id):
 async def create_token_if_not_exist(user_id):
     return await tokenizeService.get_tokens(user_id)
 
-
-
 @startRouter.message(CommandStart())
-async def buy(message: types.Message):
-    keyboard = types.ReplyKeyboardMarkup(
-        resize_keyboard=True,
-        keyboard=[
-            [
-                types.KeyboardButton(text=balance_text()),
-                types.KeyboardButton(text=balance_payment_command_text())
-            ],
-            [
-                types.KeyboardButton(text=change_model_text()),
-                types.KeyboardButton(text=change_system_message_text())
-            ],
-            [
-                types.KeyboardButton(text=suno_text()),
-                types.KeyboardButton(text=images_command_text())
-            ],
-            [
-                types.KeyboardButton(text=clear_text()),
-                types.KeyboardButton(text=get_history_text())
-            ],
-            [
-                types.KeyboardButton(text=referral_command_text()),
-            ],
-        ],
-        input_field_placeholder="💬 Задай свой вопрос"
-    )
+async def start(message: types.Message):
+    keyboard = create_main_keyboard()
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
 
