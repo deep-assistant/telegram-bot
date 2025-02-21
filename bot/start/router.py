@@ -8,7 +8,7 @@ from bot.filters import StartWithQuery
 from bot.filters import TextCommand
 from bot.gpt.command_types import help_text, help_command, app_command
 from bot.gpt.utils import check_subscription
-from bot.main_keyboard import create_main_keyboard
+from bot.main_keyboard import create_main_keyboard, send_message
 from services import tokenizeService, referralsService
 
 startRouter = Router()
@@ -84,11 +84,12 @@ async def create_token_if_not_exist(user_id):
 
 @startRouter.message(CommandStart())
 async def start(message: types.Message):
-    keyboard = create_main_keyboard()
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
 
-    await message.answer(text=hello_text, reply_markup=keyboard)
+    # always force sending the keyboard
+    keyboard = create_main_keyboard()
+    await send_message(message, text=hello_text, reply_markup=keyboard)
 
     is_subscribe = await check_subscription(message)
 
