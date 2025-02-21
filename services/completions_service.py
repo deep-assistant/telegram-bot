@@ -13,24 +13,23 @@ from services.utils import async_post
 
 history = {}
 
+# Temporary disable any free conversations (for investigation)
 conversations = {
-    "9ac59cfb-2e73-4b08-82d1-c2d94a240fc2": True,
-    "c8f6b5b9-46a4-4f11-8679-4c74699c7f3d": True,
-    "7945e1db-b3f1-4e86-b000-584cff2d4d81": True,
-    "3886244e-1b61-4713-8bf9-b5af56fedde6": True,
-    "1d491883-1fe2-49b9-a422-917186b4329f": True,
-    "e970eece-6236-4ef4-a071-5cb1367aad6b": True,
-    "f851d10d-8094-4e1c-9545-8f5dffcb1b5f": True,
-    "95f3832b-f125-429b-9d16-c1b918fe20cc": True,
-    "84a8eec5-ee00-4ff0-9b35-1340b27140fa": True,
-    "99ce43fd-8ee0-4bd6-8ed0-f6930035dc7f": True
+    # "9ac59cfb-2e73-4b08-82d1-c2d94a240fc2": True,
+    # "c8f6b5b9-46a4-4f11-8679-4c74699c7f3d": True,
+    # "7945e1db-b3f1-4e86-b000-584cff2d4d81": True,
+    # "3886244e-1b61-4713-8bf9-b5af56fedde6": True,
+    # "1d491883-1fe2-49b9-a422-917186b4329f": True,
+    # "e970eece-6236-4ef4-a071-5cb1367aad6b": True,
+    # "f851d10d-8094-4e1c-9545-8f5dffcb1b5f": True,
+    # "95f3832b-f125-429b-9d16-c1b918fe20cc": True,
+    # "84a8eec5-ee00-4ff0-9b35-1340b27140fa": True,
+    # "99ce43fd-8ee0-4bd6-8ed0-f6930035dc7f": True
 }
-
 
 async def set_toggle_conversation(key, flag):
     await asyncio.sleep(1)
     conversations[key] = flag
-
 
 async def get_free_conversation():
     while True:
@@ -40,10 +39,7 @@ async def get_free_conversation():
                 await set_toggle_conversation(key, False)
                 return key
 
-
 class CompletionsService:
-    TOKEN_LIMIT = 30000
-
     openai = OpenAI(
         api_key=KEY_DEEPINFRA,
         base_url="https://api.deepinfra.com/v1/openai",
