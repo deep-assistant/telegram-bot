@@ -6,7 +6,7 @@ from db import data_base, db_key
 class GPTModels(Enum):
     Claude_3_Opus = "claude-3-opus"
     Claude_3_5_Sonnet = "claude-3-5-sonnet"
-    Claude_3_5_Haiku = "claude-3-haiku"
+    Claude_3_5_Haiku = "claude-3-5-haiku"
     Uncensored = "uncensored"
     O1_mini = "o1-mini"
     O1_preview = "o1-preview"
@@ -35,7 +35,7 @@ class SystemMessages(Enum):
 is_requesting = {}
 
 gpt_models = {
-    GPTModels.Claude_3_5_Haiku.value: "claude-3-haiku",
+    GPTModels.Claude_3_5_Haiku.value: "claude-3-5-haiku",
     GPTModels.Claude_3_Opus.value: "claude-3-opus",
     GPTModels.Claude_3_5_Sonnet.value: "claude-3-5-sonnet",
     GPTModels.Uncensored.value: "uncensored",

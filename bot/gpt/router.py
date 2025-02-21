@@ -563,7 +563,7 @@ async def handle_change_model(message: Message):
 
 *claude-3-opus:* 1000 токенов = 6000 ⚡️
 *claude-3.5-sonnet:* 1000 токенов = 1000 ⚡️
-*claude-3-haiku:* 1000 токенов = 100 ⚡️
+*claude-3-5-haiku:* 1000 токенов = 100 ⚡️
 
 *GPT-4o-unofficial:* 1000 токенов = 1100 ⚡️
 *GPT-4o:* 1000 токенов = 1000 ⚡️

@@ -174,7 +174,7 @@ print(response_data)  # {"text": "hello"}
 |-------------------------|-----------------------------|
 | `claude-3-opus`         | 6000 ⚡️                      |
 | `claude-3-5-sonnet`     | 1000 ⚡️                      |
-| `claude-3-haiku`        | 100 ⚡️                       |
+| `claude-3-5-haiku`      | 100 ⚡️                       |
 | `o1-preview`            | 5000 ⚡️                      |
 | `o1-mini`               | 800 ⚡️                       |
 | `GPT-4o-unofficial`     | 1100 ⚡️                      |
