@@ -94,6 +94,9 @@ async def handle_gpt_request(message: Message, text: str):
 
         if not is_subscribe:
             return
+        
+        if not stateService.is_default_state(user_id):
+            return
 
         chat_id = message.chat.id
 
@@ -109,12 +112,12 @@ async def handle_gpt_request(message: Message, text: str):
         if gpt_tokens_before.get("tokens", 0) <= 0:
             await message.answer(
                 text=f"""
-Ошибка 😔: Превышен лимит использования!
+У вас не хватает *⚡️*. 😔
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс 
-/referral - Пригласить друга, чтобы получить бесплатно ⚡️!
-/model - Сменить модель
+/referral - 👥 Пригласить друга, чтобы получить бесплатно *⚡️*!
+/model - 🛠️ Сменить модель
 """)
             return
         system_message = get_system_message(system_message)
@@ -154,12 +157,12 @@ async def handle_gpt_request(message: Message, text: str):
             if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
                 await message.answer(
                     text=f"""
-{answer.get('response')}
+У вас не хватает *⚡️*. 😔
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс 
-/referral - Пригласить друга, чтобы получить бесплатно ⚡️!
-/model - Сменить модель
+/referral - 👥 Пригласить друга, чтобы получить бесплатно ⚡️!
+/model - 🛠️ Сменить модель
 """,
                 )
                 await asyncio.sleep(0.5)
@@ -224,7 +227,6 @@ async def handle_image(message: Message, album):
         if message.entities is None:
             return
 
-
         # Получаем список всех сущностей типа 'mention'
         mentions = [
             entity for entity in message.entities if entity.type == 'mention'
@@ -242,16 +244,21 @@ async def handle_image(message: Message, album):
     for item in album:
         photos.append(item.photo[-1])
 
-    tokens = await tokenizeService.get_tokens(message.from_user.id)
+    user_id = message.from_user.id
 
-    if tokens.get("tokens") <= 0:
+    if not stateService.is_default_state(user_id):
+        return
+
+    tokens = await tokenizeService.get_tokens(user_id)
+    if tokens.get("tokens") < 0:
         await message.answer("""
-У вас не хватает ⚡️!
+У вас не хватает *⚡️*. 😔
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
-/referral - Пригласить друга, чтобы получить бесплатно ⚡️!
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
 """)
+        stateService.set_current_state(user_id, StateTypes.Default)
         return
 
     is_subscribe = await is_chat_member(message)
@@ -310,16 +317,22 @@ async def handle_voice(message: Message):
         mentions = [entity for entity in message.entities if entity.type == 'mention']
         if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
             return
-    tokens = await tokenizeService.get_tokens(message.from_user.id)
+        
+    user_id = message.from_user.id
 
-    if tokens.get("tokens") <= 0:
+    if not stateService.is_default_state(user_id):
+        return
+        
+    tokens = await tokenizeService.get_tokens(user_id)
+    if tokens.get("tokens") < 0:
         await message.answer("""
-У вас не хватает ⚡️ 
+У вас не хватает *⚡️*. 😔
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
-/referral - Пригласить друга, чтобы получить бесплатно ⚡️!  
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
 """)
+        stateService.set_current_state(user_id, StateTypes.Default)
         return
 
     is_subscribe = await is_chat_member(message)

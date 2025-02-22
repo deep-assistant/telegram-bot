@@ -117,10 +117,41 @@ def get_banned_words(text):
 async def handle_generate_image(message: types.Message):
     user_id = message.from_user.id
 
-    if not stateService.is_image_state(user_id):
-        return
-
     try:
+        if not stateService.is_image_state(user_id):
+            return
+        
+        tokens = await tokenizeService.get_tokens(user_id)
+        if tokens.get("tokens") < 0:
+            await message.answer("""
+У вас не хватает *⚡️*. 😔
+
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
+""")
+            stateService.set_current_state(user_id, StateTypes.Default)
+            return
+        
+        if (is_empty_prompt(message.text)):
+            await message.answer(
+                "🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.",
+                reply_markup=InlineKeyboardMarkup(
+                    resize_keyboard=True,
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="Отмена ❌",
+                                callback_data="cancel-sd-generate"
+                            )
+                        ]
+                    ],
+                )
+            )
+            return
+
+        stateService.set_current_state(user_id, StateTypes.Default)
+
         wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
@@ -130,8 +161,6 @@ async def handle_generate_image(message: types.Message):
         await message.bot.send_chat_action(message.chat.id, "typing")
 
         async def wait_image():
-            stateService.set_current_state(message.from_user.id, StateTypes.Default)
-
             await message.answer("Генерация изображения ушла в фоновый режим. \n"
                                  "Пришлем вам изображение через 40-120 секунд. \n"
                                  "Можете продолжать работать с ботом 😉")
@@ -154,19 +183,48 @@ async def handle_generate_image(message: types.Message):
         logging.error(f"Failed to generate image: {e}")
 
     imageService.set_waiting_image(user_id, False)
-    stateService.set_current_state(message.from_user.id, StateTypes.Default)
+    stateService.set_current_state(user_id, StateTypes.Default)
 
 
 @imagesRouter.message(StateCommand(StateTypes.Flux))
 async def handle_generate_image(message: types.Message):
     user_id = message.from_user.id
 
-    if not stateService.is_flux_state(user_id):
-        return
-
-    stateService.set_current_state(user_id, StateTypes.Default)
-
     try:
+        if not stateService.is_flux_state(user_id):
+            return
+        
+        tokens = await tokenizeService.get_tokens(user_id)
+        if tokens.get("tokens") < 0:
+            await message.answer("""
+У вас не хватает *⚡️*. 😔
+                                 
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!
+""")
+            stateService.set_current_state(user_id, StateTypes.Default)
+            return
+        
+        if (is_empty_prompt(message.text)):
+            await message.answer(
+                "🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.",
+                reply_markup=InlineKeyboardMarkup(
+                    resize_keyboard=True,
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="Отмена ❌",
+                                callback_data="cancel-flux-generate"
+                            )
+                        ]
+                    ],
+                )
+            )
+            return
+
+        stateService.set_current_state(user_id, StateTypes.Default)
+
         wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
@@ -230,24 +288,41 @@ async def handle_generate_image(message: types.Message):
 async def handle_generate_image(message: types.Message):
     user_id = message.from_user.id
 
-    tokens = await tokenizeService.get_tokens(message.from_user.id)
+    try:
+        if not stateService.is_dalle3_state(user_id):
+            return
 
-    print(tokens)
-    if tokens.get("tokens") < 0:
-        await message.answer("""
-У вас не хватает ⚡️!
+        tokens = await tokenizeService.get_tokens(user_id)
+        if tokens.get("tokens") < 0:
+            await message.answer("""
+У вас не хватает *⚡️*. 😔
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
-/referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
 """)
-        stateService.set_current_state(message.from_user.id, StateTypes.Default)
-        return
+            stateService.set_current_state(user_id, StateTypes.Default)
+            return
+        
+        if (is_empty_prompt(message.text)):
+            await message.answer(
+                "🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.",
+                reply_markup=InlineKeyboardMarkup(
+                    resize_keyboard=True,
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="Отмена ❌",
+                                callback_data="cancel-dalle-generate"
+                            )
+                        ]
+                    ],
+                )
+            )
+            return
 
-    if not stateService.is_dalle3_state(user_id):
-        return
+        stateService.set_current_state(user_id, StateTypes.Default)
 
-    try:
         wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.")
 
         await message.bot.send_chat_action(message.chat.id, "typing")
@@ -286,8 +361,7 @@ async def handle_generate_image(message: types.Message):
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.error(f"Failed to generate DALL·E 3 image: {e}")
-
-    stateService.set_current_state(message.from_user.id, StateTypes.Default)
+        stateService.set_current_state(user_id, StateTypes.Default)
 
 
 async def send_variation_image(message, image, task_id):
@@ -335,22 +409,21 @@ V - Сгенерировать вариации выбранного изобр�
 
 @imagesRouter.message(StateCommand(StateTypes.Midjourney))
 async def handle_generate_image(message: types.Message):
-    try:
-        user_id = message.from_user.id
+    user_id = message.from_user.id
 
+    try:
         if not stateService.is_midjourney_state(user_id):
             return
 
         tokens = await tokenizeService.get_tokens(user_id)
-
         if tokens.get("tokens") < 0:
             await message.answer("""
-    У вас не хватает ⚡️!
+У вас не хватает *⚡️*. 😔
 
-    /balance - ✨ Проверить Баланс
-    /buy - 💎 Пополнить баланс
-    /referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
-    """)
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
+""")
             stateService.set_current_state(user_id, StateTypes.Default)
             return
 
