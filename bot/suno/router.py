@@ -1,8 +1,12 @@
+import logging
+
 from aiogram import Router
 from aiogram.types import Message, InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup
 
 from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.suno.command_types import suno_command, suno_text
+from bot.empty_prompt import is_empty_prompt
+from bot.constants import DEFAULT_ERROR_MESSAGE
 from services import StateTypes, stateService, sunoService, tokenizeService
 
 sunoRouter = Router()
@@ -36,33 +40,48 @@ async def suno_create_messages(message, generation):
 
 @sunoRouter.message(StateCommand(StateTypes.Suno))
 async def suno_generate_handler(message: Message):
-    stateService.set_current_state(message.from_user.id, StateTypes.Default)
-
-    # message text should not exceed 200 characters
-    if len(message.text) > 200:
-        await message.answer("""Описание музыкальной композиции 🎵 *не может быть более 200 символов* для Suno.
-
-*Режим генерации музыки в Suno деактивирован*.
-
-Можете попробовать сгенерировать музыку в Suno ещё раз или продолжать пользоваться ботом как обычно.
-""", reply_markup=InlineKeyboardMarkup(
-            resize_keyboard=True,
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text=f"Сгенерировать музыку в Suno 🔥",
-                        callback_data="suno-generate"
+    try:
+        if (is_empty_prompt(message.text)):
+                await message.answer(
+                    "🚫 В вашем запросе отсутствует описание музыкальной композиции 🎵. Пожалуйста, попробуйте снова.",
+                    reply_markup=InlineKeyboardMarkup(
+                        resize_keyboard=True,
+                        inline_keyboard=[
+                            [
+                                InlineKeyboardButton(
+                                    text="Отмена ❌",
+                                    callback_data="cancel-suno-generate"
+                                )
+                            ]
+                        ],
                     )
+                )
+                return
+
+        # message text should not exceed 200 characters
+        if len(message.text) > 200:
+            await message.answer("""Описание музыкальной композиции 🎵 *не может быть более 200 символов* для Suno.
+
+    Пожалуйста, попробуйте промт короче.
+    """, reply_markup=InlineKeyboardMarkup(
+                resize_keyboard=True,
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="Отмена ❌",
+                            callback_data=f"cancel-suno-generate"
+                        )
+                    ],
                 ],
-                [
-                    InlineKeyboardButton(
-                        text="Отмена ❌",
-                        callback_data=f"cancel-suno-generate"
-                    )
-                ],
-            ],
-        ))
+            ))
+            return
+    
+    except Exception as e:
+        await message.answer(DEFAULT_ERROR_MESSAGE)
+        logging.error(f"Failed to generate Suno: {e}")
         return
+    finally:
+        stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
     wait_message = await message.answer(
         "**⌛️Ожидайте генерацию...**\nПримерное время ожидания: *3-5 минут*.\nМожете продолжать работать с ботом.")
@@ -82,9 +101,9 @@ async def suno_generate_handler(message: Message):
 
     await suno_create_messages(message, generation)
 
-    await tokenizeService.update_token(message.from_user.id, 5000, "subtract")
+    await tokenizeService.update_token(message.from_user.id, 5700, "subtract")
     await message.answer(f"""
-🤖 Затрачено на генерацию музыкальной композиции *Suno*: *5000⚡️*
+🤖 Затрачено на генерацию музыкальной композиции *Suno*: *5700*
 
 ❔ /help - Информация по ⚡️
     """)
