@@ -3,7 +3,7 @@ import asyncio
 from aiogram import Router
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
-from bot.api.command_types import api_command
+from bot.commands import api_command
 from bot.filters import TextCommand, TextCommandQuery
 from services import tokenizeService
 

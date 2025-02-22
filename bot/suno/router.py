@@ -4,7 +4,7 @@ from aiogram import Router
 from aiogram.types import Message, InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup
 
 from bot.filters import TextCommand, StateCommand, StartWithQuery
-from bot.suno.command_types import suno_command, suno_text
+from bot.commands import suno_command, suno_text
 from bot.empty_prompt import is_empty_prompt
 from bot.constants import DEFAULT_ERROR_MESSAGE
 from services import StateTypes, stateService, sunoService, tokenizeService

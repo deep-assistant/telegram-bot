@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 
 from bot.filters import StartWithQuery
 from bot.filters import TextCommand
-from bot.gpt.command_types import help_text, help_command, app_command
+from bot.commands import help_text, help_command, app_command
 from bot.gpt.utils import check_subscription
 from bot.main_keyboard import create_main_keyboard, send_message
 from services import tokenizeService, referralsService

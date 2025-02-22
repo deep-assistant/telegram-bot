@@ -6,10 +6,11 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 
 from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.gpt.utils import checked_text
-from bot.images.command_types import images_command, images_command_text
+from bot.commands import images_command, images_command_text
 from bot.utils import divide_into_chunks
 from bot.utils import send_photo_as_file, send_photo
 from bot.constants import DEFAULT_ERROR_MESSAGE
+from bot.empty_prompt import is_empty_prompt
 from services import stateService, StateTypes, imageService, tokenizeService
 from services.image_utils import image_models_values, samplers_values, \
     steps_values, cgf_values, size_values
@@ -97,6 +98,12 @@ def is_banned_word(word):
     """
     return word.lower() in banned_words_set
 
+def get_banned_words(text):
+    words = text.split(" ")
+    words = [word.lower() for word in words]
+    banned_words_in_request = [word for word in words if is_banned_word(word)]
+    return banned_words_in_request
+
 # # Example usage
 # if __name__ == "__main__":
 #     test_words = ["blood", "sexy", "dog", "naked", "torture", "hello", "succubus"]
@@ -144,7 +151,7 @@ async def handle_generate_image(message: types.Message):
 
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
-        logging.log(logging.INFO, e)
+        logging.error(f"Failed to generate image: {e}")
 
     imageService.set_waiting_image(user_id, False)
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
@@ -213,7 +220,7 @@ async def handle_generate_image(message: types.Message):
 
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
-        logging.log(logging.INFO, e)
+        logging.error(f"Failed to generate Flux image: {e}")
 
     imageService.set_waiting_image(user_id, False)
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
@@ -256,7 +263,7 @@ async def handle_generate_image(message: types.Message):
         await message.answer(image["text"])
         await message.reply_photo(image["image"])
         await send_photo_as_file(message, image["image"], "Вот картинка в оригинальном качестве")
-        await message.answer(text="Cгенерировать Dalle3 еще? 🔥", reply_markup=InlineKeyboardMarkup(
+        await message.answer(text="Cгенерировать DALL·E 3 еще? 🔥", reply_markup=InlineKeyboardMarkup(
             resize_keyboard=True,
             inline_keyboard=[
                 [
@@ -278,7 +285,7 @@ async def handle_generate_image(message: types.Message):
 """)
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
-        logging.log(logging.INFO, e)
+        logging.error(f"Failed to generate DALL·E 3 image: {e}")
 
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
@@ -347,9 +354,9 @@ async def handle_generate_image(message: types.Message):
         return
 
     try:
-        if (not any(char.isalnum() for char in message.text)) or (re.match(r'^/[a-zA-Z]+$', message.text.strip())):
+        if (is_empty_prompt(message.text)):
             await message.answer(
-                "🚫 В вашем запросе отсутствует описание изображения. Пожалуйста, попробуйте снова.",
+                "🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.",
                 reply_markup=InlineKeyboardMarkup(
                     resize_keyboard=True,
                     inline_keyboard=[
@@ -364,9 +371,7 @@ async def handle_generate_image(message: types.Message):
             )
             return
 
-        words = message.text.split(" ")
-        words = [word.lower() for word in words]
-        banned_words_in_request = [word for word in words if is_banned_word(word)]
+        banned_words_in_request = get_banned_words(message.text)
         if banned_words_in_request:
             await message.answer(
                 f"""🚫 В вашем запросе обнаружены запрещенные слова: "{'", "'.join(banned_words_in_request)}".
@@ -420,7 +425,7 @@ async def handle_generate_image(message: types.Message):
 """)
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
-        logging.log(logging.INFO, e)
+        logging.error(f"Failed to generate Midjourney image: {e}")
 
     stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
@@ -724,30 +729,78 @@ def normalize_end_index(index_end: int, max_index: int):
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Image)
     await callback_query.message.answer("""
-Напишите запрос на английком языке для генерации изображения! ‍🔥
+Напишите запрос для генерации изображения! ‍🖼️
 
 Например: `an astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed`
-""")
+""", reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Отмена ❌",
+                    callback_data="cancel-sd-generate"
+                )
+            ]
+        ],
+    ))
+    
+@imagesRouter.callback_query(StartWithQuery("cancel-sd-generate"))
+async def handle_image_model_query(callback_query: CallbackQuery):
+    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)
+    await callback_query.message.delete()
+    await callback_query.answer("Режим генерации изображения в Stable Diffusion успешно отменён!")
 
 
 @imagesRouter.callback_query(StartWithQuery("flux-generate"))
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Flux)
     await callback_query.message.answer("""
-Напишите запрос на английком языке для генерации изображения! ‍🔥
+Напишите запрос для генерации изображения! ‍🖼️
 
 Например: `an astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed`
-""")
+""", reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Отмена ❌",
+                    callback_data="cancel-flux-generate"
+                )
+            ]
+        ],
+    ))
+    
+@imagesRouter.callback_query(StartWithQuery("cancel-flux-generate"))
+async def handle_image_model_query(callback_query: CallbackQuery):
+    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)
+    await callback_query.message.delete()
+    await callback_query.answer("Режим генерации изображения в Flux успешно отменён!")
 
 
 @imagesRouter.callback_query(StartWithQuery("dalle-generate"))
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Dalle3)
     await callback_query.message.answer("""
-Напишите запрос для генерации изображения! ‍🔥
+Напишите запрос для генерации изображения! ‍🖼️
 
 Например: `Нарисуй черную дыру, которая поглощает галактики`
-""")
+""", reply_markup=InlineKeyboardMarkup(
+        resize_keyboard=True,
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Отмена ❌",
+                    callback_data="cancel-dalle-generate"
+                )
+            ]
+        ],
+    ))
+
+@imagesRouter.callback_query(StartWithQuery("cancel-dalle-generate"))
+async def handle_image_model_query(callback_query: CallbackQuery):
+    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)
+    await callback_query.message.delete()
+    await callback_query.answer("Режим генерации изображения в DALL·E 3 отменен.")
 
 
 @imagesRouter.callback_query(StartWithQuery("midjourney-generate"))
@@ -755,7 +808,7 @@ async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Midjourney)
     await callback_query.message.delete()
     await callback_query.message.answer(""" 
-Напишите на английском запрос для генерации изображения! ‍🔥
+Напишите запрос для генерации изображения! ‍🖼️
 
 Например: `A fantastic photorealistic photo of a black hole that destroys other galaxies`
 """, reply_markup=InlineKeyboardMarkup(

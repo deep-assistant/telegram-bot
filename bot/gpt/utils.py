@@ -3,12 +3,12 @@ import logging
 from aiogram.enums import ParseMode
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
+from bot.main_keyboard import send_message
 from services.gpt_service import GPTModels
 import telegramify_markdown
 
 def checked_text(value: str):
     return f"✅ {value}"
-
 
 def get_model_text(model: GPTModels, current_model: GPTModels):
     if model.value == current_model.value:
@@ -29,7 +29,11 @@ async def check_subscription(message: Message, id: str = None) -> bool:
 
     chat_member = await message.bot.get_chat_member(chat_id=-1002239712203, user_id=user_id)
 
-    return chat_member.status in ['member', 'administrator', 'creator']
+    check_result = chat_member.status in ['member', 'administrator', 'creator']
+
+    print(f"User {user_id} is subscribed as: {check_result}")
+
+    return check_result
 
 
 async def is_chat_member(message: Message) -> bool:
@@ -108,17 +112,14 @@ def split_message(message):
 
     return messages
 
-
-async def send_message(message: Message, text: str):
+async def send_markdown_message(message: Message, text: str):
     parts = split_message(text)
-
     for part in parts:
         try:
-            await message.answer(telegramify_markdown.markdownify(part), parse_mode=ParseMode.MARKDOWN_V2)
+            await send_message(message, text=telegramify_markdown.markdownify(part), parse_mode=ParseMode.MARKDOWN_V2)
         except Exception as e:
-            logging.log(logging.INFO, e)
-            await message.answer(part, parse_mode=None)
-
+            await send_message(message, text=part, parse_mode=None)
+            logging.error(f"Failed to send message as markdown: {e}")
     return parts
 
 def create_change_model_keyboard(current_model: GPTModels):

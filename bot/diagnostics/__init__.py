@@ -1,0 +1,1 @@
+from bot.diagnostics.router import diagnosticsRouter

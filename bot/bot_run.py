@@ -18,18 +18,20 @@ from bot.referral.router import referralRouter
 from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
+from bot.diagnostics import diagnosticsRouter
 
 
 def apply_routers(dp: Dispatcher) -> None:
-    dp.include_router(referralRouter)
-    dp.include_router(imagesRouter)
-    dp.include_router(sunoRouter)
     dp.include_router(startRouter)
-    dp.include_router(agreementRouter)
+    dp.include_router(diagnosticsRouter)
+    dp.include_router(referralRouter)
     dp.include_router(paymentsRouter)
     dp.include_router(apiRouter)
+    dp.include_router(agreementRouter)
     dp.include_router(taskRouter)
     dp.include_router(imageEditingRouter)
+    dp.include_router(imagesRouter)
+    dp.include_router(sunoRouter)
     dp.include_router(gptRouter)
 
 
