@@ -41,6 +41,24 @@ async def suno_create_messages(message, generation):
 @sunoRouter.message(StateCommand(StateTypes.Suno))
 async def suno_generate_handler(message: Message):
     try:
+        user_id = message.from_user.id
+
+        if not stateService.is_suno_state(user_id):
+            return
+
+        tokens = await tokenizeService.get_tokens(user_id)
+
+        if tokens.get("tokens") < 0:
+            await message.answer("""
+    У вас не хватает ⚡️!
+
+    /balance - ✨ Проверить Баланс
+    /buy - 💎 Пополнить баланс
+    /referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
+    """)
+            stateService.set_current_state(user_id, StateTypes.Default)
+            return
+
         if (is_empty_prompt(message.text)):
             await message.answer(
                 "🚫 В вашем запросе отсутствует описание музыкальной композиции 🎵. Пожалуйста, попробуйте снова.",
@@ -75,40 +93,41 @@ async def suno_generate_handler(message: Message):
                 ],
             ))
             return
+    
+        stateService.set_current_state(user_id, StateTypes.Default)
+
+        wait_message = await message.answer(
+            "**⌛️Ожидайте генерацию...**\nПримерное время ожидания: *3-5 минут*.\nМожете продолжать работать с ботом.")
+
+        await message.bot.send_chat_action(message.chat.id, "typing")
+
+        async def task_id_get(task_id: str):
+            await message.answer(f"`1:suno:{task_id}:generate`")
+            await message.answer(f"""Это ID вашей генерации.
+
+    Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
+                                
+    Вы также получите результат генерации по готовности.
+    """)
+
+        generation = await sunoService.generate_suno(message.text, task_id_get)
+
+        await suno_create_messages(message, generation)
+
+        await tokenizeService.update_token(user_id, 5700, "subtract")
+        await message.answer(f"""
+    🤖 Затрачено на генерацию музыкальной композиции *Suno*: *5700*
+
+    ❔ /help - Информация по ⚡️
+        """)
+
+        await wait_message.delete()
+
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.error(f"Failed to generate Suno: {e}")
-        stateService.set_current_state(message.from_user.id, StateTypes.Default)
+        stateService.set_current_state(user_id, StateTypes.Default)
         return
-
-    stateService.set_current_state(message.from_user.id, StateTypes.Default)
-
-    wait_message = await message.answer(
-        "**⌛️Ожидайте генерацию...**\nПримерное время ожидания: *3-5 минут*.\nМожете продолжать работать с ботом.")
-
-    await message.bot.send_chat_action(message.chat.id, "typing")
-
-    async def task_id_get(task_id: str):
-        await message.answer(f"`1:suno:{task_id}:generate`")
-        await message.answer(f"""Это ID вашей генерации.
-
-Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
-                             
-Вы также получите результат генерации по готовности.
-""")
-
-    generation = await sunoService.generate_suno(message.text, task_id_get)
-
-    await suno_create_messages(message, generation)
-
-    await tokenizeService.update_token(message.from_user.id, 5700, "subtract")
-    await message.answer(f"""
-🤖 Затрачено на генерацию музыкальной композиции *Suno*: *5700*
-
-❔ /help - Информация по ⚡️
-    """)
-
-    await wait_message.delete()
 
 
 @sunoRouter.message(TextCommand([suno_command(), suno_text()]))
