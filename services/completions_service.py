@@ -100,12 +100,11 @@ class CompletionsService:
 
             reasoning_content = None
 
-            if "deepseek" in response_model:
-                first_think_tag_positon = response_content.find("<think>")
-                last_think_tag_positon = response_content.find("</think>")
+            first_think_tag_positon = response_content.find("<think>")
+            last_think_tag_positon = response_content.find("</think>")
 
-                if first_think_tag_positon != -1 and last_think_tag_positon != -1:
-                    reasoning_content = response_content[first_think_tag_positon:last_think_tag_positon + len("</think>")]
+            if first_think_tag_positon != -1 and last_think_tag_positon != -1:
+                reasoning_content = response_content[first_think_tag_positon:last_think_tag_positon + len("</think>")]
                 
             print(f"reasoning_content: {reasoning_content}")
 
