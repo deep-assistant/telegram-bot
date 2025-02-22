@@ -22,6 +22,8 @@ from bot.diagnostics import diagnosticsRouter
 
 
 def apply_routers(dp: Dispatcher) -> None:
+    dp.include_router(imagesRouter)
+    dp.include_router(sunoRouter)
     dp.include_router(startRouter)
     dp.include_router(diagnosticsRouter)
     dp.include_router(referralRouter)
@@ -30,8 +32,6 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(agreementRouter)
     dp.include_router(taskRouter)
     dp.include_router(imageEditingRouter)
-    dp.include_router(imagesRouter)
-    dp.include_router(sunoRouter)
     dp.include_router(gptRouter)
 
 
