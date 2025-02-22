@@ -42,21 +42,21 @@ async def suno_create_messages(message, generation):
 async def suno_generate_handler(message: Message):
     try:
         if (is_empty_prompt(message.text)):
-                await message.answer(
-                    "🚫 В вашем запросе отсутствует описание музыкальной композиции 🎵. Пожалуйста, попробуйте снова.",
-                    reply_markup=InlineKeyboardMarkup(
-                        resize_keyboard=True,
-                        inline_keyboard=[
-                            [
-                                InlineKeyboardButton(
-                                    text="Отмена ❌",
-                                    callback_data="cancel-suno-generate"
-                                )
-                            ]
-                        ],
-                    )
+            await message.answer(
+                "🚫 В вашем запросе отсутствует описание музыкальной композиции 🎵. Пожалуйста, попробуйте снова.",
+                reply_markup=InlineKeyboardMarkup(
+                    resize_keyboard=True,
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="Отмена ❌",
+                                callback_data="cancel-suno-generate"
+                            )
+                        ]
+                    ],
                 )
-                return
+            )
+            return
 
         # message text should not exceed 200 characters
         if len(message.text) > 200:
@@ -75,13 +75,13 @@ async def suno_generate_handler(message: Message):
                 ],
             ))
             return
-    
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.error(f"Failed to generate Suno: {e}")
-        return
-    finally:
         stateService.set_current_state(message.from_user.id, StateTypes.Default)
+        return
+
+    stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
     wait_message = await message.answer(
         "**⌛️Ожидайте генерацию...**\nПримерное время ожидания: *3-5 минут*.\nМожете продолжать работать с ботом.")
