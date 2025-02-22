@@ -69,7 +69,7 @@ async def suno_generate_handler(message: Message):
                     [
                         InlineKeyboardButton(
                             text="Отмена ❌",
-                            callback_data=f"cancel-suno-generate"
+                            callback_data="cancel-suno-generate"
                         )
                     ],
                 ],
