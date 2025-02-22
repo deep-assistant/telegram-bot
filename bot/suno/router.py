@@ -40,22 +40,21 @@ async def suno_create_messages(message, generation):
 
 @sunoRouter.message(StateCommand(StateTypes.Suno))
 async def suno_generate_handler(message: Message):
-    try:
-        user_id = message.from_user.id
+    user_id = message.from_user.id
 
+    try:
         if not stateService.is_suno_state(user_id):
             return
 
         tokens = await tokenizeService.get_tokens(user_id)
-
         if tokens.get("tokens") < 0:
             await message.answer("""
-    У вас не хватает ⚡️!
+У вас не хватает *⚡️*. 😔
 
-    /balance - ✨ Проверить Баланс
-    /buy - 💎 Пополнить баланс
-    /referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
-    """)
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
+""")
             stateService.set_current_state(user_id, StateTypes.Default)
             return
 
