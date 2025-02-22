@@ -335,25 +335,25 @@ V - Сгенерировать вариации выбранного изобр�
 
 @imagesRouter.message(StateCommand(StateTypes.Midjourney))
 async def handle_generate_image(message: types.Message):
-    user_id = message.from_user.id
-
-    tokens = await tokenizeService.get_tokens(message.from_user.id)
-
-    if tokens.get("tokens") < 0:
-        await message.answer("""
-У вас не хватает ⚡️!
-
-/balance - ✨ Проверить Баланс
-/buy - 💎 Пополнить баланс
-/referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
-""")
-        stateService.set_current_state(message.from_user.id, StateTypes.Default)
-        return
-
-    if not stateService.is_midjourney_state(user_id):
-        return
-
     try:
+        user_id = message.from_user.id
+
+        if not stateService.is_midjourney_state(user_id):
+            return
+
+        tokens = await tokenizeService.get_tokens(user_id)
+
+        if tokens.get("tokens") < 0:
+            await message.answer("""
+    У вас не хватает ⚡️!
+
+    /balance - ✨ Проверить Баланс
+    /buy - 💎 Пополнить баланс
+    /referral - Пригласить друга, чтобы получить бесплатные ⚡️!       
+    """)
+            stateService.set_current_state(user_id, StateTypes.Default)
+            return
+
         if (is_empty_prompt(message.text)):
             await message.answer(
                 "🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.",
@@ -426,8 +426,7 @@ async def handle_generate_image(message: types.Message):
     except Exception as e:
         await message.answer(DEFAULT_ERROR_MESSAGE)
         logging.error(f"Failed to generate Midjourney image: {e}")
-
-    stateService.set_current_state(message.from_user.id, StateTypes.Default)
+        stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
 
 @imagesRouter.callback_query(StartWithQuery("upscale-midjourney"))
