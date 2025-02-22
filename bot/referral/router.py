@@ -3,7 +3,7 @@ import logging
 from aiogram import Router, types
 
 from bot.filters import TextCommand
-from bot.referral.command_types import referral_command, referral_command_text
+from bot.commands import referral_command, referral_command_text
 from bot.constants import DEFAULT_ERROR_MESSAGE
 from services import referralsService
 
@@ -38,6 +38,6 @@ async def handle_start_referral_generation(message: types.Message):
         await message.answer(response_text)
 
     except Exception as e:
-        logging.error(f"Ошибка в реферальной системе: {e}")
         await message.answer(DEFAULT_ERROR_MESSAGE)
+        logging.error(f"Failed to generate referral link: {e}")
         

@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import Message
 
 from bot.filters import TextCommand, Photo, StateCommand, CompositeFilters
-from bot.image_editing.commad_types import get_remove_background_command
+from bot.commands import get_remove_background_command
 from bot.utils import send_photo_as_file
 from config import TOKEN
 from services import stateService, StateTypes, imageEditing, tokenizeService

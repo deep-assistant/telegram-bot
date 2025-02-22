@@ -1,11 +1,8 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, Message, CallbackQuery
 
-from bot.gpt.command_types import change_model_text, change_system_message_text, balance_text, clear_text, \
-    get_history_text
-from bot.images import images_command_text
-from bot.payment.command_types import balance_payment_command_text
-from bot.referral import referral_command_text
-from bot.suno.command_types import suno_text
+from bot.commands import change_model_text, change_system_message_text, balance_text 
+from bot.commands import clear_text, get_history_text, images_command_text
+from bot.commands import referral_command_text, suno_text, balance_payment_command_text
 
 # Dictionary to track message counts per chat since bot startup
 chat_message_counts = {}

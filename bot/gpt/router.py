@@ -19,14 +19,15 @@ from bot.agreement import agreement_handler
 from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, Audio, StateCommand, StartWithQuery, \
     Video
 from bot.gpt import change_model_command
-from bot.gpt.command_types import change_system_message_command, change_system_message_text, change_model_text, \
+from bot.commands import change_system_message_command, change_system_message_text, change_model_text, \
     balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
-from bot.gpt.utils import is_chat_member, send_message, get_tokens_message, \
+from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
 from bot.utils import include
 from bot.utils import send_photo_as_file
+from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
     StateTypes, systemMessage
@@ -177,7 +178,7 @@ async def handle_gpt_request(message: Message, text: str):
         format_text = format_image_from_request(answer.get("response"))
         image = format_text["image"]
 
-        messages = await send_message(message, format_text["text"])
+        messages = await send_markdown_message(message, format_text["text"])
 
         if len(messages) > 1:
             await answer_markdown_file(message, format_text["text"])
@@ -187,7 +188,13 @@ async def handle_gpt_request(message: Message, text: str):
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
         await asyncio.sleep(0.5)
         await message_loading.delete()
-        token_message = await message.answer(get_tokens_message(gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), gpt_tokens_after.get("tokens", 0), detected_requested_gpt_model, detected_responded_gpt_model))
+        tokens_message_text = get_tokens_message(
+            gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), 
+            gpt_tokens_after.get("tokens", 0), 
+            detected_requested_gpt_model, 
+            detected_responded_gpt_model
+        )
+        token_message = await message.answer(tokens_message_text)
         if message.chat.type in ['group', 'supergroup']:
             await asyncio.sleep(2)
             await token_message.delete()
@@ -354,10 +361,6 @@ async def handle_voice(message: Message):
 
     await message.answer(response_json.get('text'))
 
-
-
-
-
 @gptRouter.message(Document())
 async def handle_document(message: Message):
     if message.chat.type in ['group', 'supergroup']:
@@ -376,15 +379,12 @@ async def handle_document(message: Message):
                 caption = message.caption if message.caption is not None else ""
                 await handle_gpt_request(message, f"{caption}\n{text}")
     except UnicodeDecodeError as e:
-        logging.log(logging.INFO, e)
-        await message.answer(
-            """
-            😔 К сожалению, данный тип файлов не поддерживается!
+        await message.answer("""😔 К сожалению, данный тип файлов не поддерживается!
             
-Следите за обновлениями в канале @gptDeep
-            """)
+Следите за обновлениями в канале @gptDeep или напишите нам в чате @deepGPT""")
+        logging.error(f"Failed to process document, a file is not supported: {e}")
     except Exception as e:
-        logging.log(logging.INFO, e)
+        logging.error(f"Failed to process document: {e}")
 
 
 async def process_document(document, bot):
@@ -394,10 +394,10 @@ async def process_document(document, bot):
         async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:
             text = await file.read()
         return text
-    except UnicodeDecodeError:
-        raise UnicodeDecodeError(f"Ошибка декодирования: не удалось прочитать файл '{document.file_name}'")
+    except UnicodeDecodeError as e:
+        raise UnicodeDecodeError(f"UnicodeDecodeError: failed to read file '{document.file_name}' - {e}")
     except Exception as e:
-        raise Exception(f"Ошибка: не удалось обработать файл '{document.file_name}' - {str(e)}")
+        raise Exception(f"Error: failed to process file '{document.file_name}' - {e}")
 
 
 def is_valid_group_message(message: Message):
@@ -492,14 +492,20 @@ async def handle_balance(message: Message):
 async def handle_clear_context(message: Message):
     user_id = message.from_user.id
 
-    response = await tokenizeService.clear_dialog(user_id)
+    try:
+        response = await tokenizeService.clear_dialog(user_id)
 
-    if not response.get("status"):
-        await message.answer("Диалог уже пуст!")
-        return
+        if not response.get("status"):
+            await message.answer("Диалог уже пуст!")
+            return
 
-    if response is None:
-        await message.answer("Ошибка 😔: Не удалось очистить контекст!")
+        if response is None:
+            await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE)
+            logging.error(f"Cannot clear dialog context for user {user_id}, response is None.")
+            return
+    except Exception as e:
+        await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE)
+        logging.error(f"Error clearing dialog context for user {user_id}: {e}")
         return
 
     await message.answer("Контекст диалога успешно очищен! 👌🏻")

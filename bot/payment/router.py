@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.filters import TextCommand, StartWithQuery
-from bot.payment.command_types import payment_command_start, payment_command_text, balance_payment_command_text, \
+from bot.commands import payment_command_start, payment_command_text, balance_payment_command_text, \
     balance_payment_command_start
 from bot.payment.products import donation_product, buy_balance_product
 from services import GPTModels, tokenizeService
@@ -274,7 +274,6 @@ async def checkout_process(pre_checkout_query: types.PreCheckoutQuery):
     logging.log(logging.INFO, pre_checkout_query)
 
     await pre_checkout_query.bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
-
 
 # Обработчик успешной оплаты
 @paymentsRouter.message(F.successful_payment)
