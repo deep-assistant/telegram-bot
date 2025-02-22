@@ -30,10 +30,9 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(paymentsRouter)
     dp.include_router(apiRouter)
     dp.include_router(agreementRouter)
-    dp.include_router(taskRouter)
     dp.include_router(imageEditingRouter)
+    dp.include_router(taskRouter)
     dp.include_router(gptRouter)
-
 
 # todo пофиксить
 class AlbumMiddleware(BaseMiddleware):
