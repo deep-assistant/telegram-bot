@@ -492,12 +492,12 @@ async def handle_balance(message: Message):
 
     await message.answer(f""" 
 👩🏻‍💻 Количество рефералов: *{len(referral['children'])}*
-🤑 Ежедневное автопополнение 🜹: *{referral['award']}*⚡️
+🤑 Ежедневное автопополнение 🔋: *{referral['award']}⚡️*
 {accept_account()}
     
-🜹 - ежедневное автопополнение работает, если на балансе меньше 30 000⚡️
+🔋 - ежедневное автопополнение работает, если на балансе меньше *30 000⚡️*
 
-💵 Текущий баланс: *{gpt_tokens.get("tokens")}*⚡️ 
+💵 Текущий баланс: *{gpt_tokens.get("tokens")}⚡️*
 """)
 
 
