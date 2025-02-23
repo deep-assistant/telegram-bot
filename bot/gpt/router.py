@@ -44,7 +44,7 @@ questionAnswer = False
 queues: dict[tuple[int, int], asyncio.Queue] = {}
 locks: dict[tuple[int, int], asyncio.Lock] = {}
 last_message_times: dict[tuple[int, int], float] = {}
-PRIVATE_TIMEOUT = 10   # seconds
+PRIVATE_TIMEOUT = 5   # seconds
 GROUP_TIMEOUT = 30    # seconds
 
 async def produce_message(message: Message):
