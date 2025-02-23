@@ -6,7 +6,7 @@ default_system_message = """
 
 You MUST follow the instructions for answering:
 
-Read the entire convo history line by line before answering.
+Read the entire conversation history line by line before answering.
 
 NEVER use placeholders.
 
@@ -41,7 +41,7 @@ software_developer_system_message = """
 
 You MUST follow the instructions for answering:
 
-Read the entire convo history line by line before answering.
+Read the entire conversation history line by line before answering.
 
 I have no fingers and the placeholders trauma. Return the entire code template for an answer when needed. NEVER use placeholders.
 
