@@ -39,6 +39,66 @@ gptRouter = Router()
 
 questionAnswer = False
 
+# Queue infrastructure for batching messages
+queues: dict[tuple[int, int], asyncio.Queue] = {}
+locks: dict[tuple[int, int], asyncio.Lock] = {}
+last_message_times: dict[tuple[int, int], float] = {}
+PRIVATE_TIMEOUT = 5   # seconds
+GROUP_TIMEOUT = 30    # seconds
+
+async def produce_message(message: Message):
+    """Producer: Add message to queue and update last message time."""
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    key = (user_id, chat_id)
+    
+    lock = locks.setdefault(key, asyncio.Lock())
+    
+    async with lock:
+        if key not in queues:
+            queues[key] = asyncio.Queue()
+        await queues[key].put(message)
+        last_message_times[key] = asyncio.get_event_loop().time()
+
+async def consumer_task():
+    """Consumer: Process queued messages after timeout."""
+    while True:
+        current_time = asyncio.get_event_loop().time()
+        keys = list(queues.keys())
+
+        print('consumer_task', 'current_time', current_time)
+        
+        for key in keys:
+            user_id, chat_id = key
+            last_time = last_message_times.get(key, 0)
+            timeout = PRIVATE_TIMEOUT if chat_id > 0 else GROUP_TIMEOUT  # Positive chat_id = private
+            
+            if current_time - last_time >= timeout and key in queues:
+                lock = locks.get(key, asyncio.Lock())
+                messages = []
+                async with lock:
+                    if key not in queues:
+                        continue
+                    while not queues[key].empty():
+                        messages.append(await queues[key].get())
+                    if not messages:
+                        continue
+                    if queues[key].empty():
+                        del queues[key]
+                        del last_message_times[key]
+                        del locks[key]
+                
+                # Process batched messages
+                text = "\n".join(msg.text for msg in messages if msg.text)
+                if messages[-1].reply_to_message and messages[-1].reply_to_message.text:
+                    text += f"\n\n{messages[-1].reply_to_message.text}"
+                await handle_gpt_request(messages[-1], text)
+        
+        await asyncio.sleep(1)
+
+# Start consumer task on bot startup
+def start_consuming_gpt_messages():
+    asyncio.create_task(consumer_task())
 
 async def answer_markdown_file(message: Message, md_content: str):
     file_path = f"markdown_files/{uuid.uuid4()}.md"
@@ -782,9 +842,5 @@ async def handle_completion(message: Message, batch_messages):
             return
 
     # Обработка текста
-    text = ''
-    for message in batch_messages:
-        text = text + message.text + "\n"
-    text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
-
-    await handle_gpt_request(message, text)
+    # Заменяем старую логику на использование очереди
+    await produce_message(message)
