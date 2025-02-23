@@ -42,7 +42,7 @@ gpt_models = {
     GPTModels.O1_mini.value: "o1-mini",
     GPTModels.O1_preview.value: "o1-preview",
     GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
-    GPTModels.GPT_4o.value: "gpt-4o-plus",
+    GPTModels.GPT_4o.value: "gpt-4o",
     GPTModels.GPT_Auto.value: "gpt-auto",
     GPTModels.GPT_4_Unofficial.value: "gpt-4o-unofficial",
     GPTModels.GPT_4o_mini.value: 'gpt-4o-mini',
