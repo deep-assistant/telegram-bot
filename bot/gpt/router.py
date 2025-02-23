@@ -13,6 +13,7 @@ from aiogram import Router
 from aiogram import types
 from aiogram.types import BufferedInputFile, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types import Message, CallbackQuery
+from aiogram.utils.serialization import deserialize_telegram_object_to_python
 from openai import OpenAI
 
 from bot.agreement import agreement_handler
@@ -71,7 +72,7 @@ async def consumer_task():
         current_time = asyncio.get_event_loop().time()
         keys = list(queues.keys())
 
-        logging.info(f"Consumer tick - Active queues: {len(keys)}")
+        # logging.info(f"Consumer tick - Active queues: {len(keys)}")
         
         for key in keys:
             user_id, chat_id = key
@@ -399,17 +400,30 @@ async def handle_messages(messages: list[Message]):
         async def process_message(msg):
             content = []
             user_info = f"From: {msg.from_user.full_name} (ID: {msg.from_user.id})"
-            
+            prefix = user_info
             if msg.forward_from or msg.forward_from_chat:
                 forward_info = (
                     f"Forwarded from: {msg.forward_from.full_name} (ID: {msg.forward_from.id})" if msg.forward_from
                     else f"Forwarded from chat: {msg.forward_from_chat.title} (ID: {msg.forward_from_chat.id})"
                 )
-                content.append({"type": "text", "text": f"{user_info}\n{forward_info}"})
-                logging.info(f"Processing forwarded message - {forward_info}")
-            
+                prefix = f"{user_info}\n{forward_info}"
+
+            if msg.reply_to_message:
+                # reply_user = f"Reply to: {msg.reply_to_message.from_user.full_name} (ID: {msg.reply_to_message.from_user.id})"
+                # content.append({"type": "text", "text": f"{reply_user}\nReplied to: {msg.reply_to_message.text}"})
+
+                processed_reply = await process_message(msg.reply_to_message)
+
+                reply_to_message_text = processed_reply[0].get('text')
+
+                # add > quote symbols to each line
+
+                reply_to_message_text = reply_to_message_text.replace('\n', '\n> ')
+
+                prefix = f"{prefix}\nReplied to:\n> {reply_to_message_text}"
+
             if msg.text:
-                content.append({"type": "text", "text": f"{user_info}\nText: {msg.text}"})
+                content.append({"type": "text", "text": f"{prefix}\n\n {msg.text}"})
             
             if msg.photo:
                 photos = [msg.photo[-1]] if not hasattr(msg, 'album') else [item.photo[-1] for item in msg.album]
@@ -432,10 +446,6 @@ async def handle_messages(messages: list[Message]):
                 doc_text = await process_document(msg.document, msg.bot)
                 caption = msg.caption or "No caption"
                 content.append({"type": "text", "text": f"{user_info}\nDocument: {msg.document.file_name}\nCaption: {caption}\nContent: {doc_text}"})
-            
-            if msg.reply_to_message and msg.reply_to_message.text:
-                reply_user = f"From: {msg.reply_to_message.from_user.full_name} (ID: {msg.reply_to_message.from_user.id})"
-                content.append({"type": "text", "text": f"{reply_user}\nReplied to: {msg.reply_to_message.text}"})
             
             return content
 
@@ -483,14 +493,13 @@ async def handle_messages(messages: list[Message]):
         await message_loading.delete()
 
 @gptRouter.message(Video())
-async def handle_image(message: Message):
+async def handle_video(message: Message):
     is_forwarded = message.forward_date is not None
     logging.info(f"Video message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
     print(message.video)
 
-
 @gptRouter.message(Photo())
-async def handle_image(message: Message, album):
+async def handle_image(message: Message):
     is_forwarded = message.forward_date is not None
     logging.info(f"Photo message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
     if message.chat.type in ['group', 'supergroup']:
@@ -982,25 +991,32 @@ async def handle_get_history(message: types.Message):
 
 
 
-@gptRouter.message(TextCommand(["/bot", "/bot@DeepGPTBot"]))  # Укажите все возможные варианты
-async def handle_bot_command(message: Message, batch_messages):
-    # Логирование для отладки
-    print(f"Command received: {message.text}")
+# @gptRouter.message(TextCommand(["/bot", "/bot@DeepGPTBot"]))  # Укажите все возможные варианты
+# async def handle_bot_command(message: Message, batch_messages):
+#     # Логирование для отладки
+#     print(f"Command received: {message.text}")
     
-    # Собираем текст только из текущего сообщения (если batch не нужен)
-    text = message.text or ""
+#     # Собираем текст только из текущего сообщения (если batch не нужен)
+#     text = message.text or ""
     
-    # Добавляем текст из сообщения, на которое ответили
-    if message.reply_to_message and message.reply_to_message.text:
-        text += f"\n\n{message.reply_to_message.text}"
+#     # Добавляем текст из сообщения, на которое ответили
+#     if message.reply_to_message and message.reply_to_message.text:
+#         text += f"\n\n{message.reply_to_message.text}"
     
-    await handle_gpt_request(message, text)
+#     await handle_gpt_request(message, text)
 
 
 @gptRouter.message()
-async def handle_completion(message: Message, batch_messages):
+async def handle_completion(message: Message):
     is_forwarded = message.forward_date is not None
     logging.info(f"Default handler - User: {message.from_user.id}, Forwarded: {is_forwarded}, Text: {message.text}")
+
+    # Convert the message object to a Python dict
+    message_dict = deserialize_telegram_object_to_python(message)
+    # Serialize the dict to a JSON string
+    message_json = json.dumps(message_dict, indent=4)
+    print(message_json)
+
     if message.chat.type in ['group', 'supergroup']:
         # Проверяем наличие упоминаний
         if not message.entities:
