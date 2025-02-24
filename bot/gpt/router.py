@@ -25,7 +25,7 @@ from bot.commands import change_system_message_command, change_system_message_te
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_message, \
-    create_change_model_keyboard, checked_text
+    create_change_model_keyboard, checked_text, quote_message
 from bot.utils import include
 from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
@@ -35,6 +35,7 @@ from services import gptService, GPTModels, completionsService, tokenizeService,
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
+from services.voice_service import VoiceService
 
 gptRouter = Router()
 
@@ -46,6 +47,9 @@ locks: dict[tuple[int, int], asyncio.Lock] = {}
 last_message_times: dict[tuple[int, int], float] = {}
 PRIVATE_TIMEOUT = 5   # seconds
 GROUP_TIMEOUT = 30    # seconds
+
+# TODO: make optimization (start pre-processing the messages immediately after they received
+# TODO: another optimization (cache the files/documents using UUIDs in the context, do not add the same document twice)
 
 async def produce_message(message: Message):
     """Producer: Add message to queue and update last message time."""
@@ -149,16 +153,6 @@ def detect_model(model: str):
 
 async def query_gpt_with_content(user_id: int, content: list | str, bot_model, gpt_model, system_message):
     try:
-        # Convert content to string with --- delimiters if it's a list
-        # if isinstance(content, list):
-        #     content_str = ""
-        #     for item in content:
-        #         if item["type"] == "text":
-        #             content_str += item["text"] + "\n---\n"
-        #         elif item["type"] == "image_url":
-        #             content_str += f"Image: {item['image_url']['url']}\n---\n"
-        #     content = content_str.rstrip("---\n")
-
         system_message_processed = get_system_message(system_message)
         if system_message_processed == "question-answer":
             questionAnswer = True
@@ -289,67 +283,6 @@ async def get_photos_links(message, photos):
 
     return images
 
-
-# @gptRouter.message(Video())
-# async def handle_image(message: Message):
-#     print(message.video)
-
-# @gptRouter.message(Photo())
-# async def handle_image(message: Message, album):
-#     if message.chat.type in ['group', 'supergroup']:
-#         if message.entities is None:
-#             return
-
-#         # Получаем список всех сущностей типа 'mention'
-#         mentions = [
-#             entity for entity in message.entities if entity.type == 'mention'
-#         ]
-
-#         # Проверяем, упомянут ли бот
-#         if not any(
-#             mention.offset <= 0 < mention.offset + mention.length and
-#             message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
-#             for mention in mentions
-#         ):
-#             return
-#     photos = []
-
-#     for item in album:
-#         photos.append(item.photo[-1])
-
-#     user_id = message.from_user.id
-
-#     if not stateService.is_default_state(user_id):
-#         return
-
-#     tokens = await tokenizeService.get_tokens(user_id)
-#     if tokens.get("tokens") < 0:
-#         await message.answer("""
-# У вас не хватает *⚡️*. 😔
-
-# /balance - ✨ Проверить Баланс
-# /buy - 💎 Пополнить баланс
-# /referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
-# """)
-#         stateService.set_current_state(user_id, StateTypes.Default)
-#         return
-
-#     is_subscribe = await is_chat_member(message)
-
-#     if not is_subscribe:
-#         return
-
-#     text = "Опиши" if message.caption is None else message.caption
-
-#     await message.bot.send_chat_action(message.chat.id, "typing")
-
-#     content = await get_photos_links(message, photos)
-
-#     content.append({"type": "text", "text": text})
-
-#     await handle_gpt_request(message, content)
-
-
 async def handle_messages(messages: list[Message]):
     """Handle batched messages with a single loading message."""
     last_message = messages[-1]  # Use the last message for replying
@@ -397,57 +330,73 @@ async def handle_messages(messages: list[Message]):
         chat_id = last_message.chat.id
         await last_message.bot.send_chat_action(chat_id, "typing")
         system_message = gptService.get_current_system_message(user_id)
+        token = await tokenizeService.get_token(user_id)
+        voice_service = VoiceService(token)
 
         # Process all messages in parallel
         async def process_message(msg):
             content = []
-            user_info = f"From: {msg.from_user.full_name} (ID: {msg.from_user.id})"
-            prefix = user_info
+
+            iso_timestamp = msg.date.isoformat() # Convert to ISO 8601 string
+
+            header = f"Message at {iso_timestamp}, from: @{msg.from_user.username} ({msg.from_user.full_name})"
             if msg.forward_from or msg.forward_from_chat:
                 forward_info = (
-                    f"Forwarded from: {msg.forward_from.full_name} (ID: {msg.forward_from.id})" if msg.forward_from
-                    else f"Forwarded from chat: {msg.forward_from_chat.title} (ID: {msg.forward_from_chat.id})"
+                    f"Forwarded from: {msg.forward_from.username} ({msg.forward_from.full_name})" if msg.forward_from
+                    else f"Forwarded from chat: @{msg.forward_from_chat.username} ({msg.forward_from_chat.title})"
                 )
-                prefix = f"{user_info}\n{forward_info}"
+                header = f"{header}\n{forward_info}"
 
             if msg.reply_to_message:
-                # reply_user = f"Reply to: {msg.reply_to_message.from_user.full_name} (ID: {msg.reply_to_message.from_user.id})"
-                # content.append({"type": "text", "text": f"{reply_user}\nReplied to: {msg.reply_to_message.text}"})
-
                 processed_reply = await process_message(msg.reply_to_message)
-
                 reply_to_message_text = processed_reply[0].get('text')
-
-                # add > quote symbols to each line
-
-                reply_to_message_text = reply_to_message_text.replace('\n', '\n> ')
-
-                prefix = f"{prefix}\nReplied to:\n> {reply_to_message_text}"
+                header = f"{header}\nReplied to:\n{quote_message(reply_to_message_text)}"
 
             if msg.text:
-                content.append({"type": "text", "text": f"{prefix}\n\n {msg.text}"})
+                content.append({"type": "text", "text": f"{header}\n\n {msg.text}"})
             
             if msg.photo:
-                photos = [msg.photo[-1]] if not hasattr(msg, 'album') else [item.photo[-1] for item in msg.album]
-                photo_links = await get_photos_links(msg, photos)
-                text = "Опиши" if msg.caption is None else msg.caption
-                photo_links.append({ "type": "text", "text": text })
-                photo_answer = await query_gpt_with_content(user_id, photo_links, bot_model, gpt_model, system_message)
-                if photo_answer:
-                    content.append({"type": "text", "text": f"{user_info}\nPhoto Description: {photo_answer.get('answer').get('response')}"})
-            
+                try:
+                    photos = [msg.photo[-1]] if not hasattr(msg, 'album') else [item.photo[-1] for item in msg.album]
+                    photo_links = await get_photos_links(msg, photos)
+                    text = "Опиши" if msg.caption is None else msg.caption
+                    photo_links.append({ "type": "text", "text": text })
+                    photo_answer = await query_gpt_with_content(user_id, photo_links, bot_model, gpt_model, system_message)
+                    if photo_answer:
+                        content.append({"type": "text", "text": f"{header}\n\nTranscribed photo: {photo_answer.get('answer').get('response')}"})
+                    else:
+                        content.append({"type": "text", "text": f"{header}\n\nError: unable to trascribe photo"})
+                        logging.error(f"Failed to process photo, actual value: {photo_answer}")
+                except Exception as e:
+                    content.append({"type": "text", "text": f"{header}\n\nError: unable to transcribe photo"})
+                    logging.error(f"Failed to process photo: {e}")
+                    
             if msg.voice or msg.audio:
-                messageData = msg.voice or msg.audio
-                file = await msg.bot.get_file(messageData.file_id)
-                file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
-                voice_response = await transcribe_voice(msg.from_user.id, file_url)
-                if voice_response.get("success"):
-                    content.append({"type": "text", "text": f"{user_info}\nTranscribed Voice/Audio: {voice_response.get('text')}"})
+                try: 
+                    messageData = msg.voice or msg.audio
+                    file = await msg.bot.get_file(messageData.file_id)
+                    file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
+                    voice_response = await voice_service.transcribe_voice(file_url)
+                    if voice_response.get("success"):
+                        content.append({"type": "text", "text": f"{header}\n\nTranscribed voice/audio: {voice_response.get('text')}"})
+                    else:
+                        content.append({"type": "text", "text": f"{header}\n\nError: unable transcribe voice/audio: {voice_response.get('text')}"})
+                        logging.error(f"Failed to process voice/audio: {voice_response.get('text')}")
+                except Exception as e:
+                    content.append({"type": "text", "text": f"{header}\n\nError: unable to transcribe voice/audio: {e}"})
+                    logging.error(f"Failed to process voice/audio: {e}")
+
+            if msg.video:
+                content.append({"type": "text", "text": f"{header}\n\nAttached video: {msg.video.file_name} Transcription not supported yet."})
             
             if msg.document:
-                doc_text = await process_document(msg.document, msg.bot)
-                caption = msg.caption or "No caption"
-                content.append({"type": "text", "text": f"{user_info}\nDocument: {msg.document.file_name}\nCaption: {caption}\nContent: {doc_text}"})
+                try:
+                    doc_text = await transcribe_document(msg.document, msg.bot)
+                    caption = msg.caption or "No caption"
+                    content.append({"type": "text", "text": f"{header}\n\nAttached document: {msg.document.file_name}\nCaption: {caption}\nContent: {doc_text}"})
+                except Exception as e:
+                    content.append({"type": "text", "text": f"{header}\n\nError: unable to transcribe attached document: {e}"})
+                    logging.error(f"Failed to process document: {e}")
             
             return content
 
@@ -501,11 +450,20 @@ async def handle_messages(messages: list[Message]):
         print(f"Error in handle_messages: {e}")
         await message_loading.delete()
 
+
 @gptRouter.message(Video())
 async def handle_video(message: Message):
     is_forwarded = message.forward_date is not None
     logging.info(f"Video message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
-    print(message.video)
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length and
+                  message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
+                  for mention in mentions):
+            return
+    await produce_message(message)
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message):
@@ -522,37 +480,6 @@ async def handle_image(message: Message):
     await produce_message(message)
 
 
-async def transcribe_voice_sync(user_id: str, voice_file_url: str):
-    token = await tokenizeService.get_token(user_id)
-
-    voice_response = await async_get(voice_file_url)
-    if voice_response.status_code == 200:
-        voice_data = voice_response.content
-
-        client = OpenAI(
-            api_key=token["id"],
-            base_url=f"{PROXY_URL}/v1/"
-        )
-
-        transcription = client.audio.transcriptions.create(file=('audio.ogg', voice_data, 'audio/ogg'),
-                                                           model="whisper-1", language="ru")
-
-        print(transcription.duration)
-        print( transcription.text)
-        return {"success": True, "text": transcription.text, 'energy': int(transcription.duration*15)}
-    else:
-        return {"success": False, "text": f"Error: Голосовое сообщение не распознано"}
-
-
-executor = ThreadPoolExecutor()
-
-
-async def transcribe_voice(user_id: int, voice_file_url: str):
-    loop = asyncio.get_event_loop()
-    response = await loop.run_in_executor(executor, transcribe_voice_sync, user_id, voice_file_url)
-    return await response
-
-
 @gptRouter.message(Voice())
 @gptRouter.message(Audio())
 async def handle_voice(message: Message):
@@ -566,61 +493,6 @@ async def handle_voice(message: Message):
             return
     await produce_message(message)
 
-#     user_id = message.from_user.id
-
-#     if not stateService.is_default_state(user_id):
-#         return
-        
-#     tokens = await tokenizeService.get_tokens(user_id)
-#     if tokens.get("tokens") < 0:
-#         await message.answer("""
-# У вас не хватает *⚡️*. 😔
-
-# /balance - ✨ Проверить Баланс
-# /buy - 💎 Пополнить баланс
-# /referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
-# """)
-#         stateService.set_current_state(user_id, StateTypes.Default)
-#         return
-
-#     is_subscribe = await is_chat_member(message)
-
-#     if not is_subscribe:
-#         return
-
-
-#     if message.voice is not None:
-#         messageData = message.voice
-#     else: 
-#         messageData = message.audio
-
-
-#     duration = messageData.duration
-#     voice_file_id = messageData.file_id
-#     file = await message.bot.get_file(voice_file_id)
-#     file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
-
-#     response_json = await transcribe_voice(message.from_user.id, file_url)
-
-#     if response_json.get("success"):
-#         await message.answer(f"""
-# 🎤 Обработка аудио затратила `{response_json.get("energy")}`⚡️ 
-
-# ❔ /help - Информация по ⚡️
-# """)
-
-        
-#         current_state = stateService.get_current_state(message.from_user.id) 
-#         print(current_state, 'current_state')
-#         print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')
-#         if current_state == StateTypes.Transcribe:  
-#             await message.reply(response_json.get('text'))  
-#             return
-            
-#         await handle_gpt_request(message, response_json.get('text'))
-#         return
-
-#     await message.answer(response_json.get('text'))
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
@@ -634,25 +506,8 @@ async def handle_document(message: Message):
             return
     await produce_message(message)
 
-#         try:
-#         user_document = message.document if message.document else None
-#         if user_document:
-#             with NamedTemporaryFile(delete=False) as temp_file:
-#                 await message.bot.download(user_document, temp_file.name)
-#             async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:
-#                 text = await file.read()
-#                 caption = message.caption if message.caption is not None else ""
-#                 await handle_gpt_request(message, f"{caption}\n{text}")
-#     except UnicodeDecodeError as e:
-#         await message.answer("""😔 К сожалению, данный тип файлов не поддерживается!
-            
-# Следите за обновлениями в канале @gptDeep или напишите нам в чате @deepGPT""")
-#         logging.error(f"Failed to process document, a file is not supported: {e}")
-#     except Exception as e:
-#         logging.error(f"Failed to process document: {e}")
 
-
-async def process_document(document, bot):
+async def transcribe_document(document, bot):
     try:
         with NamedTemporaryFile(delete=False) as temp_file:
             await bot.download(document, temp_file.name)
@@ -672,48 +527,6 @@ def is_valid_group_message(message: Message):
         mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
         return any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions)
     return True
-
-
-# async def handle_documents(message: Message, documents):
-#     bot = message.bot
-#     combined_text = ""
-#     errors = []
-
-#     for document in documents:
-#         if document.mime_type == 'text/plain':  # Check for valid text documents
-#             try:
-#                 text = await process_document(document, bot)
-#                 combined_text += f"\n\n=== Файл: {document.file_name} ===\n{text}"
-#             except Exception as e:
-#                 errors.append(str(e))
-#         else:
-#             errors.append(f"Неподдерживаемый тип файла для '{document.file_name}'")
-
-#     caption = message.caption if message.caption else ""
-#     result_text = f"{caption}\n{combined_text}"
-
-#     if errors:
-#         error_text = "\n\n".join(errors)
-#         result_text += f"\n\n😔 К сожалению, при обработке файлов произошли ошибки:\n{error_text}\n\nСледите за обновлениями в канале @gptDeep"
-
-#     await handle_gpt_request(message, result_text)
-
-
-# Handler for single document
-# @gptRouter.message(Document())
-# async def handle_document(message: Message):
-#     # Check message validity in group/supergroup
-#     if not is_valid_group_message(message):
-#         return
-
-#     # Process single document
-#     user_document = message.document if message.document else None
-#     if user_document:
-#         await handle_documents(message, [user_document])
-
-
-# Handler for media group (multiple documents)
-
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
 async def handle_balance(message: Message):
@@ -871,7 +684,6 @@ async def edit_system_message(message: Message):
     await message.delete()
 
 
-
 @gptRouter.callback_query(StartWithQuery("cancel-system-edit"))
 async def cancel_state(callback_query: CallbackQuery):
     system_message = callback_query.data.replace("cancel-system-edit ", "")
@@ -930,7 +742,6 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
 
     await callback_query.answer(f"Режим успешно изменён!")
     await callback_query.message.delete()
-
 
 
 @gptRouter.callback_query(
@@ -997,22 +808,6 @@ async def handle_get_history(message: types.Message):
 
     await asyncio.sleep(0.5)
     await message.delete()
-
-
-
-# @gptRouter.message(TextCommand(["/bot", "/bot@DeepGPTBot"]))  # Укажите все возможные варианты
-# async def handle_bot_command(message: Message, batch_messages):
-#     # Логирование для отладки
-#     print(f"Command received: {message.text}")
-    
-#     # Собираем текст только из текущего сообщения (если batch не нужен)
-#     text = message.text or ""
-    
-#     # Добавляем текст из сообщения, на которое ответили
-#     if message.reply_to_message and message.reply_to_message.text:
-#         text += f"\n\n{message.reply_to_message.text}"
-    
-#     await handle_gpt_request(message, text)
 
 
 @gptRouter.message()
