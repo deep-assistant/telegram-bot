@@ -11,7 +11,6 @@ import config
 from bot.agreement import agreementRouter
 from bot.api.router import apiRouter
 from bot.gpt import gptRouter
-from bot.gpt.router import start_consuming_gpt_messages
 from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
@@ -100,8 +99,6 @@ async def on_shutdown(dp: Dispatcher):
 
 
 async def bot_run() -> None:
-    start_consuming_gpt_messages()
-    
     dp = Dispatcher(storage=MemoryStorage())
     dp.message.middleware(AlbumMiddleware())
     apply_routers(dp)
