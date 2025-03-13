@@ -75,8 +75,6 @@ def get_tokens_message(tokens_spent: int, tokens_left: int, requested_model: str
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
 
-def quote_message(text):
-    return '> ' + text.replace('\n', '\n> ')
 
 def split_message(message):
     max_symbols = 3990

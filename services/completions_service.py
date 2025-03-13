@@ -112,10 +112,7 @@ class CompletionsService:
             
             print(f"final_content: {final_content}")
 
-            if reasoning_content:
-                return { 'success': True, 'reasoning': reasoning_content, "response": final_content, 'model': response_model }
-            else:
-                return { 'success': True, 'response': final_content, 'model': response_model }
+            return { 'success': True, "response": final_content, 'model': response_model}
         else:
             return { "success": False, "response": f"Ошибка 😔: {response.json().get('message')}" }
 

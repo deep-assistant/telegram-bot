@@ -1,13 +1,9 @@
 import asyncio
-import json
 
-from typing import Any, Dict, Callable, Awaitable  # Add this import
-
-from aiogram import Bot, Dispatcher, BaseMiddleware, types
+from aiogram import Bot, Dispatcher, BaseMiddleware
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
-from aiogram.utils.serialization import deserialize_telegram_object_to_python
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
@@ -15,7 +11,6 @@ import config
 from bot.agreement import agreementRouter
 from bot.api.router import apiRouter
 from bot.gpt import gptRouter
-from bot.gpt.router import start_consuming_gpt_messages
 from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
@@ -39,92 +34,55 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(taskRouter)
     dp.include_router(gptRouter)
 
-class DebuggingMiddleware(BaseMiddleware):
-    async def __call__(
-        self,
-        handler: Callable[[types.Message, Dict], Awaitable[Any]],
-        event: types.Message,
-        data: Dict
-    ) -> Any:
-        """Handle the event and call the appropriate hooks."""
-        # Before handling (pre-process)
-        await self.on_process_message(event, data)
-        
-        # Call the handler
-        result = await handler(event, data)
-        
-        # After handling (post-process)
-        await self.on_post_process_message(event, data, result)
-        
-        return result
-
-    async def on_process_message(self, message: types.Message, data: Dict) -> None:
-        """Called before the message handler processes the message."""
-        print("\n--- BEFORE HANDLING MESSAGE ---")
-        print(f"Message: {message.text}")
-        print(f"From: {message.from_user.id} (Chat: {message.chat.id})")
-        print(f"Forwarded: {message.forward_date is not None}")
-        # print(f"Full message object: {message}\n")
-        
-        # Convert the message object to a Python dict and serialize to JSON
-        message_dict = message.dict()
-        message_json = json.dumps(message_dict, indent=4)
-        print(message_json)
-
-    async def on_post_process_message(self, message: types.Message, data: Dict, result: Any) -> None:
-        """Called after the message handler has processed the message."""
-        print("\n--- AFTER HANDLING MESSAGE ---")
-        print(f"Response generated: {result}\n")
-
 # todo пофиксить
-# class AlbumMiddleware(BaseMiddleware):
-#     album_data = {}
-#     batch_data = {}
+class AlbumMiddleware(BaseMiddleware):
+    album_data = {}
+    batch_data = {}
 
-#     async def __call__(self, handler, event, data):
-#         if event.photo is None:
-#             date = str(event.date)
-#             print(date)
+    async def __call__(self, handler, event, data):
+        if event.photo is None:
+            date = str(event.date)
+            print(date)
 
-#             try:
-#                 self.batch_data[date].append(event)
-#                 return
-#             except KeyError:
-#                 self.batch_data[date] = [event]
+            try:
+                self.batch_data[date].append(event)
+                return
+            except KeyError:
+                self.batch_data[date] = [event]
 
-#             await asyncio.sleep(0.01)
-#             event.model_config["is_last"] = True
-#             data["batch_messages"] = self.batch_data[date]
+            await asyncio.sleep(0.01)
+            event.model_config["is_last"] = True
+            data["batch_messages"] = self.batch_data[date]
 
-#             result = await handler(event, data)
+            result = await handler(event, data)
 
-#             if event.model_config.get("is_last"):
-#                 del self.batch_data[date]
+            if event.model_config.get("is_last"):
+                del self.batch_data[date]
 
-#             return result
+            return result
 
-#         if not event.media_group_id:
-#             if event.photo is not None:
-#                 data["album"] = [event]
+        if not event.media_group_id:
+            if event.photo is not None:
+                data["album"] = [event]
 
-#             return await handler(event, data)
+            return await handler(event, data)
 
-#         try:
-#             self.album_data[event.media_group_id].append(event)
-#             return
-#         except KeyError:
-#             self.album_data[event.media_group_id] = [event]
+        try:
+            self.album_data[event.media_group_id].append(event)
+            return
+        except KeyError:
+            self.album_data[event.media_group_id] = [event]
 
-#         await asyncio.sleep(0.01)
-#         event.model_config["is_last"] = True
-#         data["album"] = self.album_data[event.media_group_id]
+        await asyncio.sleep(0.01)
+        event.model_config["is_last"] = True
+        data["album"] = self.album_data[event.media_group_id]
 
-#         result = await handler(event, data)
+        result = await handler(event, data)
 
-#         if event.media_group_id and event.model_config.get("is_last"):
-#             del self.album_data[event.media_group_id]
+        if event.media_group_id and event.model_config.get("is_last"):
+            del self.album_data[event.media_group_id]
 
-#         return result
+        return result
 
 
 # Startup and shutdown hooks for webhook mode.
@@ -141,11 +99,8 @@ async def on_shutdown(dp: Dispatcher):
 
 
 async def bot_run() -> None:
-    start_consuming_gpt_messages()
-    
     dp = Dispatcher(storage=MemoryStorage())
-    # dp.message.middleware(DebuggingMiddleware())
-    # dp.message.middleware(AlbumMiddleware())
+    dp.message.middleware(AlbumMiddleware())
     apply_routers(dp)
 
     # Initialize the bot based on the development flag.
