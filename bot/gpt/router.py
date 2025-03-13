@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 
 import aiofiles
 from aiogram import Router
-from aiogram import Bot, types
+from aiogram import types
 from aiogram.types import BufferedInputFile, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.serialization import deserialize_telegram_object_to_python
@@ -28,7 +28,7 @@ from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_mess
     create_change_model_keyboard, checked_text, quote_message
 from bot.utils import include
 from bot.utils import send_photo_as_file
-from bot.constants import DEFAULT_ERROR_MESSAGE, DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
+from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
     StateTypes, systemMessage
@@ -36,42 +36,6 @@ from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
 from services.voice_service import VoiceService
-
-async def run_with_typing(bot: Bot, chat_id: int, coro, typing_interval: float = 2.0):
-    """
-    Runs an asynchronous coroutine while showing the 'typing' indicator.
-    
-    :param bot: An instance of aiogram's Bot.
-    :param chat_id: The ID of the chat where the typing action will be sent.
-    :param coro: The coroutine to run concurrently.
-    :param typing_interval: How often (in seconds) to send the typing action.
-    :return: The result of the passed coroutine.
-    """
-    stop_event = asyncio.Event()
-    
-    async def send_typing():
-        # Loop until the event is set, sending a typing action periodically.
-        while not stop_event.is_set():
-            await bot.send_chat_action(chat_id, "typing")
-            try:
-                # Wait for the event or timeout after typing_interval seconds.
-                await asyncio.wait_for(stop_event.wait(), timeout=typing_interval)
-            except asyncio.TimeoutError:
-                continue
-
-    # Start the background task for sending the typing action.
-    typing_task = asyncio.create_task(send_typing())
-    await asyncio.sleep(0) # Allow the task to start immediately.
-    
-    try:
-        # Run the main coroutine and wait for its result.
-        result = await coro
-    finally:
-        # Signal the typing loop to stop and wait for it to finish.
-        stop_event.set()
-        await typing_task
-
-    return result
 
 gptRouter = Router()
 
@@ -155,7 +119,7 @@ async def consumer_task():
                         del locks[key]
                 
                 # Process batched messages with new handler
-                await handle_messages_with_typing(messages)
+                await handle_messages(messages)
         
         await asyncio.sleep(1)
 
@@ -261,16 +225,6 @@ async def get_photos_links(message, photos):
 
     return images
 
-async def handle_messages_with_typing(messages: list[Message]):
-    last_message = messages[-1]
-    chat_id = last_message.chat.id
-    bot = last_message.bot
-
-    async def awaited_opreation():
-        return await handle_messages(messages)
-    
-    await run_with_typing(bot, chat_id, awaited_opreation())
-
 async def handle_messages(messages: list[Message]):
     """Handle batched messages with a single loading message."""
     last_message = messages[-1]  # Use the last message for replying
@@ -316,6 +270,7 @@ async def handle_messages(messages: list[Message]):
         bot_model = gptService.get_current_model(user_id)
         gpt_model = gptService.get_mapping_gpt_model(user_id)
         chat_id = last_message.chat.id
+        await last_message.bot.send_chat_action(chat_id, "typing")
         system_message = gptService.get_current_system_message(user_id)
         token = await tokenizeService.get_token(user_id)
         voice_service = VoiceService(token)
@@ -434,9 +389,8 @@ async def handle_messages(messages: list[Message]):
             await message_loading.delete()
     
     except Exception as e:
+        print(f"Error in handle_messages: {e}")
         await message_loading.delete()
-        await last_message.answer(DEFAULT_ERROR_MESSAGE)
-        logging.error(f"Error in handle_messages: {e}")
 
 
 @gptRouter.message(Video())
