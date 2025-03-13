@@ -57,7 +57,7 @@ async def produce_message(message: Message):
     async with lock:
         if key not in queues:
             queues[key] = asyncio.Queue()
-        await queues[key].put(message)  # Queue handles any message type
+        await queues[key].put(message)
         last_message_times[key] = asyncio.get_event_loop().time()
 
 async def consumer_task():
@@ -66,7 +66,7 @@ async def consumer_task():
         current_time = asyncio.get_event_loop().time()
         keys = list(queues.keys())
 
-        # print('consumer_task', 'current_time', current_time)
+        print('consumer_task', 'current_time', current_time)
         
         for key in keys:
             user_id, chat_id = key
@@ -88,8 +88,11 @@ async def consumer_task():
                         del last_message_times[key]
                         del locks[key]
                 
-                # Process batched messages with new handler
-                await handle_messages(messages)
+                # Process batched messages
+                text = "\n".join(msg.text for msg in messages if msg.text)
+                if messages[-1].reply_to_message and messages[-1].reply_to_message.text:
+                    text += f"\n\n{messages[-1].reply_to_message.text}"
+                await handle_gpt_request(messages[-1], text)
         
         await asyncio.sleep(1)
 
@@ -273,9 +276,9 @@ async def get_photos_links(message, photos):
     return images
 
 
-# @gptRouter.message(Video())
-# async def handle_image(message: Message):
-#     print(message.video)
+@gptRouter.message(Video())
+async def handle_image(message: Message):
+    print(message.video)
 
 
 @gptRouter.message(Photo())
@@ -334,170 +337,6 @@ async def handle_image(message: Message, album):
     await handle_gpt_request(message, content)
 
 
-async def handle_messages(messages: list[Message]):
-    """Handle batched messages with a single loading message."""
-    last_message = messages[-1]  # Use the last message for replying
-    user_id = last_message.from_user.id
-    chat_id = last_message.chat.id
-    
-    # Single loading message
-    message_loading = await last_message.answer("**⌛️Ожидайте ответ...**")
-    
-    try:
-        is_agreement = await agreement_handler(last_message)
-        if not is_agreement:
-            await message_loading.delete()
-            return
-
-        is_subscribe = await is_chat_member(last_message)
-        if not is_subscribe:
-            await message_loading.delete()
-            return
-        
-        if not stateService.is_default_state(user_id):
-            await message_loading.delete()
-            return
-
-        gpt_tokens_before = await tokenizeService.get_tokens(user_id)
-        if gpt_tokens_before.get("tokens", 0) <= 0:
-            await last_message.answer(
-                text=f"""
-У вас не хватает *⚡️*. 😔
-
-/balance - ✨ Проверить Баланс
-/buy - 💎 Пополнить баланс 
-/referral - 👥 Пригласить друга, чтобы получить бесплатно *⚡️*!
-/model - 🛠️ Сменить модель
-""")
-            await message_loading.delete()
-            return
-        
-        bot_model = gptService.get_current_model(user_id)
-        gpt_model = gptService.get_mapping_gpt_model(user_id)
-        await last_message.bot.send_chat_action(chat_id, "typing")
-        system_message = gptService.get_current_system_message(user_id)
-
-        # Combine content from all messages
-        text_content = []
-        media_content = []
-        
-        # Process all messages in parallel
-        async def process_message(msg):
-            content = []
-            if msg.text:
-                content.append({"type": "text", "text": msg.text})
-            if msg.photo:
-                photos = [msg.photo[-1]] if not hasattr(msg, 'album') else [item.photo[-1] for item in msg.album]
-                photo_links = await get_photos_links(msg, photos)
-                content.extend(photo_links)
-            if msg.voice or msg.audio:
-                messageData = msg.voice or msg.audio
-                file = await msg.bot.get_file(messageData.file_id)
-                file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
-                voice_response = await transcribe_voice(user_id, file_url)
-                if voice_response.get("success"):
-                    content.append({"type": "text", "text": voice_response.get('text')})
-            if msg.document:
-                doc_text = await process_document(msg.document, msg.bot)
-                content.append({"type": "text", "text": doc_text})
-            return content
-
-        # Parallel processing of messages
-        results = await asyncio.gather(*(process_message(msg) for msg in messages))
-        
-        # Combine results
-        for result in results:
-            for item in result:
-                if item["type"] == "text":
-                    text_content.append(item["text"])
-                else:
-                    media_content.append(item)
-        
-        # Final content preparation
-        final_text = "\n".join(text_content)
-        if last_message.reply_to_message and last_message.reply_to_message.text:
-            final_text += f"\n\n{last_message.reply_to_message.text}"
-        final_content = media_content + [{"type": "text", "text": final_text}] if media_content else final_text
-        
-        system_message_text = get_system_message(system_message)
-        global questionAnswer
-        questionAnswer = system_message_text == "question-answer"
-
-        # Query GPT with combined content
-        answer = await completionsService.query_chatgpt(
-            user_id,
-            final_content,
-            system_message_text,
-            gpt_model,
-            bot_model,
-            questionAnswer,
-        )
-
-        if not answer.get("success"):
-            if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
-                await last_message.answer(
-                    text=f"""
-У вас не хватает *⚡️*. 😔
-
-/balance - ✨ Проверить Баланс
-/buy - 💎 Пополнить баланс 
-/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!   
-/model - 🛠️ Сменить модель
-""")
-            else:
-                await last_message.answer(answer.get('response'))
-            await message_loading.delete()
-            return
-
-        # Process response
-        gpt_tokens_after = await tokenizeService.get_tokens(user_id)
-        format_text = format_image_from_request(answer.get("response"))
-        image = format_text["image"]
-
-        messages_sent = await send_markdown_message(last_message, format_text["text"])
-        if len(messages_sent) > 1:
-            await answer_markdown_file(last_message, format_text["text"])
-        if image:
-            await last_message.answer_photo(image)
-            await send_photo_as_file(last_message, image, "Вот картинка в оригинальном качестве")
-        
-        # Tokens info
-        detected_requested = detect_model(gpt_model)
-        detected_responded = detect_model(answer.get("model"))
-        tokens_message_text = get_tokens_message(
-            gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0),
-            gpt_tokens_after.get("tokens", 0),
-            detected_requested,
-            detected_responded
-        )
-        token_message = await last_message.answer(tokens_message_text)
-        if last_message.chat.type in ['group', 'supergroup']:
-            await asyncio.sleep(2)
-            await token_message.delete()
-
-    except Exception as e:
-        print(f"Error in handle_messages: {e}")
-    finally:
-        await message_loading.delete()
-
-@gptRouter.message(Video())
-async def handle_image(message: Message):
-    print(message.video)
-
-
-@gptRouter.message(Photo())
-async def handle_image(message: Message, album):
-    if message.chat.type in ['group', 'supergroup']:
-        if message.entities is None:
-            return
-        mentions = [entity for entity in message.entities if entity.type == 'mention']
-        if not any(mention.offset <= 0 < mention.offset + mention.length and
-                  message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
-                  for mention in mentions):
-            return
-    await produce_message(message)
-
-
 async def transcribe_voice_sync(user_id: str, voice_file_url: str):
     token = await tokenizeService.get_token(user_id)
 
@@ -538,63 +377,62 @@ async def handle_voice(message: Message):
         mentions = [entity for entity in message.entities if entity.type == 'mention']
         if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
             return
-    await produce_message(message)
-
-#     user_id = message.from_user.id
-
-#     if not stateService.is_default_state(user_id):
-#         return
         
-#     tokens = await tokenizeService.get_tokens(user_id)
-#     if tokens.get("tokens") < 0:
-#         await message.answer("""
-# У вас не хватает *⚡️*. 😔
+    user_id = message.from_user.id
 
-# /balance - ✨ Проверить Баланс
-# /buy - 💎 Пополнить баланс
-# /referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
-# """)
-#         stateService.set_current_state(user_id, StateTypes.Default)
-#         return
+    if not stateService.is_default_state(user_id):
+        return
+        
+    tokens = await tokenizeService.get_tokens(user_id)
+    if tokens.get("tokens") < 0:
+        await message.answer("""
+У вас не хватает *⚡️*. 😔
 
-#     is_subscribe = await is_chat_member(message)
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
+""")
+        stateService.set_current_state(user_id, StateTypes.Default)
+        return
 
-#     if not is_subscribe:
-#         return
+    is_subscribe = await is_chat_member(message)
+
+    if not is_subscribe:
+        return
 
 
-#     if message.voice is not None:
-#         messageData = message.voice
-#     else: 
-#         messageData = message.audio
+    if message.voice is not None:
+        messageData = message.voice
+    else: 
+        messageData = message.audio
 
 
-#     duration = messageData.duration
-#     voice_file_id = messageData.file_id
-#     file = await message.bot.get_file(voice_file_id)
-#     file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
+    duration = messageData.duration
+    voice_file_id = messageData.file_id
+    file = await message.bot.get_file(voice_file_id)
+    file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
-#     response_json = await transcribe_voice(message.from_user.id, file_url)
+    response_json = await transcribe_voice(message.from_user.id, file_url)
 
-#     if response_json.get("success"):
-#         await message.answer(f"""
-# 🎤 Обработка аудио затратила `{response_json.get("energy")}`⚡️ 
+    if response_json.get("success"):
+        await message.answer(f"""
+🎤 Обработка аудио затратила `{response_json.get("energy")}`⚡️ 
 
-# ❔ /help - Информация по ⚡️
-# """)
+❔ /help - Информация по ⚡️
+""")
 
         
-#         current_state = stateService.get_current_state(message.from_user.id) 
-#         print(current_state, 'current_state')
-#         print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')
-#         if current_state == StateTypes.Transcribe:  
-#             await message.reply(response_json.get('text'))  
-#             return
+        current_state = stateService.get_current_state(message.from_user.id) 
+        print(current_state, 'current_state')
+        print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')
+        if current_state == StateTypes.Transcribe:  
+            await message.reply(response_json.get('text'))  
+            return
             
-#         await handle_gpt_request(message, response_json.get('text'))
-#         return
+        await handle_gpt_request(message, response_json.get('text'))
+        return
 
-#     await message.answer(response_json.get('text'))
+    await message.answer(response_json.get('text'))
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
@@ -604,24 +442,22 @@ async def handle_document(message: Message):
         mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
         if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
             return
-    await produce_message(message)
-
-#         try:
-#         user_document = message.document if message.document else None
-#         if user_document:
-#             with NamedTemporaryFile(delete=False) as temp_file:
-#                 await message.bot.download(user_document, temp_file.name)
-#             async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:
-#                 text = await file.read()
-#                 caption = message.caption if message.caption is not None else ""
-#                 await handle_gpt_request(message, f"{caption}\n{text}")
-#     except UnicodeDecodeError as e:
-#         await message.answer("""😔 К сожалению, данный тип файлов не поддерживается!
+    try:
+        user_document = message.document if message.document else None
+        if user_document:
+            with NamedTemporaryFile(delete=False) as temp_file:
+                await message.bot.download(user_document, temp_file.name)
+            async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:
+                text = await file.read()
+                caption = message.caption if message.caption is not None else ""
+                await handle_gpt_request(message, f"{caption}\n{text}")
+    except UnicodeDecodeError as e:
+        await message.answer("""😔 К сожалению, данный тип файлов не поддерживается!
             
-# Следите за обновлениями в канале @gptDeep или напишите нам в чате @deepGPT""")
-#         logging.error(f"Failed to process document, a file is not supported: {e}")
-#     except Exception as e:
-#         logging.error(f"Failed to process document: {e}")
+Следите за обновлениями в канале @gptDeep или напишите нам в чате @deepGPT""")
+        logging.error(f"Failed to process document, a file is not supported: {e}")
+    except Exception as e:
+        logging.error(f"Failed to process document: {e}")
 
 
 async def process_document(document, bot):
@@ -1005,4 +841,6 @@ async def handle_completion(message: Message, batch_messages):
         if not mentioned:
             return
 
+    # Обработка текста
+    # Заменяем старую логику на использование очереди
     await produce_message(message)
