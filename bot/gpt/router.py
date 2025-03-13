@@ -81,7 +81,7 @@ questionAnswer = False
 queues: dict[tuple[int, int], asyncio.Queue] = {}
 locks: dict[tuple[int, int], asyncio.Lock] = {}
 last_message_times: dict[tuple[int, int], float] = {}
-PRIVATE_TIMEOUT = 5   # seconds
+PRIVATE_TIMEOUT = 1   # seconds
 GROUP_TIMEOUT = 30    # seconds
 
 def is_message_for_bot(message: Message) -> bool:
