@@ -43,7 +43,7 @@ questionAnswer = False
 queues: dict[tuple[int, int], asyncio.Queue] = {}
 locks: dict[tuple[int, int], asyncio.Lock] = {}
 last_message_times: dict[tuple[int, int], float] = {}
-PRIVATE_TIMEOUT = 10   # seconds
+PRIVATE_TIMEOUT = 5   # seconds
 GROUP_TIMEOUT = 30    # seconds
 
 async def produce_message(message: Message):
@@ -52,18 +52,13 @@ async def produce_message(message: Message):
     chat_id = message.chat.id
     key = (user_id, chat_id)
     
-    is_forwarded = message.forward_date is not None
-    logging.info(f"Producing message - User: {user_id}, Chat: {chat_id}, Forwarded: {is_forwarded}, Text: {message.text}")
-    
     lock = locks.setdefault(key, asyncio.Lock())
     
     async with lock:
         if key not in queues:
             queues[key] = asyncio.Queue()
-            logging.info(f"Created new queue for key: {key}")
         await queues[key].put(message)  # Queue handles any message type
         last_message_times[key] = asyncio.get_event_loop().time()
-        logging.info(f"Message queued - Key: {key}, Queue size: {queues[key].qsize()}")
 
 async def consumer_task():
     """Consumer: Process queued messages after timeout."""
@@ -71,7 +66,7 @@ async def consumer_task():
         current_time = asyncio.get_event_loop().time()
         keys = list(queues.keys())
 
-        logging.info(f"Consumer tick - Active queues: {len(keys)}")
+        # print('consumer_task', 'current_time', current_time)
         
         for key in keys:
             user_id, chat_id = key
@@ -85,14 +80,10 @@ async def consumer_task():
                     if key not in queues:
                         continue
                     while not queues[key].empty():
-                        msg = await queues[key].get()
-                        is_forwarded = msg.forward_date is not None
-                        messages.append(msg)
-                        logging.info(f"Dequeued message - User: {msg.from_user.id}, Forwarded: {is_forwarded}, Text: {msg.text}")
+                        messages.append(await queues[key].get())
                     if not messages:
                         continue
                     if queues[key].empty():
-                        logging.info(f"Queue emptied for key: {key}")
                         del queues[key]
                         del last_message_times[key]
                         del locks[key]
@@ -163,11 +154,6 @@ async def query_gpt_with_content(user_id: int, content: list | str, bot_model, g
             questionAnswer = True
         else:
             questionAnswer = False
-
-        print(bot_model, 'bot_model')
-        print(gpt_model, 'gpt_model')
-        print(content, 'content')
-        print(system_message_processed, 'system_message_processed')
 
         answer = await completionsService.query_chatgpt(
             user_id,
@@ -352,11 +338,6 @@ async def handle_messages(messages: list[Message]):
     last_message = messages[-1]  # Use the last message for replying
     user_id = last_message.from_user.id
     
-    logging.info(f"Handling {len(messages)} messages for User: {user_id}")
-    for msg in messages:
-        is_forwarded = msg.forward_date is not None
-        logging.info(f"Message in batch - User: {msg.from_user.id}, Forwarded: {is_forwarded}, Text: {msg.text}")
-    
     # Single loading message
     message_loading = await last_message.answer("**⌛️Ожидайте ответ...**")
     
@@ -406,7 +387,6 @@ async def handle_messages(messages: list[Message]):
                     else f"Forwarded from chat: {msg.forward_from_chat.title} (ID: {msg.forward_from_chat.id})"
                 )
                 content.append({"type": "text", "text": f"{user_info}\n{forward_info}"})
-                logging.info(f"Processing forwarded message - {forward_info}")
             
             if msg.text:
                 content.append({"type": "text", "text": f"{user_info}\nText: {msg.text}"})
@@ -418,7 +398,7 @@ async def handle_messages(messages: list[Message]):
                 photo_content = photo_links + [{"type": "text", "text": text}]
                 photo_answer = await query_gpt_with_content(user_id, photo_content, bot_model, gpt_model, system_message)
                 if photo_answer:
-                    content.append({"type": "text", "text": f"{user_info}\nPhoto Description: {photo_answer.get('answer').get('response')}"})
+                    content.append({"type": "text", "text": f"{user_info}\nPhoto Description: {photo_answer.get('response')}"})
             
             if msg.voice or msg.audio:
                 messageData = msg.voice or msg.audio
@@ -484,15 +464,11 @@ async def handle_messages(messages: list[Message]):
 
 @gptRouter.message(Video())
 async def handle_image(message: Message):
-    is_forwarded = message.forward_date is not None
-    logging.info(f"Video message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
     print(message.video)
 
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message, album):
-    is_forwarded = message.forward_date is not None
-    logging.info(f"Photo message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
             return
@@ -538,8 +514,6 @@ async def transcribe_voice(user_id: int, voice_file_url: str):
 @gptRouter.message(Voice())
 @gptRouter.message(Audio())
 async def handle_voice(message: Message):
-    is_forwarded = message.forward_date is not None
-    logging.info(f"Voice/Audio message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
             return
@@ -606,8 +580,6 @@ async def handle_voice(message: Message):
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
-    is_forwarded = message.forward_date is not None
-    logging.info(f"Document message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
     if message.chat.type in ['group', 'supergroup']:
         if message.caption_entities is None:
             return
@@ -999,8 +971,6 @@ async def handle_bot_command(message: Message, batch_messages):
 
 @gptRouter.message()
 async def handle_completion(message: Message, batch_messages):
-    is_forwarded = message.forward_date is not None
-    logging.info(f"Default handler - User: {message.from_user.id}, Forwarded: {is_forwarded}, Text: {message.text}")
     if message.chat.type in ['group', 'supergroup']:
         # Проверяем наличие упоминаний
         if not message.entities:
