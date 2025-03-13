@@ -48,22 +48,6 @@ last_message_times: dict[tuple[int, int], float] = {}
 PRIVATE_TIMEOUT = 5   # seconds
 GROUP_TIMEOUT = 30    # seconds
 
-def is_message_for_bot(message: Message) -> bool:
-    if message.chat.type == 'private':
-        return True
-    elif message.chat.type in ['group', 'supergroup']:
-        entities = message.entities if message.text else message.caption_entities
-        if not entities:
-            return False
-        mentions = [entity for entity in entities if entity.type == 'mention']
-        bot_username = 'DeepGPTBot'
-        return any(
-            (message.text or message.caption)[mention.offset + 1: mention.offset + mention.length] == bot_username
-            for mention in mentions
-        )
-    else:
-        return False
-
 # TODO: make optimization (start pre-processing the messages immediately after they received
 # TODO: another optimization (cache the files/documents using UUIDs in the context, do not add the same document twice)
 
@@ -214,6 +198,80 @@ async def query_gpt_with_content(user_id: int, content: list | str, bot_model, g
     except Exception as e:
         print(e)
         return None
+
+# async def handle_gpt_request(message: Message, text: str):
+#     message_loading = await message.answer("**⌛️Ожидайте ответ...**")
+
+#     try:
+#         is_agreement = await agreement_handler(message)
+
+#         if not is_agreement:
+#             await message_loading.delete()
+#             return
+
+#         is_subscribe = await is_chat_member(message)
+
+#         if not is_subscribe:
+#             await message_loading.delete()
+#             return
+        
+#         user_id = message.from_user.id
+#         if not stateService.is_default_state(user_id):
+#             await message_loading.delete()
+#             return
+
+#         gpt_tokens_before = await tokenizeService.get_tokens(user_id)
+
+#         if gpt_tokens_before.get("tokens", 0) <= 0:
+#             await message.answer(
+#                 text=f"""
+# У вас не хватает *⚡️*. 😔
+
+# /balance - ✨ Проверить Баланс
+# /buy - 💎 Пополнить баланс 
+# /referral - 👥 Пригласить друга, чтобы получить бесплатно *⚡️*!
+# /model - 🛠️ Сменить модель
+# """)
+#             await message_loading.delete()
+#             return
+
+#         bot_model = gptService.get_current_model(user_id)
+#         gpt_model = gptService.get_mapping_gpt_model(user_id)
+#         chat_id = message.chat.id
+#         await message.bot.send_chat_action(chat_id, "typing")
+#         system_message = gptService.get_current_system_message(user_id)
+
+#         content = [{"type": "text", "text": text}]
+
+#         result = await query_gpt_with_content(user_id, content, bot_model, gpt_model, system_message)
+#         if result:
+#             format_text = format_image_from_request(result["answer"].get("response"))
+#             image = format_text["image"]
+#             messages = await send_markdown_message(message, format_text["text"])
+#             if len(messages) > 1:
+#                 await answer_markdown_file(message, format_text["text"])
+#             if image is not None:
+#                 await message.answer_photo(image)
+#                 await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
+#             await asyncio.sleep(0.5)
+#             await message_loading.delete()
+
+#             gpt_tokens_after = await tokenizeService.get_tokens(user_id)
+#             tokens_message_text = get_tokens_message(
+#                 gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), 
+#                 gpt_tokens_after.get("tokens", 0), 
+#                 result["detected_requested"], 
+#                 result["detected_responded"]
+#             )
+#             token_message = await message.answer(tokens_message_text)
+#             if message.chat.type in ['group', 'supergroup']:
+#                 await asyncio.sleep(2)
+#                 await token_message.delete()
+#         else:
+#             await message_loading.delete()
+#     except Exception as e:
+#         print(e)
+#         await message_loading.delete()
 
 async def get_photos_links(message, photos):
     images = []
@@ -395,37 +453,57 @@ async def handle_messages(messages: list[Message]):
 
 @gptRouter.message(Video())
 async def handle_video(message: Message):
-    if not is_message_for_bot(message):
-        return
     is_forwarded = message.forward_date is not None
     logging.info(f"Video message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length and
+                  message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
+                  for mention in mentions):
+            return
     await produce_message(message)
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message):
-    if not is_message_for_bot(message):
-        return
     is_forwarded = message.forward_date is not None
     logging.info(f"Photo message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length and
+                  message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
+                  for mention in mentions):
+            return
     await produce_message(message)
 
 
 @gptRouter.message(Voice())
 @gptRouter.message(Audio())
 async def handle_voice(message: Message):
-    if not is_message_for_bot(message):
-        return
     is_forwarded = message.forward_date is not None
     logging.info(f"Voice/Audio message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
+        mentions = [entity for entity in message.entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+            return
     await produce_message(message)
 
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
-    if not is_message_for_bot(message):
-        return
     is_forwarded = message.forward_date is not None
     logging.info(f"Document message received - User: {message.from_user.id}, Forwarded: {is_forwarded}")
+    if message.chat.type in ['group', 'supergroup']:
+        if message.caption_entities is None:
+            return
+        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
+        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+            return
     await produce_message(message)
 
 
@@ -734,8 +812,6 @@ async def handle_get_history(message: types.Message):
 
 @gptRouter.message()
 async def handle_completion(message: Message):
-    if not is_message_for_bot(message):
-        return
     is_forwarded = message.forward_date is not None
     logging.info(f"Default handler - User: {message.from_user.id}, Forwarded: {is_forwarded}, Text: {message.text}")
 
@@ -744,5 +820,21 @@ async def handle_completion(message: Message):
     # Serialize the dict to a JSON string
     message_json = json.dumps(message_dict, indent=4)
     print(message_json)
+
+    if message.chat.type in ['group', 'supergroup']:
+        # Проверяем наличие упоминаний
+        if not message.entities:
+            return
+
+        # Ищем любое упоминание бота (включая @)
+        bot_username = "DeepGPTBot"  # Убедитесь, что username точный (без @)
+        mentioned = any(
+            entity.type == "mention" 
+            and message.text[entity.offset + 1 : entity.offset + entity.length] == bot_username
+            for entity in message.entities
+        )
+
+        if not mentioned:
+            return
 
     await produce_message(message)
