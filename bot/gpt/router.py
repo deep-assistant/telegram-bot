@@ -137,28 +137,56 @@ def detect_model(model: str):
         
     return None
 
-async def query_gpt_with_content(user_id: int, content: list | str, bot_model, gpt_model, system_message):
-    try:
-        # Convert content to string with --- delimiters if it's a list
-        if isinstance(content, list):
-            content_str = ""
-            for item in content:
-                if item["type"] == "text":
-                    content_str += item["text"] + "\n---\n"
-                elif item["type"] == "image_url":
-                    content_str += f"Image: {item['image_url']['url']}\n---\n"
-            content = content_str.rstrip("---\n")
+async def handle_gpt_request(message: Message, text: str):
+    user_id = message.from_user.id
+    message_loading = await message.answer("**⌛️Ожидайте ответ...**")
 
-        system_message_processed = get_system_message(system_message)
-        if system_message_processed == "question-answer":
+    try:
+        is_agreement = await agreement_handler(message)
+
+        if not is_agreement:
+            return
+
+        is_subscribe = await is_chat_member(message)
+
+        if not is_subscribe:
+            return
+        
+        if not stateService.is_default_state(user_id):
+            return
+
+        chat_id = message.chat.id
+
+        bot_model = gptService.get_current_model(user_id)
+        gpt_model = gptService.get_mapping_gpt_model(user_id)
+
+        await message.bot.send_chat_action(chat_id, "typing")
+
+        system_message = gptService.get_current_system_message(user_id)
+
+        gpt_tokens_before = await tokenizeService.get_tokens(user_id)
+
+        if gpt_tokens_before.get("tokens", 0) <= 0:
+            await message.answer(
+                text=f"""
+У вас не хватает *⚡️*. 😔
+
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс 
+/referral - 👥 Пригласить друга, чтобы получить бесплатно *⚡️*!
+/model - 🛠️ Сменить модель
+""")
+            return
+        system_message = get_system_message(system_message)
+        if system_message == "question-answer":
             questionAnswer = True
         else:
             questionAnswer = False
 
         answer = await completionsService.query_chatgpt(
             user_id,
-            content,
-            system_message_processed,
+            text,
+            system_message,
             gpt_model,
             bot_model,
             questionAnswer,
@@ -183,84 +211,56 @@ async def query_gpt_with_content(user_id: int, content: list | str, bot_model, g
         print(detected_responded_gpt_model, 'detected_responded_gpt_model')
 
         if not answer.get("success"):
-            return None
-
-        return {"answer": answer, "detected_requested": detected_requested_gpt_model, "detected_responded": detected_responded_gpt_model}
-    except Exception as e:
-        print(e)
-        return None
-
-async def handle_gpt_request(message: Message, text: str):
-    message_loading = await message.answer("**⌛️Ожидайте ответ...**")
-
-    try:
-        is_agreement = await agreement_handler(message)
-
-        if not is_agreement:
-            await message_loading.delete()
-            return
-
-        is_subscribe = await is_chat_member(message)
-
-        if not is_subscribe:
-            await message_loading.delete()
-            return
-        
-        user_id = message.from_user.id
-        if not stateService.is_default_state(user_id):
-            await message_loading.delete()
-            return
-
-        gpt_tokens_before = await tokenizeService.get_tokens(user_id)
-
-        if gpt_tokens_before.get("tokens", 0) <= 0:
-            await message.answer(
-                text=f"""
+            if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
+                await message.answer(
+                    text=f"""
 У вас не хватает *⚡️*. 😔
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс 
-/referral - 👥 Пригласить друга, чтобы получить бесплатно *⚡️*!
+/referral - 👥 Пригласить друга, чтобы получить бесплатно ⚡️!
 /model - 🛠️ Сменить модель
-""")
-            await message_loading.delete()
-            return
+""",
+                )
+                await asyncio.sleep(0.5)
+                await message_loading.delete()
 
-        bot_model = gptService.get_current_model(user_id)
-        gpt_model = gptService.get_mapping_gpt_model(user_id)
-        chat_id = message.chat.id
-        await message.bot.send_chat_action(chat_id, "typing")
-        system_message = gptService.get_current_system_message(user_id)
+                return
 
-        result = await query_gpt_with_content(user_id, text, bot_model, gpt_model, system_message)
-        if result:
-            format_text = format_image_from_request(result["answer"].get("response"))
-            image = format_text["image"]
-            messages = await send_markdown_message(message, format_text["text"])
-            if len(messages) > 1:
-                await answer_markdown_file(message, format_text["text"])
-            if image is not None:
-                await message.answer_photo(image)
-                await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
+            await message.answer(answer.get('response'))
             await asyncio.sleep(0.5)
             await message_loading.delete()
 
-            gpt_tokens_after = await tokenizeService.get_tokens(user_id)
-            tokens_message_text = get_tokens_message(
-                gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), 
-                gpt_tokens_after.get("tokens", 0), 
-                result["detected_requested"], 
-                result["detected_responded"]
-            )
-            token_message = await message.answer(tokens_message_text)
-            if message.chat.type in ['group', 'supergroup']:
-                await asyncio.sleep(2)
-                await token_message.delete()
-        else:
-            await message_loading.delete()
+            return
+
+        gpt_tokens_after = await tokenizeService.get_tokens(user_id)
+
+        format_text = format_image_from_request(answer.get("response"))
+        image = format_text["image"]
+
+        messages = await send_markdown_message(message, format_text["text"])
+
+        if len(messages) > 1:
+            await answer_markdown_file(message, format_text["text"])
+
+        if image is not None:
+            await message.answer_photo(image)
+            await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
+        await asyncio.sleep(0.5)
+        await message_loading.delete()
+        tokens_message_text = get_tokens_message(
+            gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), 
+            gpt_tokens_after.get("tokens", 0), 
+            detected_requested_gpt_model, 
+            detected_responded_gpt_model
+        )
+        token_message = await message.answer(tokens_message_text)
+        if message.chat.type in ['group', 'supergroup']:
+            await asyncio.sleep(2)
+            await token_message.delete()
     except Exception as e:
         print(e)
-        await message_loading.delete()
+
 
 async def get_photos_links(message, photos):
     images = []
@@ -277,66 +277,68 @@ async def get_photos_links(message, photos):
 # async def handle_image(message: Message):
 #     print(message.video)
 
-# @gptRouter.message(Photo())
-# async def handle_image(message: Message, album):
-#     if message.chat.type in ['group', 'supergroup']:
-#         if message.entities is None:
-#             return
 
-#         # Получаем список всех сущностей типа 'mention'
-#         mentions = [
-#             entity for entity in message.entities if entity.type == 'mention'
-#         ]
+@gptRouter.message(Photo())
+async def handle_image(message: Message, album):
+    if message.chat.type in ['group', 'supergroup']:
+        if message.entities is None:
+            return
 
-#         # Проверяем, упомянут ли бот
-#         if not any(
-#             mention.offset <= 0 < mention.offset + mention.length and
-#             message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
-#             for mention in mentions
-#         ):
-#             return
-#     photos = []
+        # Получаем список всех сущностей типа 'mention'
+        mentions = [
+            entity for entity in message.entities if entity.type == 'mention'
+        ]
 
-#     for item in album:
-#         photos.append(item.photo[-1])
+        # Проверяем, упомянут ли бот
+        if not any(
+            mention.offset <= 0 < mention.offset + mention.length and
+            message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
+            for mention in mentions
+        ):
+            return
+    photos = []
 
-#     user_id = message.from_user.id
+    for item in album:
+        photos.append(item.photo[-1])
 
-#     if not stateService.is_default_state(user_id):
-#         return
+    user_id = message.from_user.id
 
-#     tokens = await tokenizeService.get_tokens(user_id)
-#     if tokens.get("tokens") < 0:
-#         await message.answer("""
-# У вас не хватает *⚡️*. 😔
+    if not stateService.is_default_state(user_id):
+        return
 
-# /balance - ✨ Проверить Баланс
-# /buy - 💎 Пополнить баланс
-# /referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
-# """)
-#         stateService.set_current_state(user_id, StateTypes.Default)
-#         return
+    tokens = await tokenizeService.get_tokens(user_id)
+    if tokens.get("tokens") < 0:
+        await message.answer("""
+У вас не хватает *⚡️*. 😔
 
-#     is_subscribe = await is_chat_member(message)
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
+""")
+        stateService.set_current_state(user_id, StateTypes.Default)
+        return
 
-#     if not is_subscribe:
-#         return
+    is_subscribe = await is_chat_member(message)
 
-#     text = "Опиши" if message.caption is None else message.caption
+    if not is_subscribe:
+        return
 
-#     await message.bot.send_chat_action(message.chat.id, "typing")
+    text = "Опиши" if message.caption is None else message.caption
 
-#     content = await get_photos_links(message, photos)
+    await message.bot.send_chat_action(message.chat.id, "typing")
 
-#     content.append({"type": "text", "text": text})
+    content = await get_photos_links(message, photos)
 
-#     await handle_gpt_request(message, content)
+    content.append({"type": "text", "text": text})
+
+    await handle_gpt_request(message, content)
 
 
 async def handle_messages(messages: list[Message]):
     """Handle batched messages with a single loading message."""
     last_message = messages[-1]  # Use the last message for replying
     user_id = last_message.from_user.id
+    chat_id = last_message.chat.id
     
     # Single loading message
     message_loading = await last_message.answer("**⌛️Ожидайте ответ...**")
@@ -372,94 +374,110 @@ async def handle_messages(messages: list[Message]):
         
         bot_model = gptService.get_current_model(user_id)
         gpt_model = gptService.get_mapping_gpt_model(user_id)
-        chat_id = last_message.chat.id
         await last_message.bot.send_chat_action(chat_id, "typing")
         system_message = gptService.get_current_system_message(user_id)
 
+        # Combine content from all messages
+        text_content = []
+        media_content = []
+        
         # Process all messages in parallel
         async def process_message(msg):
             content = []
-            user_info = f"From: {msg.from_user.full_name} (ID: {msg.from_user.id})"
-            
-            if msg.forward_from or msg.forward_from_chat:
-                forward_info = (
-                    f"Forwarded from: {msg.forward_from.full_name} (ID: {msg.forward_from.id})" if msg.forward_from
-                    else f"Forwarded from chat: {msg.forward_from_chat.title} (ID: {msg.forward_from_chat.id})"
-                )
-                content.append({"type": "text", "text": f"{user_info}\n{forward_info}"})
-            
             if msg.text:
-                content.append({"type": "text", "text": f"{user_info}\nText: {msg.text}"})
-            
+                content.append({"type": "text", "text": msg.text})
             if msg.photo:
                 photos = [msg.photo[-1]] if not hasattr(msg, 'album') else [item.photo[-1] for item in msg.album]
                 photo_links = await get_photos_links(msg, photos)
-                text = "Опиши" if msg.caption is None else msg.caption
-                photo_content = photo_links + [{"type": "text", "text": text}]
-                photo_answer = await query_gpt_with_content(user_id, photo_content, bot_model, gpt_model, system_message)
-                if photo_answer:
-                    content.append({"type": "text", "text": f"{user_info}\nPhoto Description: {photo_answer.get('response')}"})
-            
+                content.extend(photo_links)
             if msg.voice or msg.audio:
                 messageData = msg.voice or msg.audio
                 file = await msg.bot.get_file(messageData.file_id)
                 file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
-                voice_response = await transcribe_voice(msg.from_user.id, file_url)
+                voice_response = await transcribe_voice(user_id, file_url)
                 if voice_response.get("success"):
-                    content.append({"type": "text", "text": f"{user_info}\nTranscribed Voice/Audio: {voice_response.get('text')}"})
-            
+                    content.append({"type": "text", "text": voice_response.get('text')})
             if msg.document:
                 doc_text = await process_document(msg.document, msg.bot)
-                caption = msg.caption or "No caption"
-                content.append({"type": "text", "text": f"{user_info}\nDocument: {msg.document.file_name}\nCaption: {caption}\nContent: {doc_text}"})
-            
-            if msg.reply_to_message and msg.reply_to_message.text:
-                reply_user = f"From: {msg.reply_to_message.from_user.full_name} (ID: {msg.reply_to_message.from_user.id})"
-                content.append({"type": "text", "text": f"{reply_user}\nReplied to: {msg.reply_to_message.text}"})
-            
+                content.append({"type": "text", "text": doc_text})
             return content
 
+        # Parallel processing of messages
         results = await asyncio.gather(*(process_message(msg) for msg in messages))
         
         # Combine results
-        final_content = []
         for result in results:
-            final_content.extend(result)
+            for item in result:
+                if item["type"] == "text":
+                    text_content.append(item["text"])
+                else:
+                    media_content.append(item)
         
-        # Query GPT with combined content
-        if final_content:
-            result = await query_gpt_with_content(user_id, final_content, bot_model, gpt_model, system_message)
-            if result:
-                format_text = format_image_from_request(result["answer"].get("response"))
-                image = format_text["image"]
-                messages = await send_markdown_message(last_message, format_text["text"])
-                if len(messages) > 1:
-                    await answer_markdown_file(last_message, format_text["text"])
-                if image is not None:
-                    await last_message.answer_photo(image)
-                    await send_photo_as_file(last_message, image, "Вот картинка в оригинальном качестве")
-                await asyncio.sleep(0.5)
-                await message_loading.delete()
+        # Final content preparation
+        final_text = "\n".join(text_content)
+        if last_message.reply_to_message and last_message.reply_to_message.text:
+            final_text += f"\n\n{last_message.reply_to_message.text}"
+        final_content = media_content + [{"type": "text", "text": final_text}] if media_content else final_text
+        
+        system_message_text = get_system_message(system_message)
+        global questionAnswer
+        questionAnswer = system_message_text == "question-answer"
 
-                gpt_tokens_after = await tokenizeService.get_tokens(user_id)
-                tokens_message_text = get_tokens_message(
-                    gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0),
-                    gpt_tokens_after.get("tokens", 0),
-                    result["detected_requested"],
-                    result["detected_responded"]
-                )
-                token_message = await last_message.answer(tokens_message_text)
-                if last_message.chat.type in ['group', 'supergroup']:
-                    await asyncio.sleep(2)
-                    await token_message.delete()
+        # Query GPT with combined content
+        answer = await completionsService.query_chatgpt(
+            user_id,
+            final_content,
+            system_message_text,
+            gpt_model,
+            bot_model,
+            questionAnswer,
+        )
+
+        if not answer.get("success"):
+            if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
+                await last_message.answer(
+                    text=f"""
+У вас не хватает *⚡️*. 😔
+
+/balance - ✨ Проверить Баланс
+/buy - 💎 Пополнить баланс 
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!   
+/model - 🛠️ Сменить модель
+""")
             else:
-                await message_loading.delete()
-        else:
-            await last_message.answer("No valid content to process.")
+                await last_message.answer(answer.get('response'))
             await message_loading.delete()
-    
+            return
+
+        # Process response
+        gpt_tokens_after = await tokenizeService.get_tokens(user_id)
+        format_text = format_image_from_request(answer.get("response"))
+        image = format_text["image"]
+
+        messages_sent = await send_markdown_message(last_message, format_text["text"])
+        if len(messages_sent) > 1:
+            await answer_markdown_file(last_message, format_text["text"])
+        if image:
+            await last_message.answer_photo(image)
+            await send_photo_as_file(last_message, image, "Вот картинка в оригинальном качестве")
+        
+        # Tokens info
+        detected_requested = detect_model(gpt_model)
+        detected_responded = detect_model(answer.get("model"))
+        tokens_message_text = get_tokens_message(
+            gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0),
+            gpt_tokens_after.get("tokens", 0),
+            detected_requested,
+            detected_responded
+        )
+        token_message = await last_message.answer(tokens_message_text)
+        if last_message.chat.type in ['group', 'supergroup']:
+            await asyncio.sleep(2)
+            await token_message.delete()
+
     except Exception as e:
         print(f"Error in handle_messages: {e}")
+    finally:
         await message_loading.delete()
 
 @gptRouter.message(Video())
