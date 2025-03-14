@@ -12,6 +12,7 @@ from bot.commands import payment_command_start, payment_command_text, balance_pa
 from bot.payment.products import donation_product, buy_balance_product
 from services import GPTModels, tokenizeService
 
+
 paymentsRouter = Router()
 
 donation_text = """
@@ -241,15 +242,19 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
                             "value": str(int(amount / 100)) + ".00",
                             "currency": "RUB",
                         },
-                        "vat_code": 1
+                        "vat_code": 1,
+                        "payment_mode" : "full_payment",
+                        "payment_subject" : "commodity"
+
                     }],
-                    "email": "lowww1337@mail.ru"
+                    "email": "edtimyr@gmail.com"
                 }
             }
         )
 
     )
-
+    print("PAYMENTS_TOKEN")
+    print(config.PAYMENTS_TOKEN)
     await asyncio.sleep(0.5)
 
     await callback_query.message.delete()
