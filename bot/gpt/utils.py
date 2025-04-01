@@ -156,6 +156,12 @@ def create_change_model_keyboard(current_model: GPTModels):
                 callback_data=GPTModels.Claude_3_5_Sonnet.value
             ),
             InlineKeyboardButton(
+                text=get_model_text(GPTModels.Claude_3_7_Sonnet, current_model),
+                callback_data=GPTModels.Claude_3_7_Sonnet.value
+            ),
+        ],
+        [
+            InlineKeyboardButton(
                 text=get_model_text(GPTModels.Claude_3_Opus, current_model),
                 callback_data=GPTModels.Claude_3_Opus.value
             ),

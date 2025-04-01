@@ -7,6 +7,7 @@ class GPTModels(Enum):
     Claude_3_Opus = "claude-3-opus"
     Claude_3_5_Sonnet = "claude-3-5-sonnet"
     Claude_3_5_Haiku = "claude-3-5-haiku"
+    Claude_3_7_Sonnet="claude-3-7-sonnet"
     Uncensored = "uncensored"
     O1_mini = "o1-mini"
     O1_preview = "o1-preview"
@@ -38,6 +39,7 @@ gpt_models = {
     GPTModels.Claude_3_5_Haiku.value: "claude-3-5-haiku",
     GPTModels.Claude_3_Opus.value: "claude-3-opus",
     GPTModels.Claude_3_5_Sonnet.value: "claude-3-5-sonnet",
+    GPTModels.Claude_3_7_Sonnet.value: "claude-3-7-sonnet",
     GPTModels.Uncensored.value: "uncensored",
     GPTModels.O1_mini.value: "o1-mini",
     GPTModels.O1_preview.value: "o1-preview",
