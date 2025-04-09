@@ -53,18 +53,17 @@ async def handle_midjourney_message(message: Message):
         if task['status'] == "processing":
             await message.answer("⌛️ Задача в процессе!")
             return
+
+        await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
+        logging.error(f"Failed to process Midjourney task {task_id}")
+
     except Exception as e:
         await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
         logging.error(f"Failed to fetch Midjourney task {task_id}: {e}")
 
-    finally:
-        await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
-        logging.error(f"Failed to fetch Midjourney task {task_id}")
-
-
 @taskRouter.message(StartWith("1:suno:"))
 async def handle_syno_message(message: Message):
-    try:   
+    try:
         data = message.text.replace("1:suno:", "")
         task_id = data.split(":")[0]
 
@@ -80,15 +79,13 @@ async def handle_syno_message(message: Message):
         if status == "processing":
             await message.answer("⌛️ Задача в процессе!")
             return
-    
+
+        await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
+        logging.error(f"Failed to process Suno task {task_id}")
+
     except Exception as e:
         await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
         logging.error(f"Failed to fetch Suno task {task_id}: {e}")
-    
-    finally:
-        await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
-        logging.error(f"Failed to fetch Suno task {task_id}")
-
 
 @taskRouter.message(StartWith("1:flux:"))
 async def handle_syno_message(message: Message):
@@ -128,11 +125,10 @@ async def handle_syno_message(message: Message):
             ))
 
             return
-    
+
+        await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
+        logging.error(f"Failed to process Flux task {task_id}")
+
     except Exception as e:
         await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
         logging.error(f"Failed to fetch Flux task {task_id}: {e}")
-    
-    finally:
-        await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE)
-        logging.error(f"Failed to fetch Flux task {task_id}")
