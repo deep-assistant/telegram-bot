@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: deepbot 1.0\n"
+"Project-Id-Version: deep-assistant-telegram-bot 1.0\n"
 "Language: ru\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -83,3 +83,33 @@ msgstr ""
 
 msgid "app_link"
 msgstr "Ссылка на приложение: https://t.me/DeepGPTBot/DeepGPT"
+
+msgid "balance_text"
+msgstr "✨ Баланс"
+
+msgid "balance_payment_command_text"
+msgstr "💎 Пополнить баланс"
+
+msgid "change_model_text"
+msgstr "🛠️ Сменить модель"
+
+msgid "change_system_message_text"
+msgstr "⚙️ Сменить Режим"
+
+msgid "clear_text"
+msgstr "🧹 Очистить контекст"
+
+msgid "get_history_text"
+msgstr "📖 История диалога"
+
+msgid "referral_command_text"
+msgstr "🔗 Реферальная ссылка"
+
+msgid "images_command_text"
+msgstr "🖼️ Генерация картинки"
+
+msgid "suno_text"
+msgstr "🎵 Генерация музыки"
+
+msgid "input_placeholder"
+msgstr "💬 Задай свой вопрос"

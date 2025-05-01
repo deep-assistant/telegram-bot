@@ -39,8 +39,11 @@ async def start(message: types.Message):
     m = re.search(r"^/start\\s(\\S+)", message.text)
     ref_user_id = m.group(1) if m else None
 
-    await send_message(message, t("hello_text", locale),
-                       reply_markup=create_main_keyboard())
+    await send_message(
+        message,
+        t("hello_text", locale),
+        reply_markup=create_main_keyboard(locale),
+    )
 
     if not await check_subscription(message):
         if str(ref_user_id) == str(message.from_user.id):
@@ -49,10 +52,18 @@ async def start(message: types.Message):
             t("ref_text", locale),
             reply_markup=types.InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [types.InlineKeyboardButton(t("subscribe_button", locale),
-                                                url="https://t.me/gptDeep")],
-                    [types.InlineKeyboardButton(t("check_button", locale),
-                                                callback_data=f"ref-is-subscribe {ref_user_id} {message.from_user.id}")]
+                    [
+                        types.InlineKeyboardButton(
+                            t("subscribe_button", locale), 
+                            url="https://t.me/gptDeep"
+                        )
+                    ],
+                    [
+                        types.InlineKeyboardButton(
+                            t("check_button", locale),
+                            callback_data=f"ref-is-subscribe {ref_user_id} {message.from_user.id}",
+                        )
+                    ],
                 ]
             ),
         )

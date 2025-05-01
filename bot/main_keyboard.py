@@ -1,68 +1,71 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, Message, CallbackQuery
 
-from bot.commands import change_model_text, change_system_message_text, balance_text 
-from bot.commands import clear_text, get_history_text, images_command_text
-from bot.commands import referral_command_text, suno_text, balance_payment_command_text
+from bot.i18n import t, get_locale
 
-# Dictionary to track message counts per chat since bot startup
-chat_message_counts = {}
+# Track how many messages we’ve sent in each chat (since bot start-up)
+chat_message_counts: dict[int, int] = {}
 
-# Configurable number of first messages to include the keyboard
 FIRST_MESSAGES_LIMIT = 3
 
-def create_main_keyboard():
+
+def create_main_keyboard(locale: str | None = None) -> ReplyKeyboardMarkup:
+    """
+    Build the main reply-keyboard in the requested *locale*.
+    If locale is None we fall back to English.
+    """
+    locale = locale or "en"
     return ReplyKeyboardMarkup(
         resize_keyboard=True,
         keyboard=[
             [
-                KeyboardButton(text=balance_text()),
-                KeyboardButton(text=balance_payment_command_text())
+                KeyboardButton(text=t("balance_text", locale)),
+                KeyboardButton(text=t("balance_payment_command_text", locale)),
             ],
             [
-                KeyboardButton(text=change_model_text()),
-                KeyboardButton(text=change_system_message_text())
+                KeyboardButton(text=t("change_model_text", locale)),
+                KeyboardButton(text=t("change_system_message_text", locale)),
             ],
             [
-                KeyboardButton(text=suno_text()),
-                KeyboardButton(text=images_command_text())
+                KeyboardButton(text=t("suno_text", locale)),
+                KeyboardButton(text=t("images_command_text", locale)),
             ],
             [
-                KeyboardButton(text=clear_text()),
-                KeyboardButton(text=get_history_text())
+                KeyboardButton(text=t("clear_text", locale)),
+                KeyboardButton(text=t("get_history_text", locale)),
             ],
             [
-                KeyboardButton(text=referral_command_text()),
+                KeyboardButton(text=t("referral_command_text", locale)),
             ],
         ],
-        input_field_placeholder="💬 Задай свой вопрос"
+        input_field_placeholder=t("input_placeholder", locale),
     )
+
 
 async def send_message(callback_or_message: Message | CallbackQuery, *args, **kwargs):
     """
-    Sends a message with all provided args and kwargs, supporting both Message and CallbackQuery.
-    If reply_markup is not provided and this is one of the first 3 messages in the chat,
-    adds the main keyboard from create_main_keyboard().
+    A helper that mirrors Message.answer but auto-injects the main keyboard in
+    the first few bot replies of every chat.
     """
-    # Determine the type and extract chat ID and response method
+
     if isinstance(callback_or_message, Message):
         chat_id = callback_or_message.chat.id
         responder = callback_or_message.answer
+        src_for_locale = callback_or_message
     elif isinstance(callback_or_message, CallbackQuery):
         chat_id = callback_or_message.message.chat.id
         responder = callback_or_message.message.answer
+        src_for_locale = callback_or_message.message
     else:
         raise ValueError("First argument must be Message or CallbackQuery")
 
-    # Initialize message count for this chat if not already present
-    if chat_id not in chat_message_counts:
-        chat_message_counts[chat_id] = 0
-    
-    # Increment the message count for this chat
-    chat_message_counts[chat_id] += 1
+    # determine locale of the user
+    locale = get_locale(src_for_locale)
 
-    # Check if reply_markup is in kwargs and if we're within the first 3 messages
-    if 'reply_markup' not in kwargs and chat_message_counts[chat_id] <= FIRST_MESSAGES_LIMIT:
-        kwargs['reply_markup'] = create_main_keyboard()
+    # count messages
+    chat_message_counts[chat_id] = chat_message_counts.get(chat_id, 0) + 1
 
-    # Send the message with all provided args and kwargs
+    # auto-keyboard if no explicit markup & within the first N messages
+    if "reply_markup" not in kwargs and chat_message_counts[chat_id] <= FIRST_MESSAGES_LIMIT:
+        kwargs["reply_markup"] = create_main_keyboard(locale)
+
     await responder(*args, **kwargs)
