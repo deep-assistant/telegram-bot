@@ -161,4 +161,4 @@ async def help_command(message: types.Message):
 
 @startRouter.message(TextCommand([app_command()]))
 async def app_handler(message: Message):
-    await message.answer("""Ссылка на приложение: https://t.me/DeepGPTBot/DeepGPT""")
+    await message.answer("""Ссылка на приложение: https://t.me/DeepGPTBot/App""")
