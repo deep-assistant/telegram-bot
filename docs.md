@@ -99,7 +99,7 @@ import fetch from 'node-fetch';
 import { writeFileSync } from 'fs';
 
 const API_URL = 'https://api.deep-foundation.tech/v1/audio/speech';
-const TOKEN = 'DEEP_TOKEN'; // Замените на ваш токен
+const TOKEN = 'DEEP_TOKEN'; 
 
 const requestBody = {
   model: 'tts-1',
