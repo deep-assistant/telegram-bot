@@ -23,14 +23,14 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   // You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
-  apiKey: "YOUR KEY", 
+  apiKey: "DEEP_TOKEN", 
   baseURL: "https://api.deep-foundation.tech/v1/"
 });
 
 async function main() {
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: 'user', content: 'Say this is a test' }],
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4o',
   });
   
   console.log(chatCompletion.choices[0].message.content);
@@ -44,11 +44,15 @@ main();
 ```js
 import OpenAI from 'openai';
 
-const openai = new OpenAI();
+const openai = new OpenAI({
+  // You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
+  apiKey: "DEEP_TOKEN", 
+  baseURL: "https://api.deep-foundation.tech/v1/"
+});
 
 async function main() {
   const stream = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4o',
     messages: [{ role: 'user', content: 'Say this is a test' }],
     stream: true,
   });
@@ -76,7 +80,7 @@ formData.append("language", "RU");
 const response = await fetch("https://api.deep-foundation.tech/v1/audio/transcriptions", {
   method: "POST",
   headers: {
-    Authorization: `Bearer ${YOUR KEY}`,
+    Authorization: `Bearer ${DEEP_TOKEN}`,
     ...formData.getHeaders(),
   },
   body: formData,
@@ -86,6 +90,56 @@ const responseData = await response.json();
 
 console.log(responseData) // {"text": "hello"}
 
+```
+
+### TTS
+
+```js
+import fetch from 'node-fetch';
+import { writeFileSync } from 'fs';
+
+const API_URL = 'https://api.deep-foundation.tech/v1/audio/speech';
+const TOKEN = 'DEEP_TOKEN'; // Замените на ваш токен
+
+const requestBody = {
+  model: 'tts-1',
+  input: 'Hello, World',
+  voice: 'alloy'
+};
+
+const requestOptions = {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${TOKEN}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(requestBody)
+};
+
+async function generateSpeech() {
+  try {
+    const response = await fetch(API_URL, requestOptions);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Error HTTP: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+    }
+
+    const buffer = await response.buffer();
+
+    writeFileSync('speech.mp3', buffer);
+
+    const tokenCost = response.headers.get('X-Token-Cost');
+    if (tokenCost) {
+      console.log(`[TTS Client] Enegry: ${tokenCost}`);
+    }
+
+  } catch (error) {
+    console.error('[TTS Client] Error:', error.message);
+  }
+}
+
+generateSpeech();
 ```
 
 ## Using the API in `Python`
@@ -105,12 +159,12 @@ from openai import OpenAI
 
 openai = OpenAI(
     # You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
-    api_key="YOUR KEY",
+    api_key="DEEP_TOKEN",
     base_url="https://api.deep-foundation.tech/v1/",
 )
 
 chat_completion = openai.chat.completions.create(
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
     messages=[{"role": "user", "content": 'Say this is a test'}],
 )
 
@@ -125,12 +179,12 @@ from openai import OpenAI
 
 openai = OpenAI(
     # You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
-    api_key="YOUR KEY",
+    api_key="DEEP_TOKEN",
     base_url="https://api.deep-foundation.tech/v1/",
 )
 
 stream = openai.chat.completions.create(
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
     messages=[{"role": "user", "content": 'Say this is a test'}],
     stream=True
 )
@@ -145,7 +199,7 @@ for chunk in stream:
 
 import requests
 
-API_KEY = 'YOUR_KEY'  
+API_KEY = 'DEEP_TOKEN'  
 url = "https://api.deep-foundation.tech/v1/audio/transcriptions"
 
 file_buffer = b'...'
@@ -164,6 +218,48 @@ response_data = response.json()
 
 print(response_data)  # {"text": "hello"}
 
+```
+
+### TTS
+
+```python
+import requests
+import json
+
+API_URL = 'https://api.deep-foundation.tech/v1/audio/speech'
+TOKEN = 'DEEP_TOKEN'  
+
+request_body = {
+    'model': 'tts-1',
+    'input': 'Hello, World',
+    'voice': 'alloy'
+}
+
+headers = {
+    'Authorization': f'Bearer {TOKEN}',
+    'Content-Type': 'application/json'
+}
+
+def generate_speech():
+    try:
+        response = requests.post(API_URL, headers=headers, data=json.dumps(request_body), timeout=30)
+
+        if response.status_code != 200:
+            error_data = response.json()
+            raise Exception(f'Error HTTP: {response.status_code} {response.reason} - {error_data}')
+
+        with open('speech.mp3', 'wb') as f:
+            f.write(response.content)
+
+        token_cost = response.headers.get('X-Token-Cost')
+        if token_cost:
+            print(f'[TTS Client] Energy: {token_cost}')
+
+    except Exception as e:
+        print('[TTS Client] Error:', str(e))
+
+if __name__ == '__main__':
+    generate_speech()
 ```
 
 ### List of All Available Models
@@ -188,3 +284,6 @@ print(response_data)  # {"text": "hello"}
 
 ### Whisper price
 - `whisper-1`: 1 minute = 6000⚡️
+
+### TTS price
+- 1000 characters = 500⚡️
