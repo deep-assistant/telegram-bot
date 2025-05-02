@@ -82,7 +82,7 @@ msgstr ""
 "/text - Отправить текстовое сообщение"
 
 msgid "app_link"
-msgstr "Ссылка на приложение: https://t.me/DeepGPTBot/DeepGPT"
+msgstr "Ссылка на приложение: https://t.me/DeepGPTBot/App"
 
 msgid "balance_text"
 msgstr "✨ Баланс"
