@@ -889,8 +889,10 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 Выберите один из вариантов запроса для генерации изображения 🖼️ в меню снизу.
 """, reply_markup=ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Фотореалистичная чёрная дыра в космосе, поглощающая галактики.")],
-            [KeyboardButton(text="City skyline at night, futuristic, neon lights, high detail.")],
+            # [KeyboardButton(text="Фотореалистичная чёрная дыра в космосе, поглощающая галактики.")],
+            [KeyboardButton(text="Photorealistic black hole in space, absorbing galaxies.")],
+            # [KeyboardButton(text="City skyline at night, futuristic, neon lights, high detail.")],
+            [KeyboardButton(text="Силуэт города ночью, футуристический, неоновые огни, высокая детализация.")],
             [KeyboardButton(text="An astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed.")],
         ],
         resize_keyboard=True,
@@ -899,6 +901,8 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 
     await callback_query.message.answer(""" 
 Или напишите свой запрос для генерации изображения на любом языке, выбор языка может менять стилистические особенности изображений.
+
+Например: "город" на русском языке может выглядеть как город из России, а "city" на английском языке как город из США или из другой страны.
 """, reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
         inline_keyboard=[
@@ -914,9 +918,9 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 @imagesRouter.callback_query(StartWithQuery("cancel-midjourney-generate"))
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)
-    keyboard = create_main_keyboard()
     await callback_query.message.delete()
-    await callback_query.answer("Режим генерации изображения в Midjourney успешно отменён!", reply_markup=keyboard)
+    main_keyboard = create_main_keyboard()
+    await callback_query.message.answer("Режим генерации изображения в Midjourney успешно отменён!", reply_markup=main_keyboard)
 
 @imagesRouter.callback_query(StartWithQuery("image-model"))
 async def handle_image_model_query(callback_query: CallbackQuery):
