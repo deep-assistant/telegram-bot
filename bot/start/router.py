@@ -91,9 +91,36 @@ async def start(message: types.Message):
     keyboard = create_main_keyboard()
     await send_message(message, text=hello_text, reply_markup=keyboard)
 
+    await create_token_if_not_exist(message.from_user.id)
+
     is_subscribe = await check_subscription(message)
 
-    await create_token_if_not_exist(message.from_user.id)
+    # Уведомляем реферера, что пользователь перешёл по ссылке, но ещё не подписался
+    if ref_user_id: # and str(ref_user_id) != str(message.from_user.id) and not is_subscribe
+        try:
+            chat_id = int(ref_user_id)
+        except (TypeError, ValueError):
+            chat_id = None
+
+        if chat_id:
+            user_name = message.from_user.username
+            user_mention = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.full_name}</a>"
+            await message.bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    f"""
+🎉 По вашей реферальной ссылке перешли: @{user_name} ({user_mention}).
+
+Чтобы вашему другу стать вашим рефералом, он должен подписаться на канал @gptDeep.
+
+Как только это произойдёт вы получите <b>5 000</b>⚡️ единоразово и <b>+500</b>⚡️️ к ежедневному пополнению баланса.
+
+Если вдруг этого долго не происходит, то возможно вашему другу нужна помощь, <b>попробуйте написать ему в личные сообщения<b>. 
+Если и это не помогает, то обратитесь в поддержку в сообществе @deepGPT и мы поможем вам разобраться с ситуацией.
+"""
+                ),
+                parse_mode="HTML"
+            )
 
     if not is_subscribe:
         if str(ref_user_id) == str(message.from_user.id):
@@ -116,34 +143,7 @@ async def start(message: types.Message):
         )
         return
 
-    # Уведомляем реферера, что пользователь перешёл по ссылке, но ещё не подписался
-    if ref_user_id: # and str(ref_user_id) != str(message.from_user.id):
-        try:
-            chat_id = int(ref_user_id)
-        except (TypeError, ValueError):
-            chat_id = None
-
-        if chat_id:
-            user_name = message.from_user.username
-            user_mention = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.full_name}</a>"
-            await message.bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    f"""
-🎉 По вашей реферальной ссылке перешли: @{user_name} ({user_mention}).
-
-Чтобы вашему другу стать рефералом, он должен подписаться на канал @gptDeep.
-
-Как только это произойдёт вы получите <b>5 000</b>⚡️ и <b>+500</b>⚡️️ к ежедневному пополнению баланса.
-
-Если вдруг этого долго не происходит, то возможно вашему другу нужна помощь, попробуйте написать ему в личные сообщения.
-"""
-                ),
-                parse_mode="HTML"
-            )
-        return
-
-    await handle_referral(message, message.from_user.id, ref_user_id) # TODO: move it to the top (as now it does not work if the user is not subscribed)
+    await handle_referral(message, message.from_user.id, ref_user_id)
 
 
 @startRouter.callback_query(StartWithQuery("ref-is-subscribe"))
