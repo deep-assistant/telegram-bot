@@ -2,11 +2,12 @@ import logging
 import re
 
 from aiogram import Router, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from bot.filters import TextCommand, StateCommand, StartWithQuery
 from bot.gpt.utils import checked_text
 from bot.commands import images_command, images_command_text
+from bot.main_keyboard import create_main_keyboard
 from bot.utils import divide_into_chunks
 from bot.utils import send_photo_as_file, send_photo
 from bot.constants import DEFAULT_ERROR_MESSAGE
@@ -411,6 +412,8 @@ V - Сгенерировать вариации выбранного изобр�
 async def handle_generate_image(message: types.Message):
     user_id = message.from_user.id
 
+    main_keyboard = create_main_keyboard()
+
     try:
         if not stateService.is_midjourney_state(user_id):
             return
@@ -423,7 +426,7 @@ async def handle_generate_image(message: types.Message):
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
 /referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
-""")
+""", reply_markup=main_keyboard)
             stateService.set_current_state(user_id, StateTypes.Default)
             return
 
@@ -466,7 +469,7 @@ async def handle_generate_image(message: types.Message):
         
         stateService.set_current_state(message.from_user.id, StateTypes.Default)
 
-        wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.")
+        wait_message = await message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.", reply_markup=main_keyboard)
 
         await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -652,6 +655,7 @@ async def generate_base_stable_diffusion_keyboard(callback_query: CallbackQuery)
         )
     )
 
+generate_button_name = 'Cгенерировать'
 
 async def generate_base_midjourney_keyboard(callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
@@ -663,9 +667,11 @@ async def generate_base_midjourney_keyboard(callback_query: CallbackQuery):
             return checked_text(size)
         return size
 
-    await callback_query.message.edit_text("""Параметры *Midjourney*:
+    await callback_query.message.edit_text(f"""Параметры *Midjourney*:
 
-Выберите соотношение сторон изображения.
+Выберите соотношение сторон изображения. Текущее соотношение отмечено галочкой.
+
+После этого нажмите кнопку `{generate_button_name}`.
 """)
     await callback_query.message.edit_reply_markup(
         reply_markup=InlineKeyboardMarkup(
@@ -705,7 +711,7 @@ async def generate_base_midjourney_keyboard(callback_query: CallbackQuery):
                 ],
                 [
                     InlineKeyboardButton(
-                        text=f"Сгенерировать 🔥",
+                        text=f"{generate_button_name} 🔥",
                         callback_data="midjourney-generate"
                     ),
                     InlineKeyboardButton(
@@ -879,10 +885,24 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Midjourney)
     await callback_query.message.delete()
-    await callback_query.message.answer(""" 
-Напишите запрос для генерации изображения! ‍🖼️
+    await callback_query.message.answer("""
+Выберите один из вариантов запроса для генерации изображения 🖼️ в меню снизу.
+""", reply_markup=ReplyKeyboardMarkup(
+        keyboard=[
+            # [KeyboardButton(text="Фотореалистичная чёрная дыра в космосе, поглощающая галактики.")],
+            [KeyboardButton(text="Photorealistic black hole in space, absorbing galaxies.")],
+            # [KeyboardButton(text="City skyline at night, futuristic, neon lights, high detail.")],
+            [KeyboardButton(text="Силуэт города ночью, футуристический, неоновые огни, высокая детализация.")],
+            [KeyboardButton(text="An astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed.")],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    ))
 
-Например: `A fantastic photorealistic photo of a black hole that destroys other galaxies`
+    await callback_query.message.answer(""" 
+Или напишите свой запрос для генерации изображения на любом языке, выбор языка может менять стилистические особенности изображений.
+
+Например: "город" на русском языке может выглядеть как город из России, а "city" на английском языке как город из США или из другой страны.
 """, reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
         inline_keyboard=[
@@ -899,7 +919,8 @@ async def handle_image_model_query(callback_query: CallbackQuery):
 async def handle_image_model_query(callback_query: CallbackQuery):
     stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)
     await callback_query.message.delete()
-    await callback_query.answer("Режим генерации изображения в Midjourney успешно отменён!")
+    main_keyboard = create_main_keyboard()
+    await callback_query.message.answer("Режим генерации изображения в Midjourney успешно отменён!", reply_markup=main_keyboard)
 
 @imagesRouter.callback_query(StartWithQuery("image-model"))
 async def handle_image_model_query(callback_query: CallbackQuery):
