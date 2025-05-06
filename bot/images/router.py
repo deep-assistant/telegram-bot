@@ -681,7 +681,7 @@ async def generate_base_midjourney_keyboard(callback_query: CallbackQuery):
                         callback_data="image-model update-size-midjourney 2:3"
                     ),
                     InlineKeyboardButton(
-                        text=size_text("4:5"),
+                        text=size_text("3:2"),
                         callback_data="image-model update-size-midjourney 3:2"
                     )
                 ],
