@@ -1,3 +1,4 @@
+from typing import Union
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, Message, CallbackQuery
 
 from bot.commands import change_model_text, change_system_message_text, balance_text 
@@ -37,7 +38,7 @@ def create_main_keyboard():
         input_field_placeholder="💬 Задай свой вопрос"
     )
 
-async def send_message(callback_or_message: Message | CallbackQuery, *args, **kwargs):
+async def send_message(callback_or_message: Union[Message, CallbackQuery], *args, **kwargs):
     """
     Sends a message with all provided args and kwargs, supporting both Message and CallbackQuery.
     If reply_markup is not provided and this is one of the first 3 messages in the chat,
