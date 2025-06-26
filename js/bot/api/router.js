@@ -1,4 +1,4 @@
-import { Router } from 'aiogram'; // Stub import
+import { Router } from 'aiogram';
 import { InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
 
 import { API_COMMAND } from '../commands.js';
