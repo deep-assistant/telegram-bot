@@ -204,36 +204,152 @@ export class ImageService {
     return result;
   }
 
+  /**
+   * Generate an image via DALL·E 3
+   */
   async generateDalle(userId, prompt) {
-    // TODO: implement DALL·E generation using OpenAI API
+    const client = new OpenAI({
+      apiKey: config.GO_API_KEY,
+      baseURL: 'https://api.goapi.xyz/v1/',
+    });
+    const chatCompletion = await client.chat.completions.create({
+      model: 'gpt-4-gizmo-g-pmuQfob8d',
+      max_tokens: 30000,
+      messages: [
+        { role: 'user', content: `You should generate images in size ${await this.getDalleSize(userId)}` },
+        { role: 'user', content: prompt },
+      ],
+      stream: false,
+    });
+    const formatted = formatImageFromRequest(chatCompletion.choices[0].message.content);
+    return {
+      image: formatted.image,
+      text: formatted.text,
+      total_tokens: chatCompletion.usage.total_tokens,
+    };
   }
 
+  /**
+   * Poll for Midjourney result until ready
+   */
   async tryFetchMidjourney(taskId) {
-    // TODO: implement polling for Midjourney
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    let attempts = 0;
+    while (true) {
+      if (attempts === 15) {
+        return {};
+      }
+      await new Promise(resolve => setTimeout(resolve, 30000));
+      attempts++;
+      const result = await this.taskFetch(taskId);
+      console.log(result);
+      if (result.status === 'processing') continue;
+      return result;
+    }
   }
 
+  /**
+   * Generate an image via Midjourney
+   */
   async generateMidjourney(userId, prompt, taskIdGet) {
-    // TODO: implement Midjourney generation
+    const data = {
+      prompt,
+      aspect_ratio: await this.getMidjourneySize(userId),
+      process_mode: 'turbo',
+    };
+    const response = await asyncPost(
+      'https://api.goapi.ai/mj/v2/imagine',
+      { headers: { 'X-API-KEY': config.GO_API_KEY }, json: data }
+    );
+    const body = await response.json();
+    const taskId = body.task_id;
+    if (taskId) await taskIdGet(taskId);
+    return await this.tryFetchMidjourney(taskId);
   }
 
+  /**
+   * Fetch a Midjourney task status
+   */
   async taskFetch(taskId) {
-    // TODO: implement fetch for tasks
+    const response = await asyncPost(
+      'https://api.goapi.ai/mj/v2/fetch',
+      { json: { task_id: taskId } }
+    );
+    return await response.json();
   }
 
+  /**
+   * Upscale a Midjourney image
+   */
   async upscaleImage(taskId, index, taskIdGet) {
-    // TODO: implement image upscaling
+    console.log(taskId);
+    const response = await asyncPost(
+      'https://api.goapi.ai/mj/v2/upscale',
+      { headers: { 'X-API-KEY': config.GO_API_KEY }, json: { origin_task_id: taskId, index } }
+    );
+    const body = await response.json();
+    const newTaskId = body.task_id;
+    if (newTaskId) await taskIdGet(newTaskId);
+    return await this.tryFetchMidjourney(newTaskId);
   }
 
+  /**
+   * Create a variation of a Midjourney image
+   */
   async variationImage(taskId, index, taskIdGet) {
-    // TODO: implement image variation
+    const response = await asyncPost(
+      'https://api.goapi.ai/mj/v2/variation',
+      { headers: { 'X-API-KEY': config.GO_API_KEY }, json: { origin_task_id: taskId, index } }
+    );
+    const body = await response.json();
+    const newTaskId = body.task_id;
+    if (newTaskId) await taskIdGet(newTaskId);
+    return await this.tryFetchMidjourney(newTaskId);
   }
 
+  /**
+   * Generate an image via Flux API
+   */
   async generateFlux(userId, prompt, taskIdGet) {
-    // TODO: implement Flux generation
+    const payload = {
+      model: await this.getFluxModel(userId),
+      task_type: 'txt2img',
+      input: { prompt },
+    };
+    const headers = { 'X-API-Key': config.GO_API_KEY, 'Content-Type': 'application/json' };
+    const response = await asyncPost(
+      'https://api.goapi.ai/api/v1/task',
+      { headers, json: payload }
+    );
+    const data = await response.json();
+    const taskId = data.data.task_id;
+    let attempts = 0;
+    await taskIdGet(taskId);
+    while (true) {
+      if (attempts === 10) return;
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      attempts++;
+      const statusResp = await asyncGet(
+        `https://api.goapi.ai/api/v1/task/${taskId}`,
+        { headers }
+      );
+      const result = await statusResp.json();
+      const status = result.data?.status;
+      if (status === 'pending' || status === 'processing') continue;
+      if (status === 'completed') return result;
+    }
   }
 
+  /**
+   * Fetch Flux task status
+   */
   async taskFluxFetch(taskId) {
-    // TODO: implement Flux task fetch
+    const headers = { 'X-API-Key': config.GO_API_KEY, 'Content-Type': 'application/json' };
+    const response = await asyncGet(
+      `https://api.goapi.ai/api/v1/task/${taskId}`,
+      { headers }
+    );
+    return await response.json();
   }
 }
 
