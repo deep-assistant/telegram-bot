@@ -96,7 +96,8 @@ export class StateCommand {
   }
 
   async call(message) {
-    const current = stateService.get_current_state(message.from_user.id);
-    return current.value === this.state.value;
+    // Compare user's current state to desired state
+    const current = await stateService.getCurrentState(message.from_user.id);
+    return current === this.state;
   }
 }
