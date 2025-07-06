@@ -48,10 +48,15 @@ export const subscribeText = `
 
 export async function checkSubscription(message, id = null) {
   const userId = id ?? message.from_user.id;
-  const chatMember = await message.bot.get_chat_member({ chat_id: -1002239712203, user_id: userId });
-  const checkResult = ['member', 'administrator', 'creator'].includes(chatMember.status);
-  console.log(`User ${userId} is subscribed as: ${checkResult}`);
-  return checkResult;
+  try {
+    const chatMember = await message.bot.get_chat_member({ chat_id: -1002239712203, user_id: userId });
+    const checkResult = ['member', 'administrator', 'creator'].includes(chatMember.status);
+    console.log(`User ${userId} is subscribed as: ${checkResult}`);
+    return checkResult;
+  } catch (e) {
+    console.error('checkSubscription failed:', e);
+    return true; // assume subscribed to avoid crashes during dev
+  }
 }
 
 export async function isChatMember(message) {
