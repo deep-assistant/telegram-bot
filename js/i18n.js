@@ -9,7 +9,7 @@ const cache = {};
 
 function loadLocale(locale) {
   if (cache[locale]) return cache[locale];
-  const filenames = [`${locale}.yaml`, `${locale}.yml`, `${locale}.json`];
+  const filenames = [`${locale}.yml`, `${locale}.yaml`, `${locale}.json`];
   for (const fname of filenames) {
     const fp = path.join(LOCALES_DIR, fname);
     if (fs.existsSync(fp)) {
