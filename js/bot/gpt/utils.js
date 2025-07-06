@@ -47,7 +47,12 @@ export const subscribeText = `
 `;
 
 export async function checkSubscription(message, id = null) {
-  const userId = id ?? message.from_user.id;
+  const userId = id ?? (message.from_user?.id ?? message.from?.id);
+  console.log('checkSubscription userId', userId);
+  if (!userId) {
+    console.warn('checkSubscription: userId undefined');
+    return true;
+  }
   try {
     const chatMember = await message.bot.get_chat_member({ chat_id: -1002239712203, user_id: userId });
     const checkResult = ['member', 'administrator', 'creator'].includes(chatMember.status);

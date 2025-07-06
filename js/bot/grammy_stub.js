@@ -33,20 +33,20 @@ export class Router {
       if (h.type === 'message') {
         bot.on('message:text', async (ctx) => {
           rdebug('message:text', ctx.message.text);
-          try {
-            const msg = ctx.message;
-            // Provide aiogram-like aliases and helpers
-            msg.from_user = msg.from;
-            msg.reply = (...args) => ctx.reply(...args);
-            msg.answer = msg.reply;
-            msg.message = msg;
-            msg.bot = ctx.api;
-            if (msg.bot.getChatMember) msg.bot.get_chat_member = msg.bot.getChatMember.bind(msg.bot);
-            if (await h.filter(msg)) await h.handler(msg, {});
-          } catch (e) {
-            console.error('Handler error:', e);
-            process.exit(1);
+          rdebug('ctx.from', ctx.from);
+          const msg = ctx.message;
+          // Provide aiogram-like aliases and helpers
+          msg.from_user = ctx.from ? { ...ctx.from } : (msg.from ? { ...msg.from } : {});
+          msg.reply = (...args) => ctx.reply(...args);
+          msg.answer = msg.reply;
+          msg.message = msg;
+          msg.bot = bot;
+          if (bot.api.getChatMember) {
+            msg.bot.get_chat_member = ({ chat_id, user_id }) =>
+              bot.api.getChatMember(chat_id, user_id);
           }
+
+          if (await h.filter(msg)) await h.handler(msg, {});
         });
       } else if (h.type === 'callback') {
         bot.on('callback_query:data', async (ctx) => {
