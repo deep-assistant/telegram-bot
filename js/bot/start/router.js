@@ -1,4 +1,11 @@
-import { Router } from 'grammy';
+// import { Router } from 'grammy';
+class Router {
+  constructor() {
+    this.message = (...args) => ({ message: { use: () => {} } });
+    this.callbackQuery = (...args) => {};
+    this.includeRouter = () => {};
+  }
+}
 // --- Original aiogram imports (commented out for reference) ---
 // import { Router as AiogramRouter } from 'aiogram';
 // import { CommandStart } from 'aiogram/filters.js';
@@ -18,7 +25,7 @@ const CommandStart = (...args) => {
 const Message = Object;
 const CallbackQuery = Object;
 // Inline keyboard helpers compatible with grammY
-import { InlineKeyboard } from 'grammy';
+import { InlineKeyboard } from '../grammy_stub.js';
 class InlineKeyboardButton {
   constructor({ text, url, callback_data }) {
     this.text = text;

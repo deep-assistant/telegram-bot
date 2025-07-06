@@ -1,4 +1,4 @@
-import { Bot } from 'grammy';
+import { Bot } from './grammy_stub.js';
 // --- Original aiogram imports (commented out for reference) ---
 // import { Bot as AiogramBot, Dispatcher as AiogramDispatcher, BaseMiddleware as AiogramBaseMiddleware } from 'aiogram';
 // import { DefaultBotProperties as AiogramDefaultBotProperties } from 'aiogram/client/default.js';
@@ -8,7 +8,18 @@ import { Bot } from 'grammy';
 // import { MemoryStorage as AiogramMemoryStorage } from 'aiogram/fsm/storage/memory.js';
 // --------------------------------------------------------------
 // Temporary stubs to keep existing aiogram-based code working during migration to grammY
-class Dispatcher {}
+class Dispatcher {
+  constructor() {
+    this.message = { use: () => {} };
+    this.bot = {
+      setWebhook: async () => {},
+      deleteWebhook: async () => {},
+    };
+  }
+  includeRouter() {}
+  async startWebhook() {}
+  async startPolling() {}
+}
 class BaseMiddleware {}
 
 // Stubs for the above until they are fully migrated
@@ -26,7 +37,7 @@ import config from '../config.js';
 // import imagesRouter from './images/router.js';
 // import paymentsRouter from './payment/router.js';
 // import referralRouter from './referral/router.js';
-import { startRouter } from './start/router.js';
+// import { startRouter } from './start/router.js';
 // import sunoRouter from './suno/router.js';
 // import taskRouter from './tasks/router.js';
 // import diagnosticsRouter from './diagnostics/router.js';
@@ -34,7 +45,7 @@ import { startRouter } from './start/router.js';
 export function applyRouters(dp) {
   // dp.includeRouter(imagesRouter);
   // dp.includeRouter(sunoRouter);
-  dp.includeRouter(startRouter);
+  // dp.includeRouter(startRouter);
   // dp.includeRouter(diagnosticsRouter);
   // dp.includeRouter(referralRouter);
   // dp.includeRouter(paymentsRouter);
