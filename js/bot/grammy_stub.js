@@ -39,14 +39,14 @@ export class Router {
             msg.from_user = msg.from;
             msg.reply = (...args) => ctx.reply(...args);
             msg.answer = msg.reply;
-            msg.message = msg; // so ctx.message.reply.bind(ctx.message) works
-            // Expose bot api similar to aiogram
+            msg.message = msg;
             msg.bot = ctx.api;
-            if (msg.bot.getChatMember) {
-              msg.bot.get_chat_member = msg.bot.getChatMember.bind(msg.bot);
-            }
+            if (msg.bot.getChatMember) msg.bot.get_chat_member = msg.bot.getChatMember.bind(msg.bot);
             if (await h.filter(msg)) await h.handler(msg, {});
-          } catch (e) { console.error(e); }
+          } catch (e) {
+            console.error('Handler error:', e);
+            process.exit(1);
+          }
         });
       } else if (h.type === 'callback') {
         bot.on('callback_query:data', async (ctx) => {
