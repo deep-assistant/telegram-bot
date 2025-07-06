@@ -1,3 +1,6 @@
 {
-  "type": "module"
-} 
+  "type": "module",
+  "dependencies": {
+    "grammy": "^1.37.0"
+  }
+}
