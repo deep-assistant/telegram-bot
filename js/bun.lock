@@ -4,7 +4,6 @@
     "": {
       "dependencies": {
         "@grammyjs/i18n": "^1.1.2",
-        "@vlad-yakovlev/telegram-md": "^2.1.0",
         "grammy": "^1.37.0",
         "ioredis": "^5.6.1",
         "openai": "^5.8.2",
@@ -31,8 +30,6 @@
     "@types/mdast": ["@types/mdast@3.0.15", "", { "dependencies": { "@types/unist": "^2" } }, "sha512-LnwD+mUEfxWMa1QpDraczIn6k0Ee3SMicuYSSzS6ZYl2gKS09EClnJYGd8Du6rfc5r/GZEk5o1mRb8TaTj03sQ=="],
 
     "@types/unist": ["@types/unist@2.0.11", "", {}, "sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA=="],
-
-    "@vlad-yakovlev/telegram-md": ["@vlad-yakovlev/telegram-md@2.1.0", "", {}, "sha512-GYxPYFAW/d/lV6igKdOr7jUk5iZvCI3nJcrvt/coYjf1eObP4a0uoP3278Db8gB6h4p6f+BFK6SJ9ZdSTg0Z7g=="],
 
     "abort-controller": ["abort-controller@3.0.0", "", { "dependencies": { "event-target-shim": "^5.0.0" } }, "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg=="],
 
