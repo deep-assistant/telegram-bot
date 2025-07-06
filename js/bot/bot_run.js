@@ -23,8 +23,8 @@ class Dispatcher {
     // simulate webhook server keeping process alive
     return new Promise(() => {});
   }
-  async startPolling() {
-    // simulate long-running polling
+  async startPolling({ bot }) {
+    await bot.start(); // grammY long polling
     return new Promise(() => {});
   }
 }
@@ -146,6 +146,11 @@ export async function botRun() {
       session: new AiohttpSession({ api: TelegramAPIServer.fromBase(config.ANALYTICS_URL) })
     });
   }
+
+  // Minimal /start handler so we can verify connectivity
+  bot.command('start', async (ctx) => {
+    await ctx.reply('👋 Bot is alive!');
+  });
 
   if (config.WEBHOOK_ENABLED) {
     debug('Starting via webhook');
