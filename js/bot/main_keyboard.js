@@ -70,6 +70,11 @@ export async function sendMessage(ctx, text, options = {}) {
     options.reply_markup = createMainKeyboard();
   }
 
+  // Default parse mode to Markdown if none specified (for *bold* etc.)
+  if (!('parse_mode' in options)) {
+    options.parse_mode = 'Markdown';
+  }
+
   console.debug('sendMessage', typeof text, text.slice?.(0,50) || text, options);
   if (!answer) console.error('sendMessage: no answer func');
   console.debug('answer function', answer?.name);
