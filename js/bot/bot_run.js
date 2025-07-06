@@ -6,17 +6,17 @@ import { ParseMode } from 'aiogram/enums.js';
 import { MemoryStorage } from 'aiogram/fsm/storage/memory.js';
 
 import config from '../config.js';
-import agreementRouter from './agreement/router.js';
-import apiRouter from './api/router.js';
-import gptRouter from './gpt/router.js';
-import imageEditingRouter from './image_editing/router.js';
-import imagesRouter from './images/router.js';
-import paymentsRouter from './payment/router.js';
-import referralRouter from './referral/router.js';
+// import agreementRouter from './agreement/router.js';
+// import apiRouter from './api/router.js';
+// import gptRouter from './gpt/router.js';
+// import imageEditingRouter from './image_editing/router.js';
+// import imagesRouter from './images/router.js';
+// import paymentsRouter from './payment/router.js';
+// import referralRouter from './referral/router.js';
 import startRouter from './start/router.js';
-import sunoRouter from './suno/router.js';
-import taskRouter from './tasks/router.js';
-import diagnosticsRouter from './diagnostics/router.js';
+// import sunoRouter from './suno/router.js';
+// import taskRouter from './tasks/router.js';
+// import diagnosticsRouter from './diagnostics/router.js';
 
 export function applyRouters(dp) {
   // dp.includeRouter(imagesRouter);
