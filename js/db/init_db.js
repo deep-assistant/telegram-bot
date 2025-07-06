@@ -5,14 +5,15 @@ import path from 'path';
 // Switching to Redis (ioredis) as the underlying KV store
 import Redis from 'ioredis';
 
-const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-let redisClient;
-try {
-  redisClient = new Redis(redisUrl);
-  // If the connection fails later, we'll fall back automatically.
-} catch {
-  // Ignore constructor errors – will use in-memory map.
-  redisClient = null;
+const redisUrl = process.env.REDIS_URL; // Connect only if user explicitly sets URL
+let redisClient = null;
+if (redisUrl) {
+  try {
+    redisClient = new Redis(redisUrl);
+    redisClient.on('error', () => {}); // suppress connection errors during dev
+  } catch {
+    redisClient = null; // fallback to in-memory
+  }
 }
 
 // In-memory fallback store (used if Redis is not connected or errors out)
