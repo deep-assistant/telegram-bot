@@ -45,7 +45,7 @@ class BaseMiddleware {}
 const DefaultBotProperties = class { constructor(props) { this.props = props; } };
 const AiohttpSession = class { constructor(opts) { this.opts = opts; } };
 const TelegramAPIServer = class { static fromBase(url) { return { url }; } };
-const ParseMode = { MARKDOWN: 'Markdown' };
+const ParseMode = { MARKDOWN: 'Markdown', MARKDOWN_V2: 'MarkdownV2', HTML: 'HTML' };
 const MemoryStorage = class {};
 
 import config from '../config.js';
@@ -147,7 +147,7 @@ export async function botRun() {
     debug('Creating bot in DEV mode');
     bot = new Bot({
       token: config.TOKEN,
-      default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN })
+      default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN_V2 })
     });
     // ---- i18n setup ----
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -161,7 +161,7 @@ export async function botRun() {
     debug('Creating bot in PROD mode');
     bot = new Bot({
       token: config.TOKEN,
-      default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN }),
+      default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN_V2 }),
       session: new AiohttpSession({ api: TelegramAPIServer.fromBase(config.ANALYTICS_URL) })
     });
     const __dirname = path.dirname(fileURLToPath(import.meta.url));

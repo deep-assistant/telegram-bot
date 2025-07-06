@@ -9,6 +9,7 @@ import {
   GET_HISTORY_TEXT,
   REFERRAL_COMMAND_TEXT
 } from './commands.js';
+import tgMarkdown from 'telegramify-markdown';
 
 const chatMessageCounts = {};
 const FIRST_MESSAGES_LIMIT = 3;
@@ -72,7 +73,11 @@ export async function sendMessage(ctx, text, options = {}) {
 
   // Default parse mode to Markdown if none specified (for *bold* etc.)
   if (!('parse_mode' in options)) {
-    options.parse_mode = 'Markdown';
+    options.parse_mode = 'MarkdownV2';
+  }
+
+  if (options.parse_mode === 'MarkdownV2' && typeof text === 'string' && !options.no_build) {
+    text = tgMarkdown(text, 'escape');
   }
 
   console.debug('sendMessage', typeof text, text.slice?.(0,50) || text, options);
