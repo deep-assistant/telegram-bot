@@ -146,6 +146,9 @@ export async function botRun() {
       token: config.TOKEN,
       default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN })
     });
+    bot.catch((err) => {
+      console.error('grammy error', err);
+    });
   } else {
     debug('Creating bot in PROD mode');
     bot = new Bot({

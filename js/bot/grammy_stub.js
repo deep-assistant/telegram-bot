@@ -1,4 +1,6 @@
 import { Bot as RealBot, InlineKeyboard as RealInlineKeyboard } from 'grammy';
+import createDebug from 'debug';
+const rdebug = createDebug('telegram-bot:router');
 
 export class Bot extends RealBot {
   constructor(options = {}) {
@@ -26,15 +28,18 @@ export class Router {
   }
 
   _bind(bot) {
+    rdebug('Binding handlers to bot');
     for (const h of this._handlers) {
       if (h.type === 'message') {
         bot.on('message:text', async (ctx) => {
+          rdebug('message:text', ctx.message.text);
           try {
             if (await h.filter(ctx.message)) await h.handler(ctx.message, {});
           } catch (e) { console.error(e); }
         });
       } else if (h.type === 'callback') {
         bot.on('callback_query:data', async (ctx) => {
+          rdebug('callback_query', ctx.callbackQuery.data);
           try {
             if (await h.filter({ data: ctx.callbackQuery.data })) await h.handler(ctx.callbackQuery, {});
           } catch (e) { console.error(e); }
