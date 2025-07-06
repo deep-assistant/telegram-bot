@@ -55,3 +55,8 @@ export const ALL_COMMANDS = [
   HERE_AND_NOW_COMMAND,
   API_COMMAND
 ];
+
+// --- Helper functions for backward-compatibility with aiogram version ---
+export const helpText = () => HELP_TEXT;
+export const helpCommand = () => HELP_COMMAND;
+export const appCommand = () => APP_COMMAND;

@@ -16,7 +16,7 @@ export class CompositeFilters {
   }
 }
 
-export class TextCommand {
+class _TextCommand {
   constructor(textCommand) {
     this.textCommands = Array.isArray(textCommand) ? textCommand : [textCommand];
   }
@@ -27,6 +27,10 @@ export class TextCommand {
     if (!message.text) return false;
     return this.textCommands.some(cmd => message.text.trim().startsWith(cmd));
   }
+}
+
+export function TextCommand(textCommand) {
+  return new _TextCommand(textCommand);
 }
 
 export class StartWith {
@@ -70,14 +74,12 @@ export class Audio {
   }
 }
 
-export class StartWithQuery {
-  constructor(textCommand) {
-    this.textCommand = textCommand;
-  }
-
-  async call(callbackQuery) {
-    return callbackQuery.data.startsWith(this.textCommand);
-  }
+export function StartWithQuery(textCommand) {
+  return {
+    async call(callbackQuery) {
+      return callbackQuery.data.startsWith(textCommand);
+    }
+  };
 }
 
 export class TextCommandQuery {
