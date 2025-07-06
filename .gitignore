@@ -4,3 +4,4 @@ __pycache__
 data_base.db
 config.py
 config.py.save
+node_modules

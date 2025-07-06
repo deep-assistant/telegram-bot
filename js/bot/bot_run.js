@@ -1,4 +1,7 @@
 import { Bot } from './grammy_stub.js';
+import { I18n } from '@grammyjs/i18n';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import createDebug from 'debug';
 const debug = createDebug('telegram-bot:bot_run');
 // --- Original aiogram imports (commented out for reference) ---
@@ -146,6 +149,19 @@ export async function botRun() {
       token: config.TOKEN,
       default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN })
     });
+    // ---- i18n setup ----
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const i18n = new I18n({
+      defaultLocale: 'ru',
+      directory: path.join(__dirname, '../locales')
+    });
+    bot.use(i18n.middleware());
+    // auto-language detection
+    bot.use(async (ctx, next) => {
+      const code = ctx.from?.language_code?.split('-')[0];
+      if (code && ctx.i18n?.useLocale) ctx.i18n.useLocale(code);
+      await next();
+    });
     bot.catch((err) => {
       console.error('grammy error', err);
       process.exit(1);
@@ -156,6 +172,17 @@ export async function botRun() {
       token: config.TOKEN,
       default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN }),
       session: new AiohttpSession({ api: TelegramAPIServer.fromBase(config.ANALYTICS_URL) })
+    });
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const i18n = new I18n({
+      defaultLocale: 'ru',
+      directory: path.join(__dirname, '../locales')
+    });
+    bot.use(i18n.middleware());
+    bot.use(async (ctx, next) => {
+      const code = ctx.from?.language_code?.split('-')[0];
+      if (code && ctx.i18n?.useLocale) ctx.i18n.useLocale(code);
+      await next();
     });
   }
 

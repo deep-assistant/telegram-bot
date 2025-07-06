@@ -46,6 +46,15 @@ export class Router {
               bot.api.getChatMember(chat_id, user_id);
           }
 
+          // Expose i18n helper
+          if (ctx.t) {
+            msg.t = ctx.t.bind(ctx);
+          } else if (ctx.i18n) {
+            msg.t = ctx.i18n.t.bind(ctx.i18n);
+          } else {
+            msg.t = (k) => k;
+          }
+
           if (await h.filter(msg)) await h.handler(msg, {});
         });
       } else if (h.type === 'callback') {
