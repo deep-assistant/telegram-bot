@@ -34,7 +34,9 @@ export class Router {
         bot.on('message:text', async (ctx) => {
           rdebug('message:text', ctx.message.text);
           try {
-            if (await h.filter(ctx.message)) await h.handler(ctx.message, {});
+            const msg = ctx.message;
+            msg.reply = (...args) => ctx.reply(...args);
+            if (await h.filter(msg)) await h.handler(msg, {});
           } catch (e) { console.error(e); }
         });
       } else if (h.type === 'callback') {
