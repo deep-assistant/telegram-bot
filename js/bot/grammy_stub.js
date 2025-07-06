@@ -35,7 +35,11 @@ export class Router {
           rdebug('message:text', ctx.message.text);
           try {
             const msg = ctx.message;
+            // Provide aiogram-like aliases and helpers
+            msg.from_user = msg.from;
             msg.reply = (...args) => ctx.reply(...args);
+            msg.answer = msg.reply;
+            msg.message = msg; // so ctx.message.reply.bind(ctx.message) works
             if (await h.filter(msg)) await h.handler(msg, {});
           } catch (e) { console.error(e); }
         });
