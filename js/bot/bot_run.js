@@ -19,17 +19,17 @@ import taskRouter from './tasks/router.js';
 import diagnosticsRouter from './diagnostics/router.js';
 
 export function applyRouters(dp) {
-  dp.includeRouter(imagesRouter);
-  dp.includeRouter(sunoRouter);
+  // dp.includeRouter(imagesRouter);
+  // dp.includeRouter(sunoRouter);
   dp.includeRouter(startRouter);
-  dp.includeRouter(diagnosticsRouter);
-  dp.includeRouter(referralRouter);
-  dp.includeRouter(paymentsRouter);
-  dp.includeRouter(apiRouter);
-  dp.includeRouter(agreementRouter);
-  dp.includeRouter(imageEditingRouter);
-  dp.includeRouter(taskRouter);
-  dp.includeRouter(gptRouter);
+  // dp.includeRouter(diagnosticsRouter);
+  // dp.includeRouter(referralRouter);
+  // dp.includeRouter(paymentsRouter);
+  // dp.includeRouter(apiRouter);
+  // dp.includeRouter(agreementRouter);
+  // dp.includeRouter(imageEditingRouter);
+  // dp.includeRouter(taskRouter);
+  // dp.includeRouter(gptRouter);
 }
 
 class AlbumMiddleware extends BaseMiddleware {
