@@ -18,12 +18,20 @@ class Dispatcher {
       deleteWebhook: async () => {},
     };
   }
-  includeRouter() {}
+  includeRouter(router) {
+    if (!this.routers) this.routers = [];
+    this.routers.push(router);
+  }
   async startWebhook() {
     // simulate webhook server keeping process alive
     return new Promise(() => {});
   }
   async startPolling({ bot }) {
+    if (this.routers) {
+      for (const r of this.routers) {
+        if (typeof r._bind === 'function') r._bind(bot);
+      }
+    }
     await bot.start(); // grammY long polling
     return new Promise(() => {});
   }
@@ -147,10 +155,7 @@ export async function botRun() {
     });
   }
 
-  // Minimal /start handler so we can verify connectivity
-  bot.command('start', async (ctx) => {
-    await ctx.reply('👋 Bot is alive!');
-  });
+  // Routers will be bound automatically in Dispatcher.startPolling
 
   if (config.WEBHOOK_ENABLED) {
     debug('Starting via webhook');
