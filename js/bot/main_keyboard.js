@@ -71,5 +71,7 @@ export async function sendMessage(ctx, text, options = {}) {
   }
 
   console.debug('sendMessage', typeof text, text.slice?.(0,50) || text, options);
+  if (!answer) console.error('sendMessage: no answer func');
+  console.debug('answer function', answer?.name);
   return answer(text, options);
 }
