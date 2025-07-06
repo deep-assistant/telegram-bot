@@ -42,6 +42,15 @@ export function createMainKeyboard() {
 }
 
 export async function sendMessage(ctx, text, options = {}) {
+  // Support legacy call signature sendMessage(ctx, { text, ...opts })
+  if (typeof text === 'object' && text !== null && 'text' in text && (!options || Object.keys(options).length === 0)) {
+    const tmp = text;
+    text = tmp.text;
+    // clone without text
+    const { text: _, ...rest } = tmp;
+    options = rest;
+  }
+
   // Determine chat ID and reply function
   const chatId = ctx.chat?.id ?? ctx.message?.chat?.id;
   const answer = ctx.chat
@@ -61,5 +70,6 @@ export async function sendMessage(ctx, text, options = {}) {
     options.reply_markup = createMainKeyboard();
   }
 
+  console.debug('sendMessage', typeof text, text.slice?.(0,50) || text, options);
   return answer(text, options);
 }
