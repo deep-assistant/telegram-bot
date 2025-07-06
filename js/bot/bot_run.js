@@ -1,9 +1,22 @@
-import { Bot, Dispatcher, BaseMiddleware } from 'aiogram';
-import { DefaultBotProperties } from 'aiogram/client/default.js';
-import { AiohttpSession } from 'aiogram/client/session/aiohttp.js';
-import { TelegramAPIServer } from 'aiogram/client/telegram.js';
-import { ParseMode } from 'aiogram/enums.js';
-import { MemoryStorage } from 'aiogram/fsm/storage/memory.js';
+import { Bot } from 'grammy';
+// --- Original aiogram imports (commented out for reference) ---
+// import { Bot as AiogramBot, Dispatcher as AiogramDispatcher, BaseMiddleware as AiogramBaseMiddleware } from 'aiogram';
+// import { DefaultBotProperties as AiogramDefaultBotProperties } from 'aiogram/client/default.js';
+// import { AiohttpSession as AiogramAiohttpSession } from 'aiogram/client/session/aiohttp.js';
+// import { TelegramAPIServer as AiogramTelegramAPIServer } from 'aiogram/client/telegram.js';
+// import { ParseMode as AiogramParseMode } from 'aiogram/enums.js';
+// import { MemoryStorage as AiogramMemoryStorage } from 'aiogram/fsm/storage/memory.js';
+// --------------------------------------------------------------
+// Temporary stubs to keep existing aiogram-based code working during migration to grammY
+class Dispatcher {}
+class BaseMiddleware {}
+
+// Stubs for the above until they are fully migrated
+const DefaultBotProperties = class { constructor(props) { this.props = props; } };
+const AiohttpSession = class { constructor(opts) { this.opts = opts; } };
+const TelegramAPIServer = class { static fromBase(url) { return { url }; } };
+const ParseMode = { MARKDOWN: 'Markdown' };
+const MemoryStorage = class {};
 
 import config from '../config.js';
 // import agreementRouter from './agreement/router.js';
@@ -13,7 +26,7 @@ import config from '../config.js';
 // import imagesRouter from './images/router.js';
 // import paymentsRouter from './payment/router.js';
 // import referralRouter from './referral/router.js';
-import startRouter from './start/router.js';
+import { startRouter } from './start/router.js';
 // import sunoRouter from './suno/router.js';
 // import taskRouter from './tasks/router.js';
 // import diagnosticsRouter from './diagnostics/router.js';
