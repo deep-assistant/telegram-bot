@@ -148,6 +148,7 @@ export async function botRun() {
     });
     bot.catch((err) => {
       console.error('grammy error', err);
+      process.exit(1);
     });
   } else {
     debug('Creating bot in PROD mode');

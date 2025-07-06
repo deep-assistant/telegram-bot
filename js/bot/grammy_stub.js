@@ -40,6 +40,11 @@ export class Router {
             msg.reply = (...args) => ctx.reply(...args);
             msg.answer = msg.reply;
             msg.message = msg; // so ctx.message.reply.bind(ctx.message) works
+            // Expose bot api similar to aiogram
+            msg.bot = ctx.api;
+            if (msg.bot.getChatMember) {
+              msg.bot.get_chat_member = msg.bot.getChatMember.bind(msg.bot);
+            }
             if (await h.filter(msg)) await h.handler(msg, {});
           } catch (e) { console.error(e); }
         });
