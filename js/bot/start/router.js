@@ -7,6 +7,8 @@ import { tokenizeService, referralsService } from '../../services/index.js';
 // import { Router } from 'grammy';
 import { Router } from '../grammy_stub.js';
 import { InlineKeyboard } from '../grammy_stub.js';
+import createDebug from 'debug';
+const debug = createDebug('telegram-bot:start_router');
 
 // --- Original aiogram imports (commented out for reference) ---
 // import { Router as AiogramRouter } from 'aiogram';
@@ -16,10 +18,12 @@ import { InlineKeyboard } from '../grammy_stub.js';
 
 // Temporary lightweight stubs to keep existing code functional during migration.
 // They replicate only the minimal interface currently used in this file.
-const CommandStart = (...args) => {
-  return (ctx) => {
-    const text = ctx?.message?.text ?? '';
-    return text.startsWith('/start');
+const CommandStart = () => {
+  return (msg) => {
+    const text = msg?.text ?? '';
+    const res = text.startsWith('/start');
+    debug('CommandStart filter', text, res);
+    return res;
   };
 };
 // GrammY uses regular objects for messages/callbacks, so we leave Message/CallbackQuery
@@ -88,6 +92,7 @@ async function createTokenIfNotExist(userId) {
 }
 
 startRouter.message(CommandStart(), async (message) => {
+  debug('Start command handler triggered');
   const match = message.text.match(/^\/start\s(\S+)/);
   const refUserId = match ? match[1] : null;
 
