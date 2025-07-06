@@ -1,4 +1,12 @@
+import { StartWithQuery, TextCommand } from '../filters.js';
+import { helpText, helpCommand, appCommand } from '../commands.js';
+import { checkSubscription } from '../gpt/utils.js';
+import { createMainKeyboard, sendMessage } from '../main_keyboard.js';
+import { tokenizeService, referralsService } from '../../services/index.js';
+
 // import { Router } from 'grammy';
+import { InlineKeyboard } from '../grammy_stub.js';
+
 class Router {
   constructor() {
     this.message = (...args) => ({ message: { use: () => {} } });
@@ -25,7 +33,6 @@ const CommandStart = (...args) => {
 const Message = Object;
 const CallbackQuery = Object;
 // Inline keyboard helpers compatible with grammY
-import { InlineKeyboard } from '../grammy_stub.js';
 class InlineKeyboardButton {
   constructor({ text, url, callback_data }) {
     this.text = text;
@@ -38,11 +45,6 @@ class InlineKeyboardMarkup {
     this.reply_markup = new InlineKeyboard(inline_keyboard.flat());
   }
 }
-import { StartWithQuery, TextCommand } from '../filters.js';
-import { helpText, helpCommand, appCommand } from '../commands.js';
-import { checkSubscription } from '../gpt/utils.js';
-import { createMainKeyboard, sendMessage } from '../main_keyboard.js';
-import { tokenizeService, referralsService } from '../../services/index.js';
 
 export const startRouter = new Router();
 

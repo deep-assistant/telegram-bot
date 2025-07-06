@@ -37,7 +37,7 @@ import config from '../config.js';
 // import imagesRouter from './images/router.js';
 // import paymentsRouter from './payment/router.js';
 // import referralRouter from './referral/router.js';
-// import { startRouter } from './start/router.js';
+import { startRouter } from './start/router.js';
 // import sunoRouter from './suno/router.js';
 // import taskRouter from './tasks/router.js';
 // import diagnosticsRouter from './diagnostics/router.js';
@@ -45,7 +45,7 @@ import config from '../config.js';
 export function applyRouters(dp) {
   // dp.includeRouter(imagesRouter);
   // dp.includeRouter(sunoRouter);
-  // dp.includeRouter(startRouter);
+  dp.includeRouter(startRouter);
   // dp.includeRouter(diagnosticsRouter);
   // dp.includeRouter(referralRouter);
   // dp.includeRouter(paymentsRouter);
