@@ -1,5 +1,6 @@
 import config from '../config.js';
-import { OpenAI } from 'openai';
+// import { OpenAI } from 'openai';
+import { OpenAI } from './openai_stub.js';
 import { getUserName } from '../bot/utils.js';
 import { DEFAULT_ERROR_MESSAGE } from '../bot/constants.js';
 import { asyncPost } from './utils.js';
