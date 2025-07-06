@@ -25,11 +25,11 @@ import { sendMessage } from '../main_keyboard.js';
 import { GPTModels } from '../../services/gpt_service.js';
 // --- Replaced telegramify-markdown with @vlad-yakovlev/telegram-md ---
 // import telegramifyMarkdown from 'telegramify-markdown';
-import { md as telegramMd } from '@vlad-yakovlev/telegram-md';
+import tgMarkdown from 'telegramify-markdown';
 
 // Wrapper to preserve existing telegramifyMarkdown.markdownify usage
 const telegramifyMarkdown = {
-  markdownify: (text) => telegramMd.build(text)
+  markdownify: (text) => tgMarkdown(text, 'escape')
 };
 
 export function checkedText(value) {
