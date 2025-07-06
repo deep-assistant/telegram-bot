@@ -1,4 +1,6 @@
 import { Bot } from './grammy_stub.js';
+import createDebug from 'debug';
+const debug = createDebug('telegram-bot:bot_run');
 // --- Original aiogram imports (commented out for reference) ---
 // import { Bot as AiogramBot, Dispatcher as AiogramDispatcher, BaseMiddleware as AiogramBaseMiddleware } from 'aiogram';
 // import { DefaultBotProperties as AiogramDefaultBotProperties } from 'aiogram/client/default.js';
@@ -17,8 +19,14 @@ class Dispatcher {
     };
   }
   includeRouter() {}
-  async startWebhook() {}
-  async startPolling() {}
+  async startWebhook() {
+    // simulate webhook server keeping process alive
+    return new Promise(() => {});
+  }
+  async startPolling() {
+    // simulate long-running polling
+    return new Promise(() => {});
+  }
 }
 class BaseMiddleware {}
 
@@ -43,6 +51,7 @@ import { startRouter } from './start/router.js';
 // import diagnosticsRouter from './diagnostics/router.js';
 
 export function applyRouters(dp) {
+  debug('Applying routers');
   // dp.includeRouter(imagesRouter);
   // dp.includeRouter(sunoRouter);
   dp.includeRouter(startRouter);
@@ -101,6 +110,7 @@ class AlbumMiddleware extends BaseMiddleware {
 }
 
 async function onStartup(dp) {
+  debug('onStartup');
   console.log('Bot is starting...');
   if (config.WEBHOOK_ENABLED) {
     await dp.bot.setWebhook(config.WEBHOOK_URL);
@@ -108,6 +118,7 @@ async function onStartup(dp) {
 }
 
 async function onShutdown(dp) {
+  debug('onShutdown');
   console.log('Bot is shutting down...');
   if (config.WEBHOOK_ENABLED) {
     await dp.bot.deleteWebhook();
@@ -115,17 +126,20 @@ async function onShutdown(dp) {
 }
 
 export async function botRun() {
+  debug('botRun start');
   const dp = new Dispatcher({ storage: new MemoryStorage() });
   dp.message.use(new AlbumMiddleware());
   applyRouters(dp);
 
   let bot;
   if (config.IS_DEV) {
+    debug('Creating bot in DEV mode');
     bot = new Bot({
       token: config.TOKEN,
       default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN })
     });
   } else {
+    debug('Creating bot in PROD mode');
     bot = new Bot({
       token: config.TOKEN,
       default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN }),
@@ -134,6 +148,7 @@ export async function botRun() {
   }
 
   if (config.WEBHOOK_ENABLED) {
+    debug('Starting via webhook');
     await bot.setWebhook(config.WEBHOOK_URL);
     await dp.startWebhook({
       webhookPath: config.WEBHOOK_PATH,
@@ -143,6 +158,7 @@ export async function botRun() {
       port: config.WEBHOOK_PORT
     });
   } else {
+    debug('Starting polling');
     await bot.deleteWebhook();
     await dp.startPolling({ bot, skipUpdates: false, dropPendingUpdates: true });
   }
