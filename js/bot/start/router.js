@@ -1,6 +1,36 @@
-import { Router } from 'aiogram';
-import { CommandStart } from 'aiogram/filters.js';
-import { Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
+import { Router } from 'grammy';
+// --- Original aiogram imports (commented out for reference) ---
+// import { Router as AiogramRouter } from 'aiogram';
+// import { CommandStart } from 'aiogram/filters.js';
+// import { Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
+// --------------------------------------------------------------
+
+// Temporary lightweight stubs to keep existing code functional during migration.
+// They replicate only the minimal interface currently used in this file.
+const CommandStart = (...args) => {
+  return (ctx) => {
+    const text = ctx?.message?.text ?? '';
+    return text.startsWith('/start');
+  };
+};
+// GrammY uses regular objects for messages/callbacks, so we leave Message/CallbackQuery
+// as aliases to plain objects to satisfy any type assumptions.
+const Message = Object;
+const CallbackQuery = Object;
+// Inline keyboard helpers compatible with grammY
+import { InlineKeyboard } from 'grammy';
+class InlineKeyboardButton {
+  constructor({ text, url, callback_data }) {
+    this.text = text;
+    if (url) this.url = url;
+    if (callback_data) this.callback_data = callback_data;
+  }
+}
+class InlineKeyboardMarkup {
+  constructor({ inline_keyboard }) {
+    this.reply_markup = new InlineKeyboard(inline_keyboard.flat());
+  }
+}
 import { StartWithQuery, TextCommand } from '../filters.js';
 import { helpText, helpCommand, appCommand } from '../commands.js';
 import { checkSubscription } from '../gpt/utils.js';

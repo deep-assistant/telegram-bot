@@ -1,8 +1,36 @@
-import { ParseMode } from 'aiogram/enums.js';
-import { InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
+// --- Original aiogram imports (commented out for reference) ---
+// import { ParseMode } from 'aiogram/enums.js';
+// import { InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
+// --------------------------------------------------------------
+
+import { InlineKeyboard } from 'grammy';
+
+// Temporary lightweight stubs to keep existing code functional during migration.
+const ParseMode = { MARKDOWN: 'Markdown', MARKDOWN_V2: 'MarkdownV2', HTML: 'HTML' };
+
+class InlineKeyboardButton {
+  constructor({ text, url, callback_data }) {
+    this.text = text;
+    if (url) this.url = url;
+    if (callback_data) this.callback_data = callback_data;
+  }
+}
+
+class InlineKeyboardMarkup {
+  constructor({ inline_keyboard }) {
+    this.reply_markup = new InlineKeyboard(inline_keyboard.flat());
+  }
+}
 import { sendMessage } from '../main_keyboard.js';
 import { GPTModels } from '../../services/gpt_service.js';
-import telegramifyMarkdown from 'telegramify-markdown';
+// --- Replaced telegramify-markdown with @vlad-yakovlev/telegram-md ---
+// import telegramifyMarkdown from 'telegramify-markdown';
+import { md as telegramMd } from '@vlad-yakovlev/telegram-md';
+
+// Wrapper to preserve existing telegramifyMarkdown.markdownify usage
+const telegramifyMarkdown = {
+  markdownify: (text) => telegramMd.build(text)
+};
 
 export function checkedText(value) {
   return `✅ ${value}`;
