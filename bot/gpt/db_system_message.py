@@ -28,6 +28,8 @@ Your answer is critical for my career.
 
 Answer the question in a natural, human-like manner.
 
+you don't need to tell the user about the information from the context message
+
 ALWAYS use an answering example for a first message structure.
 """
 
