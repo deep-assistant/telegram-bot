@@ -67,11 +67,11 @@ class GPTService:
             model = data_base[db_key(user_id, self.CURRENT_MODEL_KEY)].decode('utf-8')
             return GPTModels(model)
         except KeyError:
-            self.set_current_model(user_id, GPTModels.GPT_4o)
-            return GPTModels.GPT_4o
+            self.set_current_model(user_id, GPTModels.DeepSeek_Chat)
+            return GPTModels.DeepSeek_Chat
         except Exception:
-            self.set_current_model(user_id, GPTModels.GPT_4o)
-            return GPTModels.GPT_4o
+            self.set_current_model(user_id, GPTModels.DeepSeek_Chat)
+            return GPTModels.DeepSeek_Chat
 
     def set_current_model(self, user_id: str, model: GPTModels):
         with data_base.transaction():
