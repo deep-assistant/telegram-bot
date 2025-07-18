@@ -1,12 +1,10 @@
-import { Router } from 'aiogram';
+import { Composer } from 'grammy';
 import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
-import { Message, CallbackQuery } from 'aiogram/types.js';
 
-import config from '../../../config.js';
-import { agreementHandler } from '../agreement/router.js';
+import { config } from '../../config.js';
+// import { agreementHandler } from '../agreement/router.js';
 import { TextCommand, TextCommandQuery, Document, Photo, Voice, Audio, Video, StateCommand, StartWithQuery } from '../filters.js';
 import {
   CHANGE_MODEL_COMMAND,
@@ -36,7 +34,7 @@ import {
 } from '../../services/index.js';
 import { DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE } from '../constants.js';
 
-export const gptRouter = new Router();
+export const gptRouter = new Composer();
 let questionAnswer = false;
 
 // Helper to send markdown content as document if too large
@@ -83,8 +81,8 @@ async function handleGptRequest(message, text) {
   const loadingMessage = await message.answer('**⌛️Ожидайте ответ...**');
   try {
     // Agreement and subscription checks
-    const agreed = await agreementHandler(message);
-    if (!agreed) return;
+    // const agreed = await agreementHandler(message);
+    // if (!agreed) return;
     const subscribed = await isChatMember(message);
     if (!subscribed) return;
     if (!stateService.is_default_state(userId)) return;
@@ -234,25 +232,25 @@ gptRouter.message(Voice(), async (message) => {
 // - Fallback completion handler
 
 // Clear context handler
-gptRouter.message(TextCommand([CLEAR_COMMAND, CLEAR_TEXT]), async (message) => {
-  const userId = message.from_user.id;
+gptRouter.message(TextCommand([CLEAR_COMMAND, CLEAR_TEXT]), async (ctx) => {
+  const userId = ctx.from.id;
   try {
     const response = await tokenizeService.clear_dialog(userId);
     if (!response || !response.status) {
-      await message.answer('Диалог уже пуст!');
+      await ctx.reply('Диалог уже пуст!');
       return;
     }
   } catch (e) {
-    await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE);
+    await ctx.reply(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE);
     console.error('Error clearing dialog context:', e);
     return;
   }
-  await message.answer('Контекст диалога успешно очищен! 👌🏻');
+  await ctx.reply('Контекст диалога успешно очищен! 👌🏻');
 });
 
 // Balance command handler
-gptRouter.message(TextCommand([BALANCE_TEXT, BALANCE_COMMAND]), async (message) => {
-  const userId = message.from_user.id;
+gptRouter.message(TextCommand([BALANCE_TEXT, BALANCE_COMMAND]), async (ctx) => {
+  const userId = ctx.from.id;
   // Fetch token and referral info
   const gptTokens = await tokenizeService.get_tokens(userId);
   const referral = await referralsService.get_referral(userId);
@@ -284,7 +282,7 @@ gptRouter.message(TextCommand([BALANCE_TEXT, BALANCE_COMMAND]), async (message) 
   }
 
   // Send balance info
-  await message.answer(`👩🏻‍💻 Количество рефералов: *${referral.children.length}*
+  await ctx.reply(`👩🏻‍💻 Количество рефералов: *${referral.children.length}*
 🤑 Ежедневное автопополнение 🔋: *${referral.award}⚡️*
 ${acceptAccount()}
 
@@ -296,8 +294,8 @@ ${getDateLine()}
 // History command handler
 gptRouter.message(TextCommand([GET_HISTORY_COMMAND, GET_HISTORY_TEXT]), async (message) => {
   // Agreement and subscription checks
-  const agreed = await agreementHandler(message);
-  if (!agreed) return;
+  // const agreed = await agreementHandler(message);
+  // if (!agreed) return;
   const subscribed = await isChatMember(message);
   if (!subscribed) return;
   const userId = message.from_user.id;
@@ -332,8 +330,8 @@ gptRouter.message(TextCommand(['/bot', '/bot@DeepGPTBot']), async (message) => {
 
 // Change system message command handler
 gptRouter.message(TextCommand([CHANGE_SYSTEM_MESSAGE_COMMAND, CHANGE_SYSTEM_MESSAGE_TEXT]), async (message) => {
-  const agreed = await agreementHandler(message);
-  if (!agreed) return;
+  // const agreed = await agreementHandler(message);
+  // if (!agreed) return;
   const subscribed = await isChatMember(message);
   if (!subscribed) return;
   const userId = message.from_user.id;
@@ -352,8 +350,8 @@ gptRouter.message(TextCommand([CHANGE_SYSTEM_MESSAGE_COMMAND, CHANGE_SYSTEM_MESS
 
 // Change model command handler
 gptRouter.message(TextCommand([CHANGE_MODEL_COMMAND, CHANGE_MODEL_TEXT]), async (message) => {
-  const agreed = await agreementHandler(message);
-  if (!agreed) return;
+  // const agreed = await agreementHandler(message);
+  // if (!agreed) return;
   const subscribed = await isChatMember(message);
   if (!subscribed) return;
   const userId = message.from_user.id;

@@ -89,3 +89,5 @@ startRouter.hears([helpCommand(), helpText()], async (ctx) => {
 startRouter.hears(appCommand(), async (ctx) => {
   await sendMessage(ctx, ctx.t('start.app_link'));
 });
+
+
