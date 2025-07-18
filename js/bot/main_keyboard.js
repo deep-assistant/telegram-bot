@@ -1,29 +1,18 @@
 import { Keyboard } from 'grammy';
-import {
-  BALANCE_TEXT,
-  BALANCE_PAYMENT_COMMAND_TEXT,
-  CHANGE_MODEL_TEXT,
-  CHANGE_SYSTEM_MESSAGE_TEXT,
-  SUNO_TEXT,
-  IMAGES_COMMAND_TEXT,
-  CLEAR_TEXT,
-  GET_HISTORY_TEXT,
-  REFERRAL_COMMAND_TEXT
-} from './commands.js';
 import tgMarkdown from 'telegramify-markdown';
 
 const chatMessageCounts = {};
 const FIRST_MESSAGES_LIMIT = 3;
 
-export function createMainKeyboard() {
+export function createMainKeyboard(ctx) {
   return new Keyboard()
-    .text(BALANCE_TEXT).text(BALANCE_PAYMENT_COMMAND_TEXT).row()
-    .text(CHANGE_MODEL_TEXT).text(CHANGE_SYSTEM_MESSAGE_TEXT).row()
-    .text(SUNO_TEXT).text(IMAGES_COMMAND_TEXT).row()
-    .text(CLEAR_TEXT).text(GET_HISTORY_TEXT).row()
-    .text(REFERRAL_COMMAND_TEXT)
+    .text(ctx.t('main_keyboard.balance')).text(ctx.t('main_keyboard.buy')).row()
+    .text(ctx.t('main_keyboard.model')).text(ctx.t('main_keyboard.system')).row()
+    .text(ctx.t('main_keyboard.suno')).text(ctx.t('main_keyboard.image')).row()
+    .text(ctx.t('main_keyboard.clear')).text(ctx.t('main_keyboard.history')).row()
+    .text(ctx.t('main_keyboard.referral'))
     .resized()
-    .placeholder('💬 Задай свой вопрос');
+    .placeholder(ctx.t('main_keyboard.placeholder'));
 }
 
 export async function sendMessage(ctx, text, options = {}) {
@@ -38,7 +27,7 @@ export async function sendMessage(ctx, text, options = {}) {
   chatMessageCounts[chatId] = (chatMessageCounts[chatId] || 0) + 1;
 
   if (!options.reply_markup && chatMessageCounts[chatId] <= FIRST_MESSAGES_LIMIT) {
-    options.reply_markup = createMainKeyboard();
+    options.reply_markup = createMainKeyboard(ctx);
   }
 
   if (!('parse_mode' in options)) {

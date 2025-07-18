@@ -17,3 +17,60 @@ start.greeting: |
     **+500⚡️** to your daily refill per friend.
 
     🏠 If something went wrong or you want to share inspiration, write to our community @deepGPT. 
+
+start:
+  ref_text: 👋 You arrived via a referral link. To get the reward, subscribe to my channel.
+  invalid_ref_id: ❌ Invalid referral ID.
+  referral_bonus: 🎉 You received *5 000*⚡️!
+
+/balance - ✨ Check balance
+/referral - 🔗 Referral details
+  new_referral: 🎉 New referral added! 
+You received *5 000*⚡️!
+Your referral must show any activity in the bot within 24 hours to receive another *5 000*⚡️ and +500⚡️ to daily balance refill.
+
+/balance - ✨ Check balance
+/referral - 🔗 Referral details
+  ref_notification: 🎉 Transitioned via your referral link: @{username} ({mention}).
+
+For your friend to become your referral, they must subscribe to the @gptDeep channel.
+
+Once that happens, you will receive <b>5 000</b>⚡️ one-time and <b>+500</b>⚡️ to daily balance refill.
+
+If this doesn't happen for a long time, your friend might need help, <b>try messaging them privately</b>.
+If that doesn't help, contact support in the @deepGPT community and we'll help sort it out.
+  not_subscribed: You haven't subscribed! 😡
+  subscribe_button: Subscribe 👊🏻
+  check_button: Check ✅
+help: |
+  The main resource for accessing neural networks is ⚡️ (energy).
+  This is a universal resource for all bot functionality.
+
+  Each neural network consumes a different amount of ⚡️.
+  The amount of ⚡️ spent depends on the length of the dialog history, neural network models, and the volume of your questions and responses from the neural network.
+  To save, use the command - /clear, to avoid overflowing the dialog history and increasing ⚡️ (energy) consumption! 
+  It is recommended to clear the context before starting a discussion on a new topic. Also if the selected model started refusing help.
+
+  /app - 🔥 Get link to the app!
+  /start - 🔄 Restart bot, restarts the bot, helps update to the latest version.
+  /model - 🛠️ Change model, restarts the bot, allows changing the bot model.
+  /system - ⚙️ System message, allows changing the system message to alter the interaction mode with the bot.   
+  /clear - 🧹 Clear context, helps the bot forget the entire history.  
+  /balance - ✨ Balance, allows checking ⚡️ balance.
+  /image - 🖼️ Image generation (Midjourney, DALL·E 3, Flux, Stable Diffusion)
+  /buy - 💎 Top up balance, allows topping up ⚡️ balance.
+  /referral - 🔗 Get referral link
+  /suno - 🎵 Music generation (Suno)
+  /text - Send text message
+app_link: Link to the application: https://t.me/DeepGPTBot/App 
+main_keyboard:
+  balance: ✨ Balance
+  buy: 💎 Top up
+  model: 🛠️ Change model
+  system: ⚙️ System message
+  suno: 🎵 Music generation
+  image: 🖼️ Image generation
+  clear: 🧹 Clear context
+  history: 📜 History
+  referral: 🔗 Referral
+  placeholder: 💬 Ask your question 
