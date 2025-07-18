@@ -63,7 +63,7 @@ async function onShutdown() {
 async function startBot() {
   logger.info('Starting bot...');
   
-  const bot = new Bot(config.BOT_TOKEN);
+  const bot = new Bot(config.botToken);
   
   // Add middlewares
   bot.use(i18n);
@@ -78,7 +78,7 @@ async function startBot() {
   });
   
   try {
-    if (config.WEBHOOK_ENABLED && config.WEBHOOK_URL) {
+    if (config.webhookEnabled && config.webhookUrl) {
       logger.info('Starting bot webhook...');
       
       // Delete existing webhook first
@@ -90,7 +90,7 @@ async function startBot() {
       
       // Set new webhook
       try {
-        await bot.api.setWebhook(config.WEBHOOK_URL);
+        await bot.api.setWebhook(config.webhookUrl);
       } catch (err) {
         logger.warn('Failed to set webhook:', err.message);
       }
@@ -99,11 +99,11 @@ async function startBot() {
 
       // Start webhook server
       Bun.serve({
-        port: config.WEBHOOK_PORT,
-        hostname: config.WEBHOOK_HOST,
+        port: config.webhookPort,
+        hostname: config.webhookHost,
         fetch(req) {
           const url = new URL(req.url);
-          if (url.pathname === config.WEBHOOK_PATH && req.method === 'POST') {
+          if (url.pathname === config.webhookPath && req.method === 'POST') {
             req.json().then(update => {
               bot.handleUpdate(update);
             });
