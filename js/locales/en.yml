@@ -103,3 +103,23 @@ errors:
     /balance - ✨ Check balance
     /buy - 💎 Top up
     /referral - 👥 Invite a friend to get more **⚡️**! 
+
+payment:
+  choose_model: "Choose model for balance top-up"
+  choose_payment_method: "Choose payment method"
+  how_much_energy: "How much ⚡️ do you want to add to your balance?"
+  back_to_model_selection: "⬅️ Back to model selection"
+  back_to_payment_method: "⬅️ Back to payment method selection"
+  telegram_stars: "Telegram Stars ⭐️"
+  card_payment: "Card payment 💳"
+  gpt_4o: "🤖 GPT-4o"
+  gpt_3_5: "🦾 GPT-3.5"
+  purchase_energy: "Purchase ⚡️"
+  buy_energy_question: "Buy {tokens}⚡️?"
+  successful_payment: "🤩 Payment for **{sum} {currency}** was successful! 🤩\n\nThank you for supporting the project!"
+  balance_topped_up: "🤩 Your balance has been topped up by **{tokens}**⚡️!"
+  current_balance: "💵 Current balance: **{tokens}⚡️**"
+  donation:
+    title: "Thank you for supporting the project! 🤩"
+    subtitle: "We'll soon be delighting you with new and cool features!"
+    choose_amount: "Choose donation amount:" 
