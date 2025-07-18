@@ -86,7 +86,7 @@ imagesRouter.message(StateCommand(StateTypes.Image), async (message) => {
   try {
     const tokens = await tokenizeService.get_tokens(userId);
     if (tokens.tokens < 0) {
-      await message.answer(`У вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!`);
+      await message.answer(ctx.t('errors.not_enough_energy'));
       await stateService.setCurrentState(userId, StateTypes.Default);
       return;
     }
@@ -135,7 +135,7 @@ imagesRouter.message(StateCommand(StateTypes.Flux), async (message) => {
   try {
     const tokens = await tokenizeService.get_tokens(userId);
     if (tokens.tokens < 0) {
-      await message.answer(`У вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!`);
+      await message.answer(ctx.t('errors.not_enough_energy'));
       await stateService.setCurrentState(userId, StateTypes.Default);
       return;
     }
@@ -186,7 +186,7 @@ imagesRouter.message(StateCommand(StateTypes.Dalle3), async (message) => {
   try {
     const tokens = await tokenizeService.get_tokens(userId);
     if (tokens.tokens < 0) {
-      await message.answer(`У вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!`);
+      await message.answer(ctx.t('errors.not_enough_energy'));
       await stateService.setCurrentState(userId, StateTypes.Default);
       return;
     }
@@ -254,7 +254,7 @@ imagesRouter.message(StateCommand(StateTypes.Midjourney), async (message) => {
   try {
     const tokens = await tokenizeService.get_tokens(userId);
     if (tokens.tokens < 0) {
-      await message.answer(`У вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!`);
+      await message.answer(ctx.t('errors.not_enough_energy'));
       await stateService.setCurrentState(userId, StateTypes.Default);
       return;
     }

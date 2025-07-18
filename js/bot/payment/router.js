@@ -208,14 +208,14 @@ paymentsRouter.message(
     const { successful_payment } = message;
     if (successful_payment.invoice_payload.startsWith('donation')) {
       const sum = successful_payment.total_amount / 100;
-      await message.answer(`🤩 Платёж на сумму *${sum} ${successful_payment.currency}* прошел успешно! 🤩\n\nБлагодарим за поддержку проекта!`);
+      await message.answer(`🤩 Платёж на сумму **${sum} ${successful_payment.currency}** прошел успешно! 🤩\n\nБлагодарим за поддержку проекта!`);
     } else if (successful_payment.invoice_payload.startsWith('buy_balance')) {
       const parts = successful_payment.invoice_payload.split(' ');
       const tokens = parseInt(parts[1], 10);
       await tokenizeService.update_user_token(message.from_user.id, tokens, 'add');
-      await message.answer(`🤩 Ваш баланс пополнен на *${tokens}*⚡️!`);
+      await message.answer(`🤩 Ваш баланс пополнен на **${tokens}**⚡️!`);
       const { tokens: newTokens } = await tokenizeService.get_tokens(message.from_user.id);
-      await message.answer(`💵 Текущий баланс: *${newTokens}⚡️*`);
+      await message.answer(`💵 Текущий баланс: **${newTokens}⚡️**`);
     }
   }
 );
