@@ -3,7 +3,7 @@
 // import { InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
 // --------------------------------------------------------------
 
-import { InlineKeyboard } from '../grammy_stub.js';
+import { InlineKeyboard } from 'grammy';
 
 // Temporary lightweight stubs to keep existing code functional during migration.
 const ParseMode = { MARKDOWN: 'Markdown', MARKDOWN_V2: 'MarkdownV2', HTML: 'HTML' };

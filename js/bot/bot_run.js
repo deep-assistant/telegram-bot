@@ -92,17 +92,15 @@ async function onShutdown() {
 export async function botRun() {
   debug('botRun start');
 
-  const bot = new Bot(config.TOKEN, {
-    client: config.IS_DEV ? undefined : { baseUrl: config.ANALYTICS_URL }
-  });
+  const bot = new Bot(config.TOKEN);
 
-  // Set default parse_mode to MarkdownV2 for send* methods
-  bot.api.config.use((prev, method, payload) => {
-    if (method.startsWith('send') && !('parse_mode' in payload)) {
-      return { ...payload, parse_mode: 'MarkdownV2' };
-    }
-    return payload;
-  });
+  // Note: API configuration was causing issues, so we'll handle parse_mode in individual calls
+  // bot.api.config.use((prev, method, payload) => {
+  //   if (method.startsWith('send') && !('parse_mode' in payload)) {
+  //     return { ...payload, parse_mode: 'MarkdownV2' };
+  //   }
+  //   return payload;
+  // });
 
   bot.use(createI18nMiddleware());
   bot.use(albumMiddleware());
@@ -116,7 +114,11 @@ export async function botRun() {
 
   if (config.WEBHOOK_ENABLED) {
     debug('Starting via webhook');
-    await bot.api.setWebhook(config.WEBHOOK_URL);
+    try {
+      await bot.api.setWebhook(config.WEBHOOK_URL);
+    } catch (err) {
+      console.warn('Failed to set webhook:', err.message);
+    }
     await onStartup();
 
     Bun.serve({
@@ -137,12 +139,20 @@ export async function botRun() {
     // Handle shutdown
     process.on('SIGINT', async () => {
       await onShutdown();
-      await bot.api.deleteWebhook();
+      try {
+        await bot.api.deleteWebhook();
+      } catch (err) {
+        console.warn('Failed to delete webhook:', err.message);
+      }
       process.exit(0);
     });
     process.on('SIGTERM', async () => {
       await onShutdown();
-      await bot.api.deleteWebhook();
+      try {
+        await bot.api.deleteWebhook();
+      } catch (err) {
+        console.warn('Failed to delete webhook:', err.message);
+      }
       process.exit(0);
     });
 
@@ -150,7 +160,18 @@ export async function botRun() {
     return new Promise(() => {});
   } else {
     debug('Starting polling');
-    await bot.api.deleteWebhook({ drop_pending_updates: true });
-    await bot.start();
+    try {
+      await bot.api.deleteWebhook({ drop_pending_updates: true });
+    } catch (err) {
+      console.warn('Failed to delete webhook:', err.message);
+    }
+    try {
+      console.log('Starting bot polling...');
+      await bot.start();
+    } catch (err) {
+      console.error('Failed to start bot:', err.message);
+      console.error('Full error:', err);
+      process.exit(1);
+    }
   }
 }
