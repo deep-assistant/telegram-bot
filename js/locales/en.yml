@@ -64,7 +64,8 @@ start:
     /referral - 🔗 Get referral link
     /suno - 🎵 Music generation (Suno)
     /text - Send text message
-  app_link: Link to the application: https://t.me/DeepGPTBot/App
+  app_link: >
+    Link to the application: https://t.me/DeepGPTBot/App
 
 main_keyboard:
   balance: ✨ Balance
