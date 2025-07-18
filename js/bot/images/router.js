@@ -153,9 +153,7 @@ imagesRouter.message(StateCommand(StateTypes.Flux), async (message) => {
     await message.bot.sendChatAction(message.chat.id, 'typing');
     imageService.setWaitingImage(userId, true);
     async function taskIdGet(taskId) {
-      await message.answer(`
-[0;32m1:flux:${taskId}:generate[0m`
-      );
+      await message.answer(`\`1:flux:${taskId}:generate\``);
       await message.answer(`Это ID вашей генерации.\n\nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n\nВы также получите результат генерации по готовности.`);
     }
     const result = await imageService.generateFlux(userId, message.text, taskIdGet);
