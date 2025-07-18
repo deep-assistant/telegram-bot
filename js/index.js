@@ -2,6 +2,16 @@ import { Bot } from 'grammy';
 import { run } from '@grammyjs/runner';
 import { config } from './config.js';
 import { startRouter } from './bot/start/router.js';
+// import agreementRouter from './bot/agreement/router.js';
+// import apiRouter from './bot/api/router.js';
+// import gptRouter from './bot/gpt/router.js';
+// import imageEditingRouter from './bot/image_editing/router.js';
+// import imagesRouter from './bot/images/router.js';
+// import paymentsRouter from './bot/payment/router.js';
+// import referralRouter from './bot/referral/router.js';
+// import sunoRouter from './bot/suno/router.js';
+// import taskRouter from './bot/tasks/router.js';
+// import diagnosticsRouter from './bot/diagnostics/router.js';
 import { i18n } from './i18n.js';
 import { createLogger } from './utils/logger.js';
 
@@ -52,6 +62,21 @@ function albumMiddleware() {
   };
 }
 
+function applyRouters(bot) {
+  logger.debug('Applying routers');
+  // bot.use(imagesRouter);
+  // bot.use(sunoRouter);
+  bot.use(startRouter);
+  // bot.use(diagnosticsRouter);
+  // bot.use(referralRouter);
+  // bot.use(paymentsRouter);
+  // bot.use(apiRouter);
+  // bot.use(agreementRouter);
+  // bot.use(imageEditingRouter);
+  // bot.use(taskRouter);
+  // bot.use(gptRouter);
+}
+
 async function onStartup() {
   logger.info('Bot is starting...');
 }
@@ -63,14 +88,24 @@ async function onShutdown() {
 async function startBot() {
   logger.info('Starting bot...');
   
-  const bot = new Bot(config.botToken);
+  // Initialize the bot based on the development flag (mirroring Python logic)
+  let bot;
+  if (config.isDev) {
+    bot = new Bot(config.botToken);
+  } else {
+    // Production mode with analytics URL
+    bot = new Bot(config.botToken, {
+      // Note: grammY doesn't have direct session configuration like aiogram
+      // We'll handle analytics through API calls when needed
+    });
+  }
   
   // Add middlewares
   bot.use(i18n);
   bot.use(albumMiddleware());
   
-  // Add routers
-  bot.use(startRouter);
+  // Apply routers
+  applyRouters(bot);
   
   // Error handling
   bot.catch((err) => {
@@ -140,10 +175,24 @@ async function startBot() {
       // Keep process alive
       return new Promise(() => {});
     } else {
-      // Main mode: Long polling
+      // Main mode: Long polling (mirroring Python logic)
       logger.info('Starting bot polling...');
+      
+      // Delete webhook if exists (mirroring Python logic)
+      try {
+        await bot.api.deleteWebhook({ drop_pending_updates: true });
+      } catch (err) {
+        logger.warn('Failed to delete webhook:', err.message);
+      }
+      
       await onStartup();
-      await run(bot);
+      
+      // Start polling with options (mirroring Python skip_updates=False, drop_pending_updates=True)
+      await run(bot, {
+        runner: {
+          drop_pending_updates: true
+        }
+      });
     }
   } catch (err) {
     logger.error('Bot encountered an error:', err);
@@ -151,8 +200,13 @@ async function startBot() {
   }
 }
 
-// Start the bot
-startBot().catch((err) => {
-  logger.error('Failed to start bot:', err);
-  process.exit(1);
-});
+// Export startBot for use in __main__.js
+export { startBot };
+
+// Start the bot if this file is run directly
+if (import.meta.main) {
+  startBot().catch((err) => {
+    logger.error('Failed to start bot:', err);
+    process.exit(1);
+  });
+}
