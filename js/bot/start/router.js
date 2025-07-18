@@ -3,6 +3,7 @@ import { checkSubscription } from '../gpt/utils.js';
 import { createMainKeyboard, sendMessage } from '../main_keyboard.js';
 import { tokenizeService, referralsService } from '../../services/index.js';
 import { createLogger, lazyDebug } from '../../utils/logger.js';
+import tgMarkdown from 'telegramify-markdown';
 
 import { Composer, InlineKeyboard } from 'grammy';
 
@@ -54,7 +55,7 @@ startRouter.command('start', async (ctx) => {
       const fullName = `${ctx.from.first_name}${ctx.from.last_name ? ' ' + ctx.from.last_name : ''}`;
       const mention = `<a href='tg://user?id=${ctx.from.id}'>${fullName}</a>`;
       const refNotifyText = ctx.t('start.ref_notification', { username: userName ? `@${userName}` : fullName, mention });
-      await ctx.api.sendMessage(chatId, refNotifyText, { parse_mode: 'HTML' });
+      await ctx.api.sendMessage(chatId, tgMarkdown(refNotifyText, 'escape'), { parse_mode: 'MarkdownV2' });
     }
   }
 

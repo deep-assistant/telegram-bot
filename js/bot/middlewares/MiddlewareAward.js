@@ -20,7 +20,7 @@ export class MiddlewareAward extends BaseMiddleware {
 
 /balance - ✨ Узнать баланс
 /referral - 🔗 Приглашайте друзей - получайте больше бонусов!`,
-          { parse_mode: 'Markdown' }
+          { parse_mode: 'MarkdownV2' }
         );
       }
 
@@ -33,7 +33,7 @@ export class MiddlewareAward extends BaseMiddleware {
 
 /balance - ✨ Узнать баланс
 /referral - 🔗 Подробности рефералки`,
-          { parse_mode: 'Markdown' }
+          { parse_mode: 'MarkdownV2' }
         );
       }
     }

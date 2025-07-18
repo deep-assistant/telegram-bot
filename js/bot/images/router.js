@@ -154,7 +154,7 @@ imagesRouter.message(StateCommand(StateTypes.Flux), async (message) => {
     imageService.setWaitingImage(userId, true);
     async function taskIdGet(taskId) {
       await message.answer(`
-[0;32m1:flux:${taskId}:generate[0m`
+[0;32m1:flux:${taskId}:generate[0m`
       );
       await message.answer(`Это ID вашей генерации.\n\nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n\nВы также получите результат генерации по готовности.`);
     }
@@ -213,7 +213,7 @@ imagesRouter.message(StateCommand(StateTypes.Dalle3), async (message) => {
     ]] }) });
     await waitMsg.delete();
     await tokenizeService.update_user_token(userId, imgResult.total_tokens * 2, 'subtract');
-    await message.answer(`🤖 Затрачено на генерацию изображения DALL·E 3 *${imgResult.total_tokens * 2}*⚡️\n\n❔ /help - Информация по ⚡️`);
+    await message.answer(`🤖 Затрачено на генерацию изображения DALL·E 3 **${imgResult.total_tokens * 2}**⚡️\n\n❔ /help - Информация по ⚡️`);
   } catch (e) {
     console.error('Failed to generate DALL·E 3 image:', e);
     await message.answer(DEFAULT_ERROR_MESSAGE);
@@ -301,7 +301,7 @@ imagesRouter.callbackQuery(StartWithQuery('upscale-midjourney'), async (callback
 imagesRouter.callbackQuery(StartWithQuery('variation-midjourney'), async (callbackQuery) => {
   const [_, taskId, index] = callbackQuery.data.split(' ');
   await callbackQuery.answer();
-  const waitMsg = await callbackQuery.message.answer('**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.');
+  const waitMsg = await callbackQuery.message.answer('**⌛️Ожидайте генерацию...**\nПримерное время ожидания **1-3 минуты**.');
   async function taskIdGet(newTaskId) {
     await callbackQuery.message.answer(`\`1:midjourney:${newTaskId}:generate\``);
     await callbackQuery.message.answer(`Это ID вашей генерации.\n\nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n\nВы также получите результат генерации по готовности.`);
@@ -346,7 +346,7 @@ async function generateBaseStableDiffusionKeyboard(callbackQuery) {
   const currentSize = await imageService.getSizeModel(userId);
   const currentSteps = await imageService.getSteps(userId);
   const currentCfg = await imageService.getCfgModel(userId);
-  await callbackQuery.message.editText('Параметры *Stable Diffusion*:', { parse_mode: 'Markdown' });
+  await callbackQuery.message.editText('Параметры **Stable Diffusion**:', { parse_mode: 'MarkdownV2' });
   await callbackQuery.message.editReplyMarkup({ reply_markup: new InlineKeyboardMarkup({
     resize_keyboard: true,
     inline_keyboard: [
@@ -366,11 +366,11 @@ async function generateBaseMidjourneyKeyboard(callbackQuery) {
   const userId = callbackQuery.from_user.id;
   const currentSize = await imageService.getMidjourneySize(userId);
   const sizeText = (size) => currentSize === size ? `✅ ${size}` : size;
-  await callbackQuery.message.editText(`Параметры *Midjourney*:
+  await callbackQuery.message.editText(`Параметры **Midjourney**:
 
 Выберите соотношение сторон изображения. Текущее соотношение отмечено галочкой.
 
-После этого нажмите кнопку \`Сгенерировать\`.`, { parse_mode: 'Markdown' });
+После этого нажмите кнопку \`Сгенерировать\`.`, { parse_mode: 'MarkdownV2' });
   await callbackQuery.message.editReplyMarkup({ reply_markup: new InlineKeyboardMarkup({
     resize_keyboard: true,
     inline_keyboard: [
@@ -398,7 +398,7 @@ async function generateBaseDalle3Keyboard(callbackQuery) {
   const userId = callbackQuery.from_user.id;
   const currentSize = await imageService.getDalleSize(userId);
   const sizeText = (size) => currentSize === size ? `✅ ${size}` : size;
-  await callbackQuery.message.editText('Параметры *Dall-e-3*:', { parse_mode: 'Markdown' });
+  await callbackQuery.message.editText('Параметры **Dall-e-3**:', { parse_mode: 'MarkdownV2' });
   await callbackQuery.message.editReplyMarkup({ reply_markup: new InlineKeyboardMarkup({
     resize_keyboard: true,
     inline_keyboard: [
@@ -415,7 +415,7 @@ async function generateBaseFluxKeyboard(callbackQuery) {
   const userId = callbackQuery.from_user.id;
   const currentModel = await imageService.getFluxModel(userId);
   const modelText = (model, text) => currentModel === model ? `✅ ${text}` : text;
-  await callbackQuery.message.editText('Параметры *Flux*:', { parse_mode: 'Markdown' });
+  await callbackQuery.message.editText('Параметры **Flux**:', { parse_mode: 'MarkdownV2' });
   await callbackQuery.message.editReplyMarkup({ reply_markup: new InlineKeyboardMarkup({
     resize_keyboard: true,
     inline_keyboard: [

@@ -41,14 +41,14 @@ diagnosticsRouter.message(TextCommand([HERE_AND_NOW_COMMAND]), async (message) =
     responseLines.push(...chatInfo);
   }
   responseLines.push('\n**Timestamps**:');
-  responseLines.push(`Telegram Time: *${telegramTime.toUTCString()}*`);
-  responseLines.push(`Bot Time: *${botTime.toUTCString()}*`);
+  responseLines.push(`Telegram Time: **${telegramTime.toUTCString()}**`);
+  responseLines.push(`Bot Time: **${botTime.toUTCString()}**`);
   responseLines.push('\n**Performance Metrics**:');
-  responseLines.push(`Latency: *${latency.toFixed(2)}* seconds`);
+  responseLines.push(`Latency: **${latency.toFixed(2)}** seconds`);
 
   const endTime = new Date();
   const processingTime = (endTime - startTime) / 1000;
-  responseLines.push(`Processing Time: *${processingTime.toFixed(2)}* seconds`);
+  responseLines.push(`Processing Time: **${processingTime.toFixed(2)}** seconds`);
 
   const response = responseLines.join('\n');
   await sendMarkdownMessage(message, response);
