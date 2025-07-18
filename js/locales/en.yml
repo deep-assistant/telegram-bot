@@ -127,7 +127,10 @@ payment:
   gpt_3_5: "🦾 GPT-3.5"
   purchase_energy: "Purchase ⚡️"
   buy_energy_question: "Buy {tokens}⚡️?"
+  pay_stars: "Pay {amount} ⭐️"
   successful_payment: "🤩 Payment for **{sum} {currency}** was successful! 🤩\n\nThank you for supporting the project!"
+  successful_payment_stars: "🤩 Payment for **{amount} {currency}** was successful! 🤩\n\nYour balance has been topped up by **{tokens}**⚡️!"
+  successful_payment_card: "🤩 Payment for **{amount} {currency}** was successful! 🤩\n\nYour balance has been topped up by **{tokens}**⚡️!"
   balance_topped_up: "🤩 Your balance has been topped up by **{tokens}**⚡️!"
   current_balance: "💵 Current balance: **{tokens}⚡️**"
   donation:
