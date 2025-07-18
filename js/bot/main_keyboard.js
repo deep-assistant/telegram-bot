@@ -9,11 +9,11 @@ const FIRST_MESSAGES_LIMIT = 3;
 export function createMainKeyboard(ctx) {
   logger.trace(`Creating main keyboard for user: ${ctx.from?.id}`);
   const keyboard = new Keyboard()
-    .text(ctx.t('main_keyboard.balance')).text(ctx.t('main_keyboard.buy')).row()
-    .text(ctx.t('main_keyboard.model')).text(ctx.t('main_keyboard.system')).row()
-    .text(ctx.t('main_keyboard.suno')).text(ctx.t('main_keyboard.image')).row()
-    .text(ctx.t('main_keyboard.clear')).text(ctx.t('main_keyboard.history')).row()
-    .text(ctx.t('main_keyboard.referral'))
+    .text(ctx.t('buttons.balance')).text(ctx.t('buttons.buy')).row()
+    .text(ctx.t('buttons.model')).text(ctx.t('buttons.system')).row()
+    .text(ctx.t('buttons.suno')).text(ctx.t('buttons.image')).row()
+    .text(ctx.t('buttons.clear')).text(ctx.t('buttons.history')).row()
+    .text(ctx.t('buttons.referral'))
     .resized()
     .placeholder(ctx.t('main_keyboard.placeholder'));
   
