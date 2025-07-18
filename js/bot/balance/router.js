@@ -7,158 +7,60 @@ const logger = createLogger('balance_router');
 
 export const balanceRouter = new Composer();
 
-// Balance command handler
-balanceRouter.command('balance', async (ctx) => {
+// Robust MarkdownV2 escape function
+function escapeMarkdownV2(text) {
+  return String(text).replace(/[\\_\*\[\]\(\)~`>#+\-=|{}.!]/g, '\\$&');
+}
+
+function formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAccount }) {
+  return ctx.t('balance.message', {
+    referrals: referral.children.length,
+    award: referral.award,
+    accountStatus: acceptAccount(),
+    dateLine: getDateLine(),
+    tokens: gptTokens.tokens || 0
+  });
+}
+
+async function sendBalance(ctx) {
   const userId = ctx.from.id;
-  logger.debug('Balance command triggered for user:', userId);
-  
+  logger.debug('Balance requested for user:', userId);
   try {
-    // Fetch token and referral info
     const gptTokens = await tokenizeService.get_tokens(userId);
     const referral = await referralsService.getReferral(userId);
-
-    // Calculate next refill time
     const lastUpdate = new Date(referral.lastUpdate);
     const newDate = new Date(lastUpdate.getTime() + 24 * 60 * 60 * 1000);
     const currentDate = new Date();
 
     function getDate() {
       if (newDate.getDate() === currentDate.getDate()) {
-        return `Сегодня в ${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}`;
+        return ctx.t('balance.today', { time: `${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}` });
       } else {
-        return `Завтра в ${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}`;
+        return ctx.t('balance.tomorrow', { time: `${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}` });
       }
     }
-
     function getDateLine() {
       if ((gptTokens.tokens || 0) >= 30000) {
-        return '🕒 Автопополнение доступно, если меньше *30000*⚡️';
+        return ctx.t('balance.autorefill_available');
       }
-      return `🕒 Следующее автопополнение будет: *${getDate()}*`;
+      return ctx.t('balance.next_autorefill', { date: getDate() });
     }
-
     function acceptAccount() {
       return referral.isActivated
-        ? '🔑 Ваш аккаунт подтвержден!'
-        : '🔑 Ваш аккаунт не подтвержден, зайдите через сутки и совершите любое действие!';
+        ? ctx.t('balance.account_confirmed')
+        : ctx.t('balance.account_not_confirmed');
     }
-
-    // Send balance info
-    await ctx.reply(`👩🏻‍💻 Количество рефералов: *${referral.children.length}*
-🤑 Ежедневное автопополнение 🔋: *${referral.award}⚡️*
-${acceptAccount()}
-
-${getDateLine()}
-
-💵 Текущий баланс: *${gptTokens.tokens || 0}⚡️*`);
+    // Interpolate first, then escape
+    const text = formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAccount });
+    const escaped = escapeMarkdownV2(text);
+    await ctx.reply(escaped, { parse_mode: 'MarkdownV2' });
   } catch (error) {
     logger.error('Error in balance command:', error);
     console.error('Full error details:', error);
-    await ctx.reply('Ошибка при получении баланса. Попробуйте позже.');
+    await ctx.reply(ctx.t('balance.error'));
     if (config.isDev) process.exit(1);
   }
-});
+}
 
-// Balance button handler (English)
-balanceRouter.hears('✨ Balance', async (ctx) => {
-  const userId = ctx.from.id;
-  logger.debug('Balance button triggered for user:', userId);
-  
-  try {
-    // Fetch token and referral info
-    const gptTokens = await tokenizeService.get_tokens(userId);
-    const referral = await referralsService.getReferral(userId);
-
-    // Calculate next refill time
-    const lastUpdate = new Date(referral.lastUpdate);
-    const newDate = new Date(lastUpdate.getTime() + 24 * 60 * 60 * 1000);
-    const currentDate = new Date();
-
-    function getDate() {
-      if (newDate.getDate() === currentDate.getDate()) {
-        return `Сегодня в ${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}`;
-      } else {
-        return `Завтра в ${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}`;
-      }
-    }
-
-    function getDateLine() {
-      if ((gptTokens.tokens || 0) >= 30000) {
-        return '🕒 Автопополнение доступно, если меньше *30000*⚡️';
-      }
-      return `🕒 Следующее автопополнение будет: *${getDate()}*`;
-    }
-
-    function acceptAccount() {
-      return referral.isActivated
-        ? '🔑 Ваш аккаунт подтвержден!'
-        : '🔑 Ваш аккаунт не подтвержден, зайдите через сутки и совершите любое действие!';
-    }
-
-    // Send balance info
-    await ctx.reply(`👩🏻‍💻 Количество рефералов: *${referral.children.length}*
-🤑 Ежедневное автопополнение 🔋: *${referral.award}⚡️*
-${acceptAccount()}
-
-${getDateLine()}
-
-💵 Текущий баланс: *${gptTokens.tokens || 0}⚡️*`);
-  } catch (error) {
-    logger.error('Error in balance button:', error);
-    console.error('Full error details:', error);
-    await ctx.reply('Ошибка при получении баланса. Попробуйте позже.');
-    if (config.isDev) process.exit(1);
-  }
-});
-
-// Balance button handler (Russian)
-balanceRouter.hears('✨ Баланс', async (ctx) => {
-  const userId = ctx.from.id;
-  logger.debug('Balance button (Russian) triggered for user:', userId);
-  
-  try {
-    // Fetch token and referral info
-    const gptTokens = await tokenizeService.get_tokens(userId);
-    const referral = await referralsService.getReferral(userId);
-
-    // Calculate next refill time
-    const lastUpdate = new Date(referral.lastUpdate);
-    const newDate = new Date(lastUpdate.getTime() + 24 * 60 * 60 * 1000);
-    const currentDate = new Date();
-
-    function getDate() {
-      if (newDate.getDate() === currentDate.getDate()) {
-        return `Сегодня в ${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}`;
-      } else {
-        return `Завтра в ${newDate.getHours()}:${String(newDate.getMinutes()).padStart(2, '0')}`;
-      }
-    }
-
-    function getDateLine() {
-      if ((gptTokens.tokens || 0) >= 30000) {
-        return '🕒 Автопополнение доступно, если меньше *30000*⚡️';
-      }
-      return `🕒 Следующее автопополнение будет: *${getDate()}*`;
-    }
-
-    function acceptAccount() {
-      return referral.isActivated
-        ? '🔑 Ваш аккаунт подтвержден!'
-        : '🔑 Ваш аккаунт не подтвержден, зайдите через сутки и совершите любое действие!';
-    }
-
-    // Send balance info
-    await ctx.reply(`👩🏻‍💻 Количество рефералов: *${referral.children.length}*
-🤑 Ежедневное автопополнение 🔋: *${referral.award}⚡️*
-${acceptAccount()}
-
-${getDateLine()}
-
-💵 Текущий баланс: *${gptTokens.tokens || 0}⚡️*`);
-  } catch (error) {
-    logger.error('Error in balance button (Russian):', error);
-    console.error('Full error details:', error);
-    await ctx.reply('Ошибка при получении баланса. Попробуйте позже.');
-    if (config.isDev) process.exit(1);
-  }
-}); 
+balanceRouter.command('balance', sendBalance);
+balanceRouter.hears(['✨ Balance', '✨ Баланс'], sendBalance); 
