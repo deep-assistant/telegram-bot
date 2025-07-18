@@ -11,7 +11,7 @@ const debug = createDebug('telegram-bot:start_router');
 
 async function handleReferral(ctx, userId, refUserId) {
   const result = await referralsService.createReferral(userId, refUserId);
-  console.log(result, 'resuuuuult');
+  console.debug('Referral result:', result);
   if (!refUserId) return;
   if (!result || result.parent == null) return;
 
