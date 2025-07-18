@@ -28,7 +28,7 @@ async function getFreeConversation() {
 
 class CompletionsService {
   constructor() {
-    this.openai = new OpenAI({ apiKey: config.KEY_DEEPINFRA, baseURL: 'https://api.deepinfra.com/v1/openai' });
+    this.openai = new OpenAI({ apiKey: config.keyDeepinfra, baseURL: 'https://api.deepinfra.com/v1/openai' });
   }
 
   clearHistory(userId) {
@@ -57,9 +57,9 @@ class CompletionsService {
   }
 
   async queryChatGPT(userId, message, systemMessage, gptModel, botModel, singleMessage) {
-    const params = { masterToken: config.ADMIN_TOKEN };
-    const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
-    const response = await asyncPost(`${config.PROXY_URL}/completions`, { params, json: payload });
+    const params = { masterToken: config.adminToken };
+const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
+const response = await asyncPost(`${config.proxyUrl}/completions`, { params, json: payload });
     if (response.status === 200) {
       const completions = await response.json();
       const responseContent = completions.choices[0].message.content;
@@ -81,7 +81,7 @@ class CompletionsService {
   async getFile(parts, conversation) {
     const url = `https://api.goapi.xyz/api/chatgpt/v1/conversation/${conversation}/download`;
     const payload = JSON.stringify({ file_id: parts[0].asset_pointer.split('file-service://')[1] });
-    const headers = { 'X-API-Key': config.GO_API_KEY, 'Content-Type': 'application/json' };
+    const headers = { 'X-API-Key': config.goApiKey, 'Content-Type': 'application/json' };
     const response = await asyncPost(url, { data: payload, headers });
     return response.json();
   }
@@ -92,9 +92,9 @@ class CompletionsService {
     }
     const conversation = await getFreeConversation();
     const url = `https://api.goapi.xyz/api/chatgpt/v1/conversation/${conversation}`;
-    const payload = JSON.stringify({ model: 'gpt-4o', content: { content_type: 'multimodal_text', parts: [prompt] }, stream: true });
-    const headers = { 'X-API-Key': config.GO_API_KEY, 'Content-Type': 'application/json' };
-    const response = await asyncPost(url, { data: payload, headers });
+const payload = JSON.stringify({ model: 'gpt-4o', content: { content_type: 'multimodal_text', parts: [prompt] }, stream: true });
+const headers = { 'X-API-Key': config.goApiKey, 'Content-Type': 'application/json' };
+const response = await asyncPost(url, { data: payload, headers });
     let images = [];
     let texts = [];
     console.log(await response.text());
