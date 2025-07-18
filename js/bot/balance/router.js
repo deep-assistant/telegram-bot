@@ -2,15 +2,13 @@ import { Composer } from 'grammy';
 import { tokenizeService, referralsService } from '../../services/index.js';
 import { createLogger } from '../../utils/logger.js';
 import { config } from '../../config.js';
+import { sendMessage } from '../main_keyboard.js';
 
 const logger = createLogger('balance_router');
 
 export const balanceRouter = new Composer();
 
-// Robust MarkdownV2 escape function
-function escapeMarkdownV2(text) {
-  return String(text).replace(/[\\_\*\[\]\(\)~`>#+\-=|{}.!]/g, '\\$&');
-}
+
 
 function formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAccount }) {
   return ctx.t('balance.message', {
@@ -50,14 +48,13 @@ async function sendBalance(ctx) {
         ? ctx.t('balance.account_confirmed')
         : ctx.t('balance.account_not_confirmed');
     }
-    // Interpolate first, then escape
+    // Use sendMessage which handles MarkdownV2 properly
     const text = formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAccount });
-    const escaped = escapeMarkdownV2(text);
-    await ctx.reply(escaped, { parse_mode: 'MarkdownV2' });
+    await sendMessage(ctx, text);
   } catch (error) {
     logger.error('Error in balance command:', error);
     console.error('Full error details:', error);
-    await ctx.reply(ctx.t('balance.error'));
+    await sendMessage(ctx, ctx.t('balance.error'));
     if (config.isDev) process.exit(1);
   }
 }
