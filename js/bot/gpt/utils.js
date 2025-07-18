@@ -4,6 +4,7 @@
 // --------------------------------------------------------------
 
 import { InlineKeyboard } from 'grammy';
+import { createLogger } from '../../utils/logger.js';
 
 // Temporary lightweight stubs to keep existing code functional during migration.
 const ParseMode = { MARKDOWN: 'Markdown', MARKDOWN_V2: 'MarkdownV2', HTML: 'HTML' };
@@ -32,6 +33,8 @@ const telegramifyMarkdown = {
   markdownify: (text) => tgMarkdown(text, 'escape')
 };
 
+const logger = createLogger('gpt_utils');
+
 export function checkedText(value) {
   return `✅ ${value}`;
 }
@@ -49,14 +52,14 @@ export const subscribeText = `
 export async function checkSubscription(ctx, userId = null) {
   if (!userId) userId = ctx.from.id;
   if (!userId) {
-    console.warn('checkSubscription: userId undefined');
+    logger.warn('checkSubscription: userId undefined');
     return true;
   }
   try {
     const chatMember = await ctx.api.getChatMember('-1002239712203', userId);
     return ['creator', 'administrator', 'member'].includes(chatMember.status);
   } catch (err) {
-    console.error('checkSubscription failed:', err);
+    logger.error('checkSubscription failed:', err);
     return false;
   }
 }

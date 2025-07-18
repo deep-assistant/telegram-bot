@@ -54,4 +54,7 @@ export function createI18nMiddleware(defaultLocale = 'ru') {
   };
 }
 
+// Export the middleware as i18n for direct use
+export const i18n = createI18nMiddleware();
+
 // Current implementation supports multiline via YAML parsing 

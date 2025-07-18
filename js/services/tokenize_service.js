@@ -1,4 +1,4 @@
-import config from '../config.js';
+import { config } from '../config.js';
 import { dataBase, dbKey } from '../db/init_db.js';
 import { asyncGet, asyncPost, asyncDelete, asyncPut } from './utils.js';
 import { getUserName } from '../bot/utils.js';
