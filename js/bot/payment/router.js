@@ -29,17 +29,17 @@ const donationButtons = [
   ]
 ];
 
-function createBuyBalanceKeyboardModel() {
+function createBuyBalanceKeyboardModel(ctx) {
   return new InlineKeyboard()
-    .text('🤖 GPT-4o', `buy-gpt ${GPTModels.GPT_4o}`)
-    .text('🦾 GPT-3.5', `buy-gpt ${GPTModels.GPT_3_5}`)
+    .text(ctx.t('payment.gpt_4o'), `buy-gpt ${GPTModels.GPT_4o}`)
+    .text(ctx.t('payment.gpt_3_5'), `buy-gpt ${GPTModels.GPT_3_5}`)
     .row();
 }
 
-function createBuyBalanceKeyboardMethod(model) {
+function createBuyBalanceKeyboardMethod(ctx, model) {
   return new InlineKeyboard()
-    .text('Telegram Stars ⭐️', `buy_method_stars ${model} stars`)
-    .text('Оплата картой 💳', `buy_method_card ${model} card`)
+    .text(ctx.t('payment.telegram_stars'), `buy_method_stars ${model} stars`)
+    .text(ctx.t('payment.card_payment'), `buy_method_card ${model} card`)
     .row();
 }
 
@@ -74,18 +74,18 @@ paymentRouter.hears([PAYMENT_COMMAND_TEXT], async (ctx) => {
   });
 });
 
-// /buy commands
+// /buy commands - should show payment method selection directly (like Python)
 paymentRouter.command('buy', async (ctx) => {
   logger.debug('Buy command triggered');
-  await ctx.reply(ctx.t('payment.choose_model'), {
-    reply_markup: createBuyBalanceKeyboardModel()
+  await ctx.reply(ctx.t('payment.choose_payment_method'), {
+    reply_markup: createBuyBalanceKeyboardMethod(ctx, GPTModels.GPT_4o)
   });
 });
 
-paymentRouter.hears([BALANCE_PAYMENT_COMMAND_TEXT], async (ctx) => {
-  logger.debug('Buy command triggered');
-  await ctx.reply(ctx.t('payment.choose_model'), {
-    reply_markup: createBuyBalanceKeyboardModel()
+paymentRouter.hears([BALANCE_PAYMENT_COMMAND_TEXT, '💎 Top up', '💎 Пополнить'], async (ctx) => {
+  logger.debug('Buy button triggered');
+  await ctx.reply(ctx.t('payment.choose_payment_method'), {
+    reply_markup: createBuyBalanceKeyboardMethod(ctx, GPTModels.GPT_4o)
   });
 });
 
@@ -95,7 +95,7 @@ paymentRouter.callbackQuery(
   async (ctx) => {
     try {
       await ctx.editMessageText(ctx.t('payment.choose_model'));
-      await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardModel() });
+      await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardModel(ctx) });
     } catch (error) {
       logger.error('Error in back_buy_model:', error);
     }
@@ -109,7 +109,7 @@ paymentRouter.callbackQuery(
     const model = ctx.callbackQuery.data.split(' ')[1];
     try {
       await ctx.editMessageText(ctx.t('payment.choose_payment_method'));
-      await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardMethod(model) });
+      await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardMethod(ctx, model) });
     } catch (error) {
       logger.error('Error in back_buy_method:', error);
     }
@@ -212,7 +212,7 @@ paymentRouter.callbackQuery(
     
     await ctx.api.sendInvoice(ctx.chat.id, {
       ...donationProduct,
-      prices: [{ label: 'Donation', amount }]
+      prices: [{ label: ctx.t('payment.donation.label'), amount }]
     });
     
     await new Promise(r => setTimeout(r, 500));

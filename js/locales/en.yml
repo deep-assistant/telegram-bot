@@ -79,6 +79,17 @@ main_keyboard:
   referral: 🔗 Referral
   placeholder: 💬 Ask your question 
 
+buttons:
+  balance: ✨ Balance
+  buy: 💎 Top up
+  model: 🛠️ Change model
+  system: ⚙️ System message
+  suno: 🎵 Music generation
+  image: 🖼️ Image generation
+  clear: 🧹 Clear context
+  history: 📜 History
+  referral: 🔗 Referral
+
 balance:
   message: |
     👩🏻‍💻 Referrals: **{referrals}**
@@ -122,4 +133,5 @@ payment:
   donation:
     title: "Thank you for supporting the project! 🤩"
     subtitle: "We'll soon be delighting you with new and cool features!"
-    choose_amount: "Choose donation amount:" 
+    choose_amount: "Choose donation amount:"
+    label: "Donation" 
