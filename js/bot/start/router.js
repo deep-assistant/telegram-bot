@@ -72,7 +72,7 @@ startRouter.command('start', async (ctx) => {
 startRouter.callbackQuery(/ref-is-subscribe (\S+) (\S+)/, async (ctx) => {
   const refUserId = ctx.match[1];
   const userId = ctx.match[2];
-  const isSubscribe = await checkSubscription(ctx.message, userId);
+  const isSubscribe = await checkSubscription(ctx, userId);
   if (!isSubscribe) {
     await sendMessage(ctx, ctx.t('start.not_subscribed'));
     return;

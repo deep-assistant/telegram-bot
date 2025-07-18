@@ -46,21 +46,18 @@ export const subscribeText = `
 Следите за обновлениями и новостями у нас в канале!
 `;
 
-export async function checkSubscription(message, id = null) {
-  const userId = id ?? (message.from_user?.id ?? message.from?.id);
-  console.log('checkSubscription userId', userId);
+export async function checkSubscription(ctx, userId = null) {
+  if (!userId) userId = ctx.from.id;
   if (!userId) {
     console.warn('checkSubscription: userId undefined');
     return true;
   }
   try {
-    const chatMember = await message.bot.get_chat_member({ chat_id: -1002239712203, user_id: userId });
-    const checkResult = ['member', 'administrator', 'creator'].includes(chatMember.status);
-    console.log(`User ${userId} is subscribed as: ${checkResult}`);
-    return checkResult;
-  } catch (e) {
-    console.error('checkSubscription failed:', e);
-    return true; // assume subscribed to avoid crashes during dev
+    const chatMember = await ctx.api.getChatMember('-1002239712203', userId);
+    return ['creator', 'administrator', 'member'].includes(chatMember.status);
+  } catch (err) {
+    console.error('checkSubscription failed:', err);
+    return false;
   }
 }
 
