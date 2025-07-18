@@ -1,4 +1,4 @@
-import { InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
+import { InlineKeyboard } from 'grammy';
 import { checkedText } from './utils.js';
 import { SystemMessages } from '../../services/gpt_service.js';
 import {
@@ -43,68 +43,54 @@ export function getSystemMessageText(systemMessage, currentSystemMessage) {
 }
 
 export function createSystemMessageKeyboard(currentSystemMessage) {
-  return new InlineKeyboardMarkup({
-    resize_keyboard: true,
-    inline_keyboard: [
-      [
-        new InlineKeyboardButton({
-          text: getSystemMessageText(
-            textSystemMessages[SystemMessages.Custom],
-            textSystemMessages[currentSystemMessage]
-          ),
-          callback_data: SystemMessages.Custom
-        })
-      ],
-      [
-        new InlineKeyboardButton({
-          text: getSystemMessageText(
-            textSystemMessages[SystemMessages.Default],
-            textSystemMessages[currentSystemMessage]
-          ),
-          callback_data: SystemMessages.Default
-        }),
-        new InlineKeyboardButton({
-          text: getSystemMessageText(
-            textSystemMessages[SystemMessages.Happy],
-            textSystemMessages[currentSystemMessage]
-          ),
-          callback_data: SystemMessages.Happy
-        })
-      ],
-      [
-        new InlineKeyboardButton({
-          text: getSystemMessageText(
-            textSystemMessages[SystemMessages.SoftwareDeveloper],
-            textSystemMessages[currentSystemMessage]
-          ),
-          callback_data: SystemMessages.SoftwareDeveloper
-        }),
-        new InlineKeyboardButton({
-          text: getSystemMessageText(
-            textSystemMessages[SystemMessages.DeepPromt],
-            textSystemMessages[currentSystemMessage]
-          ),
-          callback_data: SystemMessages.DeepPromt
-        })
-      ],
-      [
-        new InlineKeyboardButton({
-          text: getSystemMessageText(
-            textSystemMessages[SystemMessages.QuestionAnswer],
-            textSystemMessages[currentSystemMessage]
-          ),
-          callback_data: SystemMessages.QuestionAnswer
-        })
-      ],
-      [
-        new InlineKeyboardButton({
-          text: getSystemMessageText(
-            textSystemMessages[SystemMessages.Transcribe],
-            textSystemMessages[currentSystemMessage]
-          ),
-          callback_data: SystemMessages.Transcribe
-        })
-      ]
-    ]
-  });
+  return new InlineKeyboard()
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.Custom],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.Custom
+    ).row()
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.Default],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.Default
+    )
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.Happy],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.Happy
+    ).row()
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.SoftwareDeveloper],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.SoftwareDeveloper
+    )
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.DeepPromt],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.DeepPromt
+    ).row()
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.QuestionAnswer],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.QuestionAnswer
+    ).row()
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.Transcribe],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.Transcribe
+    );
 }

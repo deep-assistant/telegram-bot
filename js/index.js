@@ -4,7 +4,7 @@ import { config } from './config.js';
 import { startRouter } from './bot/start/router.js';
 // import agreementRouter from './bot/agreement/router.js';
 // import apiRouter from './bot/api/router.js';
-// import gptRouter from './bot/gpt/router.js';
+import { balanceRouter } from './bot/balance/router.js';
 // import imageEditingRouter from './bot/image_editing/router.js';
 // import imagesRouter from './bot/images/router.js';
 // import paymentsRouter from './bot/payment/router.js';
@@ -74,7 +74,7 @@ function applyRouters(bot) {
   // bot.use(agreementRouter);
   // bot.use(imageEditingRouter);
   // bot.use(taskRouter);
-  // bot.use(gptRouter);
+  bot.use(balanceRouter);
 }
 
 async function onStartup() {
