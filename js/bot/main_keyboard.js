@@ -7,7 +7,8 @@ const chatMessageCounts = {};
 const FIRST_MESSAGES_LIMIT = 3;
 
 export function createMainKeyboard(ctx) {
-  return new Keyboard()
+  logger.trace(`Creating main keyboard for user: ${ctx.from?.id}`);
+  const keyboard = new Keyboard()
     .text(ctx.t('main_keyboard.balance')).text(ctx.t('main_keyboard.buy')).row()
     .text(ctx.t('main_keyboard.model')).text(ctx.t('main_keyboard.system')).row()
     .text(ctx.t('main_keyboard.suno')).text(ctx.t('main_keyboard.image')).row()
@@ -15,14 +16,25 @@ export function createMainKeyboard(ctx) {
     .text(ctx.t('main_keyboard.referral'))
     .resized()
     .placeholder(ctx.t('main_keyboard.placeholder'));
+  
+  logger.trace(`Keyboard created: ${JSON.stringify({
+    keyboard: keyboard.keyboard,
+    resize_keyboard: keyboard.resize_keyboard,
+    input_field_placeholder: keyboard.input_field_placeholder
+  })}`);
+  
+  return keyboard;
 }
 
 export async function sendMessage(ctx, text, options = {}) {
+  logger.trace(`sendMessage called with: chatId=${ctx.chat?.id}, userId=${ctx.from?.id}, textType=${typeof text}, textPreview=${typeof text === 'string' ? text.slice(0, 100) : 'object'}, options=${JSON.stringify(Object.keys(options))}`);
+
   if (typeof text === 'object' && text !== null && 'text' in text) {
     const tmp = text;
     text = tmp.text;
     const { text: _, ...rest } = tmp;
     options = { ...options, ...rest };
+    logger.trace(`Extracted text from object: ${text.slice(0, 100)}`);
   }
 
   const chatId = ctx.chat.id;
