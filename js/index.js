@@ -107,6 +107,12 @@ async function startBot() {
   // Apply routers
   applyRouters(bot);
   
+  // Global debug handler to catch all callbacks
+  bot.callbackQuery(async (ctx) => {
+    console.log('GLOBAL DEBUG: Received callback data:', ctx.callbackQuery.data);
+    return false; // Don't handle it, let other handlers try
+  });
+  
   // Error handling
   bot.catch((err) => {
     logger.error('Bot error:', err);
