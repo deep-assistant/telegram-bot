@@ -13,6 +13,8 @@ const logger = pino({
           colorize: true,
           translateTime: 'SYS:standard',
           ignore: 'pid,hostname',
+          hideObject: false,
+          singleLine: false
         }
       },
       // File output

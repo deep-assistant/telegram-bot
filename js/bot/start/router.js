@@ -35,6 +35,7 @@ async function createTokenIfNotExist(userId) {
 export const startRouter = new Composer();
 
 startRouter.command('start', async (ctx) => {
+  logger.trace(`Raw start command context: from=${JSON.stringify(ctx.from)}, chat=${JSON.stringify(ctx.chat)}, match=${ctx.match}`);
   logger.debug('Start command handler triggered');
   const refUserId = ctx.match;
 
