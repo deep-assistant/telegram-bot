@@ -9,8 +9,6 @@ const debug = createDebug('telegram-bot:start_router');
 
 // Greeting text moved to locales/en.yml & ru.yml under key "start.greeting"
 
-const refText = `👋 Ты прибыл по реферальной ссылке, чтобы получить награду нужно подписаться на мой канал.`;
-
 async function handleReferral(ctx, userId, refUserId) {
   const result = await referralsService.createReferral(userId, refUserId);
   console.log(result, 'resuuuuult');
@@ -20,13 +18,13 @@ async function handleReferral(ctx, userId, refUserId) {
   let chatId;
   try { chatId = parseInt(refUserId, 10); } catch { chatId = null; }
   if (!chatId) {
-    await sendMessage(ctx, '❌ Некорректный реферальный ID.');
+    await sendMessage(ctx, ctx.t('start.invalid_ref_id'));
     return;
   }
 
-  await sendMessage(ctx, `🎉 Вы получили *5 000*⚡️!\n\n/balance - ✨ Узнать баланс\n/referral - 🔗 Подробности рефералки`);
+  await sendMessage(ctx, ctx.t('start.referral_bonus'));
 
-  await ctx.api.sendMessage(chatId, `🎉 Добавлен новый реферал! \nВы получили *5 000*⚡️!\nВаш реферал должен проявить любую активность в боте через 24 часа, чтобы вы получили еще *5 000*⚡️ и +500⚡️️ к ежедневному пополнению баланса.\n\n/balance - ✨ Узнать баланс\n/referral - 🔗 Подробности рефералки`);
+  await ctx.api.sendMessage(chatId, ctx.t('start.new_referral'), { parse_mode: 'MarkdownV2' });
 }
 
 async function createTokenIfNotExist(userId) {
@@ -39,7 +37,7 @@ startRouter.command('start', async (ctx) => {
   debug('Start command handler triggered');
   const refUserId = ctx.match;
 
-  const keyboard = createMainKeyboard();
+  const keyboard = createMainKeyboard(ctx);
   const greeting = ctx.t ? ctx.t('start.greeting') : 'Привет!';
   await sendMessage(ctx, { text: greeting, reply_markup: keyboard });
 
@@ -50,19 +48,20 @@ startRouter.command('start', async (ctx) => {
     let chatId = null;
     try { chatId = parseInt(refUserId, 10); } catch {}
     if (chatId) {
-      const userName = ctx.from.username;
-      const fullName = ctx.from.first_name + (ctx.from.last_name ? ' ' + ctx.from.last_name : '');
+      const userName = ctx.from.username || '';
+      const fullName = `${ctx.from.first_name}${ctx.from.last_name ? ' ' + ctx.from.last_name : ''}`;
       const mention = `<a href='tg://user?id=${ctx.from.id}'>${fullName}</a>`;
-      await ctx.api.sendMessage(chatId, `🎉 По вашей реферальной ссылке перешли: @${userName} (${mention}).\n\nЧтобы вашему другу стать вашим рефералом, он должен подписаться на канал @gptDeep.\n\nКак только это произойдёт вы получите <b>5 000</b>⚡️ единоразово и <b>+500</b>⚡️️ к ежедневному пополнению баланса.\n\nЕсли вдруг этого долго не происходит, то возможно вашему другу нужна помощь, <b>попробуйте написать ему в личные сообщения</b>.\nЕсли и это не помогает, то обратитесь в поддержку в сообществе @deepGPT и мы поможем вам разобраться с ситуацией.`, { parse_mode: 'HTML' });
+      const refNotifyText = ctx.t('start.ref_notification', { username: userName ? `@${userName}` : fullName, mention });
+      await ctx.api.sendMessage(chatId, refNotifyText, { parse_mode: 'HTML' });
     }
   }
 
   if (!isSubscribe) {
     if (String(refUserId) !== String(ctx.from.id)) {
       const inlineKb = new InlineKeyboard()
-        .url('Подписаться 👊🏻', 'https://t.me/gptDeep').row()
-        .text('Проверить ✅', `ref-is-subscribe ${refUserId} ${ctx.from.id}`);
-      await sendMessage(ctx, refText, { reply_markup: inlineKb });
+        .url(ctx.t('start.subscribe_button'), 'https://t.me/gptDeep').row()
+        .text(ctx.t('start.check_button'), `ref-is-subscribe ${refUserId} ${ctx.from.id}`);
+      await sendMessage(ctx, ctx.t('start.ref_text'), { reply_markup: inlineKb });
     }
     return;
   }
@@ -75,16 +74,16 @@ startRouter.callbackQuery(/ref-is-subscribe (\S+) (\S+)/, async (ctx) => {
   const userId = ctx.match[2];
   const isSubscribe = await checkSubscription(ctx.message, userId);
   if (!isSubscribe) {
-    await sendMessage(ctx, 'Вы не подписались! 😡');
+    await sendMessage(ctx, ctx.t('start.not_subscribed'));
     return;
   }
   await handleReferral(ctx, userId, refUserId);
 });
 
 startRouter.hears([helpCommand(), helpText()], async (ctx) => {
-  await sendMessage(ctx, `Основной ресурc для доступа к нейросетей - ⚡️ (энергия).\nЭто универсальный ресурс для всего функционала бота.\n\nКаждая нейросеть тратит разное количество ⚡️.\nКоличество затраченных ⚡️ зависит от длины истории диалога, моделей нейросетей и объёма ваших вопросов и ответов от нейросети.\nДля экономии используйте команду - /clear, чтобы не переполнять историю диалога и не увеличивать расход ⚡️ (энергии)! \nРекомендуется очищать контекст перед началом обсуждения новой темы. А также если выбранная модель начала отказывать в помощи.\n\n/app - 🔥 Получить ссылку к приложению!\n/start - 🔄 Рестарт бота, перезапускает бот, помогает обновить бота до последней версии.\n/model - 🛠️ Сменить модель, перезапускает бот, позволяет сменить модель бота.\n/system - ⚙️ Системное сообщение, позволяет сменить системное сообщение, чтобы изменить режим взаимодействия с ботом.   \n/clear - 🧹 Очистить контекст, помогает забыть боту всю историю.  \n/balance - ✨ Баланс, позволяет узнать баланс ⚡️.\n/image - 🖼️ Генерация картинки (Midjourney, DALL·E 3, Flux, Stable Diffusion)\n/buy - 💎 Пополнить баланс, позволяет пополнить баланс ⚡️.\n/referral - 🔗 Получить реферальную ссылку\n/suno - 🎵 Генерация музыки (Suno)\n/text - Отправить текстовое сообщение`);
+  await sendMessage(ctx, ctx.t('start.help'));
 });
 
 startRouter.hears(appCommand(), async (ctx) => {
-  await sendMessage(ctx, 'Ссылка на приложение: https://t.me/DeepGPTBot/App');
+  await sendMessage(ctx, ctx.t('start.app_link'));
 });

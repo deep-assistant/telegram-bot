@@ -34,8 +34,50 @@ export function applyRouters(bot) {
   // bot.use(gptRouter);
 }
 
-// TODO: Port AlbumMiddleware to grammY if needed
-// class AlbumMiddleware { ... }
+// Ported AlbumMiddleware to grammY
+function albumMiddleware() {
+  const albumData = new Map();
+  const batchData = new Map();
+
+  return async (ctx, next) => {
+    if (!ctx.message) return next();
+    const msg = ctx.message;
+
+    if (!msg.photo) {
+      const dateKey = String(msg.date);
+      if (!batchData.has(dateKey)) batchData.set(dateKey, []);
+      batchData.get(dateKey).push(msg);
+
+      // Wait briefly to collect batch
+      await new Promise(r => setTimeout(r, 10));
+
+      // Process only once for the batch
+      if (batchData.get(dateKey)[batchData.get(dateKey).length - 1] === msg) {
+        ctx.batchMessages = batchData.get(dateKey);
+        await next();
+        batchData.delete(dateKey);
+      }
+      return;
+    }
+
+    if (!msg.media_group_id) {
+      if (msg.photo) ctx.album = [msg];
+      return next();
+    }
+
+    const groupId = msg.media_group_id;
+    if (!albumData.has(groupId)) albumData.set(groupId, []);
+    albumData.get(groupId).push(msg);
+
+    await new Promise(r => setTimeout(r, 10));
+
+    if (albumData.get(groupId)[albumData.get(groupId).length - 1] === msg) {
+      ctx.album = albumData.get(groupId);
+      await next();
+      albumData.delete(groupId);
+    }
+  };
+}
 
 async function onStartup() {
   debug('onStartup');
@@ -63,6 +105,7 @@ export async function botRun() {
   });
 
   bot.use(createI18nMiddleware());
+  bot.use(albumMiddleware());
 
   bot.catch((err) => {
     console.error('grammy error', err);

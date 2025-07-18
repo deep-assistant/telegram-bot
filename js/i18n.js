@@ -27,23 +27,31 @@ function getNested(obj, key) {
   return key.split('.').reduce((o, k) => (o ? o[k] : undefined), obj);
 }
 
-export function translate(locale, key) {
+export function translate(locale, key, params = {}) {
   const data = loadLocale(locale);
-  const val = getNested(data, key) ?? data[key];
-  if (val) return val;
-  if (locale !== 'ru') {
-    const fallback = loadLocale('ru');
-    const fb = getNested(fallback, key) ?? fallback[key];
-    if (fb) return fb;
+  let val = getNested(data, key) ?? data[key];
+  if (!val) {
+    if (locale !== 'ru') {
+      const fallback = loadLocale('ru');
+      val = getNested(fallback, key) ?? fallback[key];
+    }
+    if (!val) return `{${key}}`;
   }
-  return `{${key}}`;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      val = val.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+    }
+  }
+  return val;
 }
 
 export function createI18nMiddleware(defaultLocale = 'ru') {
   return async (ctx, next) => {
     const code = ctx.from?.language_code?.split('-')[0] || defaultLocale;
     ctx.locale = code;
-    ctx.t = (k) => translate(code, k);
+    ctx.t = (k, params) => translate(code, k, params);
     await next();
   };
-} 
+}
+
+// Current implementation supports multiline via YAML parsing 
