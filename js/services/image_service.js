@@ -1,7 +1,7 @@
 import { asyncPost, asyncGet } from './utils.js';
 // import { OpenAI } from 'openai';
 import { OpenAI } from './openai_stub.js';
-import config from '../config.js';
+import { config } from '../config.js';
 import { dataBase, dbKey } from '../db/init_db.js';
 import { formatImageFromRequest, getImageModelByLabel } from './image_utils.js';
 

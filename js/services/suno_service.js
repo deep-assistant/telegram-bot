@@ -1,4 +1,4 @@
-import config from '../config.js';
+import { config } from '../config.js';
 import { asyncGet, asyncPost } from './utils.js';
 
 class SunoService {

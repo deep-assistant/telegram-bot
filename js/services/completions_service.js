@@ -1,4 +1,4 @@
-import config from '../config.js';
+import { config } from '../config.js';
 // import { OpenAI } from 'openai';
 import { OpenAI } from './openai_stub.js';
 import { getUserName } from '../bot/utils.js';

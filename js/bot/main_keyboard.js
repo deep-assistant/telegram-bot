@@ -1,6 +1,8 @@
 import { Keyboard } from 'grammy';
 import tgMarkdown from 'telegramify-markdown';
+import { createLogger, lazyDebug } from '../utils/logger.js';
 
+const logger = createLogger('main_keyboard');
 const chatMessageCounts = {};
 const FIRST_MESSAGES_LIMIT = 3;
 
@@ -38,13 +40,27 @@ export async function sendMessage(ctx, text, options = {}) {
     text = tgMarkdown(text, 'escape');
   }
 
-  console.debug('sendMessage', typeof text, text.slice?.(0,50) || text, {
+  lazyDebug(logger, () => {
+    return {
+      messageType: typeof text,
+      messagePreview: text.slice?.(0,50) || text,
+      reply_markup: options.reply_markup ? {
+        keyboard: options.reply_markup.keyboard,
+        resize_keyboard: options.reply_markup.resize_keyboard,
+        input_field_placeholder: options.reply_markup.input_field_placeholder
+      } : undefined,
+      parse_mode: options.parse_mode
+    };
+  });
+  logger.debug('sendMessage', lazyDebug(logger, () => ({
+    messageType: typeof text,
+    messagePreview: text.slice?.(0,50) || text,
     reply_markup: options.reply_markup ? {
       keyboard: options.reply_markup.keyboard,
       resize_keyboard: options.reply_markup.resize_keyboard,
       input_field_placeholder: options.reply_markup.input_field_placeholder
     } : undefined,
     parse_mode: options.parse_mode
-  });
+  })));
   return ctx.reply(text, options);
 }
