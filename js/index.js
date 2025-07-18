@@ -136,15 +136,8 @@ async function startBot() {
       // Keep process alive
       return new Promise(() => {});
     } else {
+      // Main mode: Long polling
       logger.info('Starting bot polling...');
-      
-      // Delete webhook if exists
-      try {
-        await bot.api.deleteWebhook({ drop_pending_updates: true });
-      } catch (err) {
-        logger.warn('Failed to delete webhook:', err.message);
-      }
-      
       await onStartup();
       await run(bot);
     }
