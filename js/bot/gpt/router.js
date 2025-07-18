@@ -270,9 +270,9 @@ gptRouter.message(TextCommand([BALANCE_TEXT, BALANCE_COMMAND]), async (ctx) => {
 
   function getDateLine() {
     if ((gptTokens.tokens || 0) >= 30000) {
-      return '🕒 Автопополнение доступно, если меньше *30000*⚡️';
+      return '🕒 Автопополнение доступно, если меньше **30000**⚡️';
     }
-    return `🕒 Следующее автопополнение будет: *${getDate()}*`;
+    return `🕒 Следующее автопополнение будет: **${getDate()}**`;
   }
 
   function acceptAccount() {
@@ -282,13 +282,13 @@ gptRouter.message(TextCommand([BALANCE_TEXT, BALANCE_COMMAND]), async (ctx) => {
   }
 
   // Send balance info
-  await ctx.reply(`👩🏻‍💻 Количество рефералов: *${referral.children.length}*
-🤑 Ежедневное автопополнение 🔋: *${referral.award}⚡️*
+  await ctx.reply(`👩🏻‍💻 Количество рефералов: **${referral.children.length}**
+🤑 Ежедневное автопополнение 🔋: **${referral.award}⚡️**
 ${acceptAccount()}
 
 ${getDateLine()}
 
-💵 Текущий баланс: *${gptTokens.tokens || 0}⚡️*`);
+💵 Текущий баланс: **${gptTokens.tokens || 0}⚡️**`);
 });
 
 // History command handler
@@ -356,7 +356,7 @@ gptRouter.message(TextCommand([CHANGE_MODEL_COMMAND, CHANGE_MODEL_TEXT]), async 
   if (!subscribed) return;
   const userId = message.from_user.id;
   const currentModel = gptService.get_current_model(userId);
-  const infoText = `Выберите модель: 🤖\n*o3-mini:* ... \n*GPT-3.5-turbo:* ...`;
+  const infoText = `Выберите модель: 🤖\n**o3-mini:** ... \n**GPT-3.5-turbo:** ...`;
   await message.answer(infoText, { reply_markup: createChangeModelKeyboard(currentModel) });
   await new Promise(r => setTimeout(r, 500));
   await message.delete();

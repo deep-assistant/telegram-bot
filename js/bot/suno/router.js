@@ -12,7 +12,7 @@ export const sunoRouter = new Router();
 async function sunoCreateMessages(message, generation) {
   const clip = Object.values(generation.data.output.clips)[0];
   // send image
-  await message.answerPhoto(clip.image_large_url, { caption: `Текст *«${clip.title}»*\n\n${clip.metadata.prompt}` });
+  await message.answerPhoto(clip.image_large_url, { caption: `Текст **«${clip.title}»**\n\n${clip.metadata.prompt}` });
   // send audio and video
   await message.answerDocument(clip.audio_url);
   await message.answerVideo(clip.video_url);
@@ -38,7 +38,7 @@ sunoRouter.message(
     try {
       const tokens = await tokenizeService.get_tokens(userId);
       if (tokens.tokens < 0) {
-        await message.answer(`У вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!`);
+        await message.answer(`У вас не хватает **⚡️**. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше **⚡️**!`);
         await stateService.setCurrentState(userId, StateTypes.Default);
         return;
       }
@@ -53,7 +53,7 @@ sunoRouter.message(
       }
       if (message.text.length > 200) {
         await message.answer(
-          'Описание музыкальной композиции 🎵 *не может быть более 200 символов* для Suno.\n\nПожалуйста, попробуйте промт короче.',
+          'Описание музыкальной композиции 🎵 **не может быть более 200 символов** для Suno.\n\nПожалуйста, попробуйте промт короче.',
           { reply_markup: new InlineKeyboardMarkup({ inline_keyboard: [[
             new InlineKeyboardButton({ text: 'Отмена ❌', callback_data: 'cancel-suno-generate' })
           ]] }) }
@@ -61,7 +61,7 @@ sunoRouter.message(
         return;
       }
       await stateService.setCurrentState(userId, StateTypes.Default);
-      const waitMessage = await message.answer(`**⌛️Ожидайте генерацию...**\nПримерное время ожидания: *3-5 минут*.\nМожете продолжать работать с ботом`);
+      const waitMessage = await message.answer(`**⌛️Ожидайте генерацию...**\nПримерное время ожидания: **3-5 минут**.\nМожете продолжать работать с ботом`);
       await message.bot.sendChatAction(message.chat.id, 'typing');
       async function taskIdGet(taskId) {
         await message.answer(`\`1:suno:${taskId}:generate\``);
@@ -70,7 +70,7 @@ sunoRouter.message(
       const generation = await sunoService.generateSuno(message.text, taskIdGet);
       await sunoCreateMessages(message, generation);
       await tokenizeService.update_user_token(userId, 5700, 'subtract');
-      await message.answer(`\n🤖 Затрачено на генерацию музыкальной композиции *Suno*: *5700*\n\n❔ /help - Информация по ⚡️`);
+      await message.answer(`\n🤖 Затрачено на генерацию музыкальной композиции **Suno**: **5700**\n\n❔ /help - Информация по ⚡️`);
       await waitMessage.delete();
     } catch (e) {
       console.error('Failed to generate Suno:', e);
@@ -109,13 +109,13 @@ sunoRouter.callbackQuery(
 async function enterSunoState(userId, message) {
   await stateService.setCurrentState(userId, StateTypes.Suno);
   await message.answer(
-    `*Активирован режим* генерации музыки в *Suno*.
+    `**Активирован режим** генерации музыки в **Suno**.
 
-*Следующее ваше сообщение будет интерпретировано как промпт для Suno* и после отправки сообщения будет запущена генерация музыки, которая будет стоить *5000⚡️*.
+**Следующее ваше сообщение будет интерпретировано как промпт для Suno** и после отправки сообщения будет запущена генерация музыки, которая будет стоить **5000⚡️**.
 
-Опишите в следующем сообщении музыкальную композицию 🎵 (*не более 200 символов*), которую вы хотите сгенерировать или отмените если передумали.`,
+Опишите в следующем сообщении музыкальную композицию 🎵 (**не более 200 символов**), которую вы хотите сгенерировать или отмените если передумали.`,
     {
-      parse_mode: 'Markdown',
+      parse_mode: 'MarkdownV2',
       reply_markup: new InlineKeyboardMarkup({ inline_keyboard: [[
         new InlineKeyboardButton({ text: 'Отмена ❌', callback_data: 'cancel-suno-generate' })
       ]] })
