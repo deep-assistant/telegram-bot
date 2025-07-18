@@ -75,6 +75,10 @@ async function startBot() {
   // Error handling
   bot.catch((err) => {
     logger.error('Bot error:', err);
+    if (config.isDev) {
+      logger.error('Development mode: Bot will exit due to error');
+      process.exit(1);
+    }
   });
   
   try {
