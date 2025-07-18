@@ -78,3 +78,20 @@ main_keyboard:
   history: 📜 History
   referral: 🔗 Referral
   placeholder: 💬 Ask your question 
+
+balance:
+  message: |
+    👩🏻‍💻 Referrals: *{referrals}*
+    🤑 Daily refill: *{award}⚡️*
+    {accountStatus}
+
+    {dateLine}
+
+    💵 Current balance: *{tokens}⚡️*
+  today: "Today at {time}"
+  tomorrow: "Tomorrow at {time}"
+  autorefill_available: "🕒 Autorefill available if less than *30000*⚡️"
+  next_autorefill: "🕒 Next autorefill: *{date}*"
+  account_confirmed: "🔑 Your account is confirmed!"
+  account_not_confirmed: "🔑 Your account is not confirmed, come back in 24h and perform any action!"
+  error: "Error while fetching balance. Please try again later." 
