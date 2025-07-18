@@ -21,14 +21,14 @@ start:
   ref_text: 👋 You arrived via a referral link. To get the reward, subscribe to my channel.
   invalid_ref_id: ❌ Invalid referral ID.
   referral_bonus: |
-    🎉 You received *5 000*⚡️!
+    🎉 You received **5 000**⚡️!
 
     /balance - ✨ Check balance
     /referral - 🔗 Referral details
   new_referral: |
     🎉 New referral added! 
-    You received *5 000*⚡️!
-    Your referral must show any activity in the bot within 24 hours to receive another *5 000*⚡️ and +500⚡️ to daily balance refill.
+    You received **5 000**⚡️!
+    Your referral must show any activity in the bot within 24 hours to receive another **5 000**⚡️ and +500⚡️ to daily balance refill.
 
     /balance - ✨ Check balance
     /referral - 🔗 Referral details
@@ -95,3 +95,11 @@ balance:
   account_confirmed: "🔑 Your account is confirmed!"
   account_not_confirmed: "🔑 Your account is not confirmed, come back in 24h and perform any action!"
   error: "Error while fetching balance. Please try again later." 
+
+errors:
+  not_enough_energy: |
+    You don't have enough **⚡️**. 😔
+
+    /balance - ✨ Check balance
+    /buy - 💎 Top up
+    /referral - 👥 Invite a friend to get more **⚡️**! 
