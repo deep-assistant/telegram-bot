@@ -1,54 +1,10 @@
-import { Bot } from './grammy_stub.js';
+import { Bot } from 'grammy';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createI18nMiddleware } from '../i18n.js';
 import createDebug from 'debug';
 const debug = createDebug('telegram-bot:bot_run');
-// --- Original aiogram imports (commented out for reference) ---
-// import { Bot as AiogramBot, Dispatcher as AiogramDispatcher, BaseMiddleware as AiogramBaseMiddleware } from 'aiogram';
-// import { DefaultBotProperties as AiogramDefaultBotProperties } from 'aiogram/client/default.js';
-// import { AiohttpSession as AiogramAiohttpSession } from 'aiogram/client/session/aiohttp.js';
-// import { TelegramAPIServer as AiogramTelegramAPIServer } from 'aiogram/client/telegram.js';
-// import { ParseMode as AiogramParseMode } from 'aiogram/enums.js';
-// import { MemoryStorage as AiogramMemoryStorage } from 'aiogram/fsm/storage/memory.js';
-// --------------------------------------------------------------
-// Temporary stubs to keep existing aiogram-based code working during migration to grammY
-class Dispatcher {
-  constructor() {
-    this.message = { use: () => {} };
-    this.bot = {
-      setWebhook: async () => {},
-      deleteWebhook: async () => {},
-    };
-  }
-  includeRouter(router) {
-    if (!this.routers) this.routers = [];
-    this.routers.push(router);
-  }
-  async startWebhook() {
-    // simulate webhook server keeping process alive
-    return new Promise(() => {});
-  }
-  async startPolling({ bot }) {
-    if (this.routers) {
-      for (const r of this.routers) {
-        if (typeof r._bind === 'function') r._bind(bot);
-      }
-    }
-    await bot.start(); // grammY long polling
-    return new Promise(() => {});
-  }
-}
-class BaseMiddleware {}
 
-// Stubs for the above until they are fully migrated
-const DefaultBotProperties = class { constructor(props) { this.props = props; } };
-const AiohttpSession = class { constructor(opts) { this.opts = opts; } };
-const TelegramAPIServer = class { static fromBase(url) { return { url }; } };
-const ParseMode = { MARKDOWN: 'Markdown', MARKDOWN_V2: 'MarkdownV2', HTML: 'HTML' };
-const MemoryStorage = class {};
-
-import config from '../config.js';
 // import agreementRouter from './agreement/router.js';
 // import apiRouter from './api/router.js';
 // import gptRouter from './gpt/router.js';
@@ -61,128 +17,97 @@ import { startRouter } from './start/router.js';
 // import taskRouter from './tasks/router.js';
 // import diagnosticsRouter from './diagnostics/router.js';
 
-export function applyRouters(dp) {
+import config from '../config.js';
+
+export function applyRouters(bot) {
   debug('Applying routers');
-  // dp.includeRouter(imagesRouter);
-  // dp.includeRouter(sunoRouter);
-  dp.includeRouter(startRouter);
-  // dp.includeRouter(diagnosticsRouter);
-  // dp.includeRouter(referralRouter);
-  // dp.includeRouter(paymentsRouter);
-  // dp.includeRouter(apiRouter);
-  // dp.includeRouter(agreementRouter);
-  // dp.includeRouter(imageEditingRouter);
-  // dp.includeRouter(taskRouter);
-  // dp.includeRouter(gptRouter);
+  // bot.use(imagesRouter);
+  // bot.use(sunoRouter);
+  bot.use(startRouter);
+  // bot.use(diagnosticsRouter);
+  // bot.use(referralRouter);
+  // bot.use(paymentsRouter);
+  // bot.use(apiRouter);
+  // bot.use(agreementRouter);
+  // bot.use(imageEditingRouter);
+  // bot.use(taskRouter);
+  // bot.use(gptRouter);
 }
 
-class AlbumMiddleware extends BaseMiddleware {
-  constructor() {
-    super();
-    this.albumData = {};
-    this.batchData = {};
-  }
+// TODO: Port AlbumMiddleware to grammY if needed
+// class AlbumMiddleware { ... }
 
-  async __call__(handler, event, data) {
-    // Batch first-handling or group-by-group
-    if (!event.photo) {
-      const dateKey = String(event.date);
-      if (this.batchData[dateKey]) {
-        this.batchData[dateKey].push(event);
-        return;
-      }
-      this.batchData[dateKey] = [event];
-      await new Promise(r => setTimeout(r, 10));
-      event.model_config.is_last = true;
-      data.batchMessages = this.batchData[dateKey];
-      const result = await handler(event, data);
-      if (event.model_config.is_last) delete this.batchData[dateKey];
-      return result;
-    }
-
-    // Single/photo or grouped albums
-    if (!event.media_group_id) {
-      if (event.photo) data.album = [event];
-      return handler(event, data);
-    }
-
-    if (this.albumData[event.media_group_id]) {
-      this.albumData[event.media_group_id].push(event);
-      return;
-    }
-    this.albumData[event.media_group_id] = [event];
-    await new Promise(r => setTimeout(r, 10));
-    event.model_config.is_last = true;
-    data.album = this.albumData[event.media_group_id];
-    const result = await handler(event, data);
-    if (event.model_config.is_last) delete this.albumData[event.media_group_id];
-    return result;
-  }
-}
-
-async function onStartup(dp) {
+async function onStartup() {
   debug('onStartup');
   console.log('Bot is starting...');
-  if (config.WEBHOOK_ENABLED) {
-    await dp.bot.setWebhook(config.WEBHOOK_URL);
-  }
 }
 
-async function onShutdown(dp) {
+async function onShutdown() {
   debug('onShutdown');
   console.log('Bot is shutting down...');
-  if (config.WEBHOOK_ENABLED) {
-    await dp.bot.deleteWebhook();
-  }
 }
 
 export async function botRun() {
   debug('botRun start');
-  const dp = new Dispatcher({ storage: new MemoryStorage() });
-  dp.message.use(new AlbumMiddleware());
-  applyRouters(dp);
 
-  let bot;
-  if (config.IS_DEV) {
-    debug('Creating bot in DEV mode');
-    bot = new Bot({
-      token: config.TOKEN,
-      default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN_V2 })
-    });
-    // ---- i18n setup ----
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    bot.use(createI18nMiddleware());
-    // locale is handled inside i18nMiddleware
-    bot.catch((err) => {
-      console.error('grammy error', err);
-      process.exit(1);
-    });
-  } else {
-    debug('Creating bot in PROD mode');
-    bot = new Bot({
-      token: config.TOKEN,
-      default: new DefaultBotProperties({ parse_mode: ParseMode.MARKDOWN_V2 }),
-      session: new AiohttpSession({ api: TelegramAPIServer.fromBase(config.ANALYTICS_URL) })
-    });
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    bot.use(createI18nMiddleware());
-  }
+  const bot = new Bot(config.TOKEN, {
+    client: config.IS_DEV ? undefined : { baseUrl: config.ANALYTICS_URL }
+  });
 
-  // Routers will be bound automatically in Dispatcher.startPolling
+  // Set default parse_mode to MarkdownV2 for send* methods
+  bot.api.config.use((prev, method, payload) => {
+    if (method.startsWith('send') && !('parse_mode' in payload)) {
+      return { ...payload, parse_mode: 'MarkdownV2' };
+    }
+    return payload;
+  });
+
+  bot.use(createI18nMiddleware());
+
+  bot.catch((err) => {
+    console.error('grammy error', err);
+    process.exit(1);
+  });
+
+  applyRouters(bot);
 
   if (config.WEBHOOK_ENABLED) {
     debug('Starting via webhook');
-    await bot.setWebhook(config.WEBHOOK_URL);
-    await dp.startWebhook({
-      webhookPath: config.WEBHOOK_PATH,
-      onStartup,
-      onShutdown,
-      host: config.WEBHOOK_HOST,
-      port: config.WEBHOOK_PORT
+    await bot.api.setWebhook(config.WEBHOOK_URL);
+    await onStartup();
+
+    Bun.serve({
+      port: config.WEBHOOK_PORT,
+      hostname: config.WEBHOOK_HOST,
+      fetch(req) {
+        const url = new URL(req.url);
+        if (url.pathname === config.WEBHOOK_PATH && req.method === 'POST') {
+          req.json().then(update => {
+            bot.handleUpdate(update);
+          });
+          return new Response('OK', { status: 200 });
+        }
+        return new Response('Not Found', { status: 404 });
+      },
     });
+
+    // Handle shutdown
+    process.on('SIGINT', async () => {
+      await onShutdown();
+      await bot.api.deleteWebhook();
+      process.exit(0);
+    });
+    process.on('SIGTERM', async () => {
+      await onShutdown();
+      await bot.api.deleteWebhook();
+      process.exit(0);
+    });
+
+    // Keep process alive
+    return new Promise(() => {});
   } else {
     debug('Starting polling');
-    await bot.deleteWebhook();
-    await dp.startPolling({ bot, skipUpdates: false, dropPendingUpdates: true });
+    await bot.api.deleteWebhook({ drop_pending_updates: true });
+    await bot.start();
   }
 }
