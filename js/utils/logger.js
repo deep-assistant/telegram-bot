@@ -11,8 +11,8 @@ const logger = pino({
         level: process.env.LOG_LEVEL || 'info',
         options: {
           colorize: true,
-          translateTime: 'HH:MM:ss',
-          ignore: 'pid,hostname',
+          translateTime: 'yyyy-mm-dd HH:MM:ss.l',
+          ignore: 'pid,hostname,module',
           hideObject: false,
           singleLine: false
         }
@@ -30,9 +30,24 @@ const logger = pino({
   }
 });
 
-// Create child loggers for different modules
+// Create child loggers for different modules with module prefix
 export const createLogger = (module) => {
-  return logger.child({ module });
+  const childLogger = logger.child({ module });
+  
+  // Override log methods to include module prefix
+  const originalDebug = childLogger.debug.bind(childLogger);
+  const originalInfo = childLogger.info.bind(childLogger);
+  const originalWarn = childLogger.warn.bind(childLogger);
+  const originalError = childLogger.error.bind(childLogger);
+  const originalTrace = childLogger.trace.bind(childLogger);
+  
+  childLogger.debug = (msg, ...args) => originalDebug(`[${module}] ${msg}`, ...args);
+  childLogger.info = (msg, ...args) => originalInfo(`[${module}] ${msg}`, ...args);
+  childLogger.warn = (msg, ...args) => originalWarn(`[${module}] ${msg}`, ...args);
+  childLogger.error = (msg, ...args) => originalError(`[${module}] ${msg}`, ...args);
+  childLogger.trace = (msg, ...args) => originalTrace(`[${module}] ${msg}`, ...args);
+  
+  return childLogger;
 };
 
 // Export main logger
