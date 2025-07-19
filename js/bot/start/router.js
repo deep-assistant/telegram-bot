@@ -1,19 +1,19 @@
+import { Composer, InlineKeyboard } from 'grammy';
+import { tokenizeService, referralsService } from '../../services/index.js';
+import { createLogger } from '../../utils/logger.js';
+import { config } from '../../config.js';
+import { sendMessage, createMainKeyboard } from '../main_keyboard.js';
+import tgMarkdown from 'telegramify-markdown';
 import { helpText, helpCommand, appCommand } from '../commands.js';
 import { checkSubscription } from '../gpt/utils.js';
-import { createMainKeyboard, sendMessage } from '../main_keyboard.js';
-import { tokenizeService, referralsService } from '../../services/index.js';
-import { createLogger, lazyDebug } from '../../utils/logger.js';
-import tgMarkdown from 'telegramify-markdown';
 
-import { Composer, InlineKeyboard } from 'grammy';
-
-const logger = createLogger('start_router');
+const log = createLogger('start_router');
 
 // Greeting text moved to locales/en.yml & ru.yml under key "start.greeting"
 
 async function handleReferral(ctx, userId, refUserId) {
   const result = await referralsService.createReferral(userId, refUserId);
-  logger.debug('Referral result:', result);
+  log.debug(() => 'Referral result:', () => result);
   if (!refUserId) return;
   if (!result || result.parent == null) return;
 
@@ -36,8 +36,8 @@ async function createTokenIfNotExist(userId) {
 export const startRouter = new Composer();
 
 startRouter.command('start', async (ctx) => {
-  logger.trace(`Raw start command context: from=${JSON.stringify(ctx.from)}, chat=${JSON.stringify(ctx.chat)}, match=${ctx.match}`);
-  logger.debug('Start command handler triggered');
+  log.trace(() => `Raw start command context: from=${JSON.stringify(ctx.from)}, chat=${JSON.stringify(ctx.chat)}, match=${ctx.match}`);
+  log.debug(() => 'Start command handler triggered');
   const refUserId = ctx.match;
 
   const keyboard = createMainKeyboard(ctx);

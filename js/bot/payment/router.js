@@ -10,27 +10,27 @@ import { config } from '../../config.js';
 import { donationProduct, buyBalanceProduct } from './products.js';
 import { tokenizeService } from '../../services/index.js';
 import { GPTModels } from '../../services/gpt_service.js';
-import { createLogger, debugObject, debugCallback, debugKeyboard } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 
-const logger = createLogger('payment_router');
+const log = createLogger('payment_router');
 
 export const paymentRouter = new Composer();
 
 // Debug GPTModels
-debugObject(logger, 'GPTModels imported', GPTModels);
-debugObject(logger, 'GPTModels.GPT_4o', GPTModels?.GPT_4o);
+log.debug(() => 'GPTModels imported:', () => GPTModels);
+log.debug(() => 'GPTModels.GPT_4o:', () => GPTModels?.GPT_4o);
 
 // Pricing functions (matching Python logic)
 function getStarPrice(tokens, model) {
   const baseStarPrice = 1.9;
   const baseOneTokenPrice = model === GPTModels.GPT_4o ? 0.0008 : 0.00025;
-  debugObject(logger, 'Calculating star price for', { tokens, model, baseOneTokenPrice });
+  log.debug('Calculating star price for', { tokens, model, baseOneTokenPrice });
   return Math.floor(tokens * baseOneTokenPrice / baseStarPrice);
 }
 
 function getPriceRub(tokens, model) {
   const baseOneTokenPrice = model === GPTModels.GPT_4o ? 0.0008 : 0.00025;
-  debugObject(logger, 'Calculating rub price for', { tokens, model, baseOneTokenPrice });
+  log.debug('Calculating rub price for', { tokens, model, baseOneTokenPrice });
   return Math.floor(tokens * baseOneTokenPrice);
 }
 
@@ -89,17 +89,16 @@ const donationButtons = [
 ];
 
 function createBuyBalanceKeyboardModel(ctx) {
-  debugObject(logger, 'Creating buy balance keyboard model');
+  log.debug('Creating buy balance keyboard model');
   const keyboard = new InlineKeyboard()
     .text(ctx.t('payment.gpt_4o'), `buy-gpt ${GPTModels.GPT_4o}`)
     .text(ctx.t('payment.gpt_3_5'), `buy-gpt ${GPTModels.GPT_3_5}`)
     .row();
-  debugKeyboard(logger, 'Model keyboard created', keyboard);
   return keyboard;
 }
 
 function createBuyBalanceKeyboardMethod(ctx, model) {
-  debugObject(logger, 'Creating buy balance keyboard method for model:', model);
+  log.debug('Creating buy balance keyboard method for model:', model);
   const starsCallback = `buy_method_stars ${model} stars`;
   const cardCallback = `buy_method_card ${model} card`;
   
@@ -107,13 +106,12 @@ function createBuyBalanceKeyboardMethod(ctx, model) {
     .text(ctx.t('payment.telegram_stars'), starsCallback)
     .text(ctx.t('payment.card_payment'), cardCallback);
   
-  debugKeyboard(logger, 'Method keyboard created', keyboard);
   return keyboard;
 }
 
 // /donut and /donation commands
 paymentRouter.command('donut', async (ctx) => {
-  debugObject(logger, 'Donation command triggered');
+  log.debug('Donation command triggered');
   await ctx.reply(ctx.t('payment.donation.title') + '\n\n' + ctx.t('payment.donation.subtitle') + '\n\n' + ctx.t('payment.donation.choose_amount'), {
     reply_markup: new InlineKeyboard()
       .text('10 RUB', 'donation 10')
@@ -128,7 +126,7 @@ paymentRouter.command('donut', async (ctx) => {
 });
 
 paymentRouter.hears([PAYMENT_COMMAND_TEXT], async (ctx) => {
-  debugObject(logger, 'Donation command triggered');
+  log.debug('Donation command triggered');
   await ctx.reply(ctx.t('payment.donation.title') + '\n\n' + ctx.t('payment.donation.subtitle') + '\n\n' + ctx.t('payment.donation.choose_amount'), {
     reply_markup: new InlineKeyboard()
       .text('10 RUB', 'donation 10')
@@ -144,16 +142,16 @@ paymentRouter.hears([PAYMENT_COMMAND_TEXT], async (ctx) => {
 
 // /buy commands - should show payment method selection directly (like Python)
 paymentRouter.command('buy', async (ctx) => {
-  debugObject(logger, 'Buy command triggered');
-  debugObject(logger, 'Showing payment method selection for buy command');
+  log.debug('Buy command triggered');
+  log.debug('Showing payment method selection for buy command');
   await ctx.reply(ctx.t('payment.choose_payment_method'), {
     reply_markup: createBuyBalanceKeyboardMethod(ctx, GPTModels.GPT_4o)
   });
 });
 
 paymentRouter.hears([BALANCE_PAYMENT_COMMAND_TEXT, '💎 Top up', '💎 Пополнить'], async (ctx) => {
-  debugObject(logger, 'Buy button triggered');
-  debugObject(logger, 'Showing payment method selection for buy button');
+  log.debug('Buy button triggered');
+  log.debug('Showing payment method selection for buy button');
   await ctx.reply(ctx.t('payment.choose_payment_method'), {
     reply_markup: createBuyBalanceKeyboardMethod(ctx, GPTModels.GPT_4o)
   });
@@ -165,13 +163,13 @@ paymentRouter.callbackQuery(
   StartWithQuery('back_buy_method'),
   async (ctx) => {
     const model = ctx.callbackQuery.data.split(' ')[1];
-    logger.trace('Back to payment method selection triggered for model:', model);
+    log.trace('Back to payment method selection triggered for model:', model);
     console.log('Back to payment method - Full callback data:', ctx.callbackQuery.data);
     try {
       await ctx.editMessageText(ctx.t('payment.choose_payment_method'));
       await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardMethod(ctx, model) });
     } catch (error) {
-      logger.error('Error in back_buy_method:', error);
+      log.error('Error in back_buy_method:', error);
     }
   }
 );
@@ -183,9 +181,9 @@ paymentRouter.callbackQuery(
   StartWithQuery('buy-gpt'),
   async (ctx) => {
     const model = ctx.callbackQuery.data.split(' ')[1];
-    logger.trace('Buy GPT model selected:', model);
+    log.trace('Buy GPT model selected:', model);
     console.log('Buy GPT - Full callback data:', ctx.callbackQuery.data);
-    logger.trace('Showing payment method selection for model:', model);
+    log.trace('Showing payment method selection for model:', model);
     await ctx.editMessageText(ctx.t('payment.choose_payment_method'));
     await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardMethod(ctx, model) });
   }
@@ -208,7 +206,7 @@ paymentRouter.callbackQuery(
     
     const prices = [25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000];
     const starPriceButtons = getStarPriceKeyboard('buy_stars', prices, model);
-    logger.trace('Star price buttons created:', starPriceButtons);
+    log.trace('Star price buttons created:', starPriceButtons);
     
     const keyboard = new InlineKeyboard();
     
@@ -222,7 +220,7 @@ paymentRouter.callbackQuery(
     
     // Add back button
     keyboard.text(ctx.t('payment.back_to_payment_method'), `back_buy_method ${model}`);
-    logger.trace('Final Stars keyboard created:', keyboard);
+    log.trace('Final Stars keyboard created:', keyboard);
     
     await ctx.editMessageReplyMarkup({ reply_markup: keyboard });
   }
@@ -234,8 +232,8 @@ paymentRouter.on('callback_query', async (ctx) => {
   if (ctx.callbackQuery.data.startsWith('buy_method_stars')) {
     try {
       const model = ctx.callbackQuery.data.split(' ')[1];
-      debugObject(logger, 'Telegram Stars payment method selected for model:', model);
-      debugObject(logger, 'Showing energy amount selection for Stars');
+      log.debug('Telegram Stars payment method selected for model:', model);
+      log.debug('Showing energy amount selection for Stars');
       await ctx.editMessageText(ctx.t('payment.how_much_energy'));
       
       const prices = [25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000];
@@ -256,11 +254,11 @@ paymentRouter.on('callback_query', async (ctx) => {
       
       // Add back button
       keyboard.text(ctx.t('payment.back_to_payment_method'), `back_buy_method ${model}`);
-      debugKeyboard(logger, 'Final Stars keyboard created', keyboard);
+      log.debug('Final Stars keyboard created', keyboard);
       
       await ctx.editMessageReplyMarkup({ reply_markup: keyboard });
     } catch (error) {
-      logger.error('Error in buy_method_stars handler:', error);
+      log.error('Error in buy_method_stars handler:', error);
     }
     return;
   }
@@ -268,8 +266,8 @@ paymentRouter.on('callback_query', async (ctx) => {
   if (ctx.callbackQuery.data.startsWith('buy_method_card')) {
     try {
       const model = ctx.callbackQuery.data.split(' ')[1];
-      debugObject(logger, 'Card payment method selected for model:', model);
-      debugObject(logger, 'Showing energy amount selection for Card');
+      log.debug('Card payment method selected for model:', model);
+      log.debug('Showing energy amount selection for Card');
       await ctx.editMessageText(ctx.t('payment.how_much_energy'));
       
       const prices = [100000, 250000, 500000, 1000000, 2500000, 5000000];
@@ -290,11 +288,11 @@ paymentRouter.on('callback_query', async (ctx) => {
       
       // Add back button
       keyboard.text(ctx.t('payment.back_to_payment_method'), `back_buy_method ${model}`);
-      debugKeyboard(logger, 'Final Card keyboard created', keyboard);
+      log.debug('Final Card keyboard created', keyboard);
       
       await ctx.editMessageReplyMarkup({ reply_markup: keyboard });
     } catch (error) {
-      logger.error('Error in buy_method_card handler:', error);
+      log.error('Error in buy_method_card handler:', error);
     }
     return;
   }
@@ -302,22 +300,22 @@ paymentRouter.on('callback_query', async (ctx) => {
   if (ctx.callbackQuery.data.startsWith('back_buy_method')) {
     try {
       const model = ctx.callbackQuery.data.split(' ')[1];
-      debugObject(logger, 'Back to payment method selection triggered for model:', model);
+      log.debug('Back to payment method selection triggered for model:', model);
       await ctx.editMessageText(ctx.t('payment.choose_payment_method'));
       await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardMethod(ctx, model) });
     } catch (error) {
-      logger.error('Error in back_buy_method:', error);
+      log.error('Error in back_buy_method:', error);
     }
     return;
   }
   
   if (ctx.callbackQuery.data.startsWith('back_buy_model')) {
     try {
-      debugObject(logger, 'Back to model selection triggered');
+      log.debug('Back to model selection triggered');
       await ctx.editMessageText(ctx.t('payment.choose_model'));
       await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardMethod(ctx) });
     } catch (error) {
-      logger.error('Error in back_buy_model:', error);
+      log.error('Error in back_buy_model:', error);
     }
     return;
   }
@@ -325,18 +323,18 @@ paymentRouter.on('callback_query', async (ctx) => {
   if (ctx.callbackQuery.data.startsWith('buy-gpt')) {
     try {
       const model = ctx.callbackQuery.data.split(' ')[1];
-      debugObject(logger, 'Buy GPT model selected:', model);
-      debugObject(logger, 'Showing payment method selection for model:', model);
+      log.debug('Buy GPT model selected:', model);
+      log.debug('Showing payment method selection for model:', model);
       await ctx.editMessageText(ctx.t('payment.choose_payment_method'));
       await ctx.editMessageReplyMarkup({ reply_markup: createBuyBalanceKeyboardMethod(ctx, model) });
     } catch (error) {
-      logger.error('Error in buy-gpt handler:', error);
+      log.error('Error in buy-gpt handler:', error);
     }
     return;
   }
   
   // Handle other callbacks (donation, buy_stars, buy_card, etc.)
-  debugObject(logger, 'Unknown callback:', ctx.callbackQuery.data);
+  log.debug('Unknown callback:', ctx.callbackQuery.data);
 });
 
 // Send invoice for Stars (matching Python logic)
@@ -347,7 +345,7 @@ paymentRouter.callbackQuery(
     const tokens = ctx.callbackQuery.data.split(' ')[1];
     const amount = parseInt(ctx.callbackQuery.data.split(' ')[2]);
     const model = ctx.callbackQuery.data.split(' ')[3];
-    logger.trace('Buy stars triggered - tokens:', tokens, 'amount:', amount, 'model:', model);
+    log.trace('Buy stars triggered - tokens:', tokens, 'amount:', amount, 'model:', model);
     
     await ctx.api.sendInvoice(ctx.chat.id, {
       title: ctx.t('payment.purchase_energy'),
@@ -373,7 +371,7 @@ paymentRouter.callbackQuery(
     const tokens = ctx.callbackQuery.data.split(' ')[1];
     const amount = parseInt(ctx.callbackQuery.data.split(' ')[2]) * 100;
     const model = ctx.callbackQuery.data.split(' ')[3];
-    logger.trace('Buy card triggered - tokens:', tokens, 'amount:', amount, 'model:', model);
+    log.trace('Buy card triggered - tokens:', tokens, 'amount:', amount, 'model:', model);
     
     await ctx.api.sendInvoice(ctx.chat.id, {
       ...buyBalanceProduct,
@@ -412,7 +410,7 @@ paymentRouter.callbackQuery(
   StartWithQuery('donation'),
   async (ctx) => {
     const amount = parseInt(ctx.callbackQuery.data.split(' ')[1], 10) * 100;
-    logger.trace('Donation triggered - amount:', amount);
+    log.trace('Donation triggered - amount:', amount);
     
     await ctx.api.sendInvoice(ctx.chat.id, {
       ...donationProduct,
@@ -428,7 +426,7 @@ paymentRouter.callbackQuery(
 // Pre-checkout
 /*
 paymentRouter.preCheckoutQuery(async (ctx) => {
-  logger.info(ctx.preCheckoutQuery);
+  log.info(ctx.preCheckoutQuery);
   await ctx.answerPreCheckoutQuery(true);
 });
 */
@@ -437,9 +435,9 @@ paymentRouter.preCheckoutQuery(async (ctx) => {
 /*
 paymentRouter.on('message:successful_payment', async (ctx) => {
   const { successful_payment } = ctx.message;
-  logger.info('SUCCESSFUL PAYMENT:');
+  log.info('SUCCESSFUL PAYMENT:');
   for (const [k, v] of Object.entries(successful_payment)) {
-    logger.info(`${k} = ${v}`);
+    log.info(`${k} = ${v}`);
   }
   
   if (successful_payment.invoice_payload.startsWith('donation')) {
@@ -477,7 +475,7 @@ paymentRouter.on('message:successful_payment', async (ctx) => {
 
 // Simple test command
 paymentRouter.command('test', async (ctx) => {
-  debugObject(logger, 'TEST COMMAND: Received test command');
+  log.debug('TEST COMMAND: Received test command');
   await ctx.reply('Test command works!');
 });
 
