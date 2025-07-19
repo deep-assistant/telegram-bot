@@ -195,7 +195,7 @@ async function startBot() {
       });
     }
   } catch (err) {
-    logger.error('Bot encountered an error:', err);
+    log.error('Bot encountered an error:', () => err);
     process.exit(1);
   }
 }
@@ -206,7 +206,7 @@ export { startBot };
 // Start the bot if this file is run directly
 if (import.meta.main) {
   startBot().catch((err) => {
-    logger.error('Failed to start bot:', err);
+    log.error('Failed to start bot:', () => err);
     process.exit(1);
   });
 }
