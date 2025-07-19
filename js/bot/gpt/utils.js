@@ -33,7 +33,7 @@ const telegramifyMarkdown = {
   markdownify: (text) => tgMarkdown(text, 'escape')
 };
 
-const logger = createLogger('gpt_utils');
+const log = createLogger('gpt_utils');
 
 export function checkedText(value) {
   return `✅ ${value}`;
@@ -50,22 +50,22 @@ export const subscribeText = `
 `;
 
 export async function checkSubscription(ctx, userId = null) {
-  logger.trace(`checkSubscription called with: userId=${userId}, ctxUserId=${ctx.from?.id}`);
+  log.trace(() => `checkSubscription called with: userId=${userId}, ctxUserId=${ctx.from?.id}`);
   
   if (!userId) userId = ctx.from.id;
   if (!userId) {
-    logger.warn('checkSubscription: userId undefined');
+    log.warn('checkSubscription: userId undefined');
     return true;
   }
   
-  logger.trace(`Checking subscription for user: ${userId}`);
+  log.trace(() => `Checking subscription for user: ${userId}`);
   try {
     const chatMember = await ctx.api.getChatMember('-1002239712203', userId);
     const isSubscribed = ['creator', 'administrator', 'member'].includes(chatMember.status);
-    logger.trace(`Subscription check result: userId=${userId}, status=${chatMember.status}, isSubscribed=${isSubscribed}`);
+    log.trace(() => `Subscription check result: userId=${userId}, status=${chatMember.status}, isSubscribed=${isSubscribed}`);
     return isSubscribed;
   } catch (err) {
-    logger.error('checkSubscription failed:', err);
+    log.error('checkSubscription failed:', () => err);
     return false;
   }
 }
