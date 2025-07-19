@@ -1,14 +1,12 @@
 import { Composer } from 'grammy';
-import { tokenizeService, referralsService } from '../../services/index.js';
 import { createLogger } from '../../utils/logger.js';
+import { tokenizeService, referralsService } from '../../services/index.js';
 import { config } from '../../config.js';
 import { sendMessage } from '../main_keyboard.js';
 
-const logger = createLogger('balance_router');
+const log = createLogger('balance_router');
 
 export const balanceRouter = new Composer();
-
-
 
 function formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAccount }) {
   return ctx.t('balance.message', {
@@ -22,7 +20,7 @@ function formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAcc
 
 async function sendBalance(ctx) {
   const userId = ctx.from.id;
-  logger.debug('Balance requested for user:', userId);
+  log.debug('Balance requested for user:', userId);
   try {
     const gptTokens = await tokenizeService.get_tokens(userId);
     const referral = await referralsService.getReferral(userId);
@@ -52,7 +50,7 @@ async function sendBalance(ctx) {
     const text = formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAccount });
     await sendMessage(ctx, text);
   } catch (error) {
-    logger.error('Error in balance command:', error);
+    log.error('Error in balance command:', () => error);
     console.error('Full error details:', error);
     await sendMessage(ctx, ctx.t('balance.error'));
     if (config.isDev) process.exit(1);
