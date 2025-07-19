@@ -16,6 +16,12 @@ const logger = createLogger('payment_router');
 
 export const paymentRouter = new Composer();
 
+// Minimal test callback handler
+paymentRouter.callbackQuery(async (ctx) => {
+  console.log('MINIMAL TEST: Received callback:', ctx.callbackQuery.data);
+  return false; // Don't handle it
+});
+
 // Debug handler to catch all callbacks FIRST
 paymentRouter.callbackQuery(async (ctx) => {
   console.log('DEBUG: Received callback data:', ctx.callbackQuery.data);
@@ -443,4 +449,30 @@ paymentRouter.on('message:successful_payment', async (ctx) => {
     const { tokens: newTokens } = await tokenizeService.get_tokens(ctx.from.id);
     await ctx.reply(ctx.t('payment.current_balance', { tokens: newTokens }));
   }
+});
+
+// Simple test - replace all complex handlers temporarily
+paymentRouter.callbackQuery(async (ctx) => {
+  console.log('SIMPLE TEST: Received callback:', ctx.callbackQuery.data);
+  
+  if (ctx.callbackQuery.data.startsWith('buy_method_stars')) {
+    console.log('SUCCESS: buy_method_stars detected!');
+    await ctx.editMessageText('Telegram Stars selected!');
+    return;
+  }
+  
+  if (ctx.callbackQuery.data.startsWith('buy_method_card')) {
+    console.log('SUCCESS: buy_method_card detected!');
+    await ctx.editMessageText('Card payment selected!');
+    return;
+  }
+  
+  if (ctx.callbackQuery.data.startsWith('back_buy_method')) {
+    console.log('SUCCESS: back_buy_method detected!');
+    await ctx.editMessageText('Back to payment method!');
+    return;
+  }
+  
+  console.log('UNKNOWN CALLBACK:', ctx.callbackQuery.data);
+  return false;
 });
