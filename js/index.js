@@ -15,7 +15,7 @@ import { paymentRouter } from './bot/payment/router.js';
 import { i18n } from './i18n.js';
 import { createLogger } from './utils/logger.js';
 
-const logger = createLogger('main');
+const log = createLogger('main');
 
 // Enhanced AlbumMiddleware with batching (from bot_run.js)
 function albumMiddleware() {
@@ -63,7 +63,7 @@ function albumMiddleware() {
 }
 
 function applyRouters(bot) {
-  logger.debug('Applying routers');
+  log.debug('Applying routers');
   // bot.use(imagesRouter);
   // bot.use(sunoRouter);
   bot.use(startRouter);
@@ -78,15 +78,15 @@ function applyRouters(bot) {
 }
 
 async function onStartup() {
-  logger.info('Bot is starting...');
+  log.info('Bot is starting...');
 }
 
 async function onShutdown() {
-  logger.info('Bot is shutting down...');
+  log.info('Bot is shutting down...');
 }
 
 async function startBot() {
-  logger.info('Starting bot...');
+  log.info('Starting bot...');
   
   // Initialize the bot based on the development flag (mirroring Python logic)
   let bot;
@@ -109,29 +109,29 @@ async function startBot() {
   
   // Error handling
   bot.catch((err) => {
-    logger.error('Bot error:', err);
+    log.error('Bot error:', () => err);
     if (config.isDev) {
-      logger.error('Development mode: Bot will exit due to error');
+      log.error('Development mode: Bot will exit due to error');
       process.exit(1);
     }
   });
   
   try {
     if (config.webhookEnabled && config.webhookUrl) {
-      logger.info('Starting bot webhook...');
+      log.info('Starting bot webhook...');
       
       // Delete existing webhook first
       try {
         await bot.api.deleteWebhook({ drop_pending_updates: true });
       } catch (err) {
-        logger.warn('Failed to delete webhook:', err.message);
+        log.warn('Failed to delete webhook:', () => err.message);
       }
       
       // Set new webhook
       try {
         await bot.api.setWebhook(config.webhookUrl);
       } catch (err) {
-        logger.warn('Failed to set webhook:', err.message);
+        log.warn('Failed to set webhook:', () => err.message);
       }
       
       await onStartup();
@@ -158,7 +158,7 @@ async function startBot() {
         try {
           await bot.api.deleteWebhook();
         } catch (err) {
-          logger.warn('Failed to delete webhook:', err.message);
+          log.warn('Failed to delete webhook:', () => err.message);
         }
         process.exit(0);
       });
@@ -167,7 +167,7 @@ async function startBot() {
         try {
           await bot.api.deleteWebhook();
         } catch (err) {
-          logger.warn('Failed to delete webhook:', err.message);
+          log.warn('Failed to delete webhook:', () => err.message);
         }
         process.exit(0);
       });
@@ -176,13 +176,13 @@ async function startBot() {
       return new Promise(() => {});
     } else {
       // Main mode: Long polling (mirroring Python logic)
-      logger.info('Starting bot polling...');
+      log.info('Starting bot polling...');
       
       // Delete webhook if exists (mirroring Python logic)
       try {
         await bot.api.deleteWebhook({ drop_pending_updates: true });
       } catch (err) {
-        logger.warn('Failed to delete webhook:', err.message);
+        log.warn('Failed to delete webhook:', () => err.message);
       }
       
       await onStartup();
