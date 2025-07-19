@@ -30,6 +30,22 @@ const log = pino({
   }
 });
 
+// Helper to serialize objects nicely
+const serializeArg = (arg) => {
+  if (typeof arg === 'function') {
+    const result = arg();
+    return serializeArg(result);
+  }
+  if (typeof arg === 'object' && arg !== null) {
+    try {
+      return JSON.stringify(arg, null, 2);
+    } catch (error) {
+      return '[Object cannot be serialized]';
+    }
+  }
+  return String(arg);
+};
+
 // Helper to add module prefix to log methods
 const addModulePrefix = (log, module) => {
   const methods = ['debug', 'info', 'warn', 'error', 'trace'];
@@ -38,13 +54,8 @@ const addModulePrefix = (log, module) => {
     log[method] = (...args) => {
       if (!log.isLevelEnabled(method)) return;
       
-      // Convert all args to strings if they're functions
-      const processedArgs = args.map(arg => {
-        if (typeof arg === 'function') {
-          return arg();
-        }
-        return arg;
-      });
+      // Convert all args to strings
+      const processedArgs = args.map(serializeArg);
       
       original(`[${module}] ${processedArgs.join(' ')}`);
     };
