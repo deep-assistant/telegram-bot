@@ -1,7 +1,7 @@
 import pino from 'pino';
 
-// Create logger with lazy evaluation
-const logger = pino({
+// Create log with lazy evaluation
+const log = pino({
   level: process.env.LOG_LEVEL || 'info',
   transport: {
     targets: [
@@ -30,65 +30,33 @@ const logger = pino({
   }
 });
 
-// Helper to add module prefix to logger methods
-const addModulePrefix = (logger, module) => {
+// Helper to add module prefix to log methods
+const addModulePrefix = (log, module) => {
   const methods = ['debug', 'info', 'warn', 'error', 'trace'];
   methods.forEach(method => {
-    const original = logger[method].bind(logger);
-    logger[method] = (msg, ...args) => original(`[${module}] ${msg}`, ...args);
+    const original = log[method].bind(log);
+    log[method] = (...args) => {
+      if (!log.isLevelEnabled(method)) return;
+      
+      // Convert all args to strings if they're functions
+      const processedArgs = args.map(arg => {
+        if (typeof arg === 'function') {
+          return arg();
+        }
+        return arg;
+      });
+      
+      original(`[${module}] ${processedArgs.join(' ')}`);
+    };
   });
-  return logger;
+  return log;
 };
 
-// Create child loggers for different modules with module prefix
+// Create child logs for different modules with module prefix
 export const createLogger = (module) => {
-  const childLogger = logger.child({ module });
-  return addModulePrefix(childLogger, module);
+  const childLog = log.child({ module });
+  return addModulePrefix(childLog, module);
 };
 
-// Export main logger
-export default logger;
-
-// Lazy evaluation helpers
-export const lazyDebug = (logger, fn) => logger.isLevelEnabled('debug') ? fn() : undefined;
-export const lazyTrace = (logger, fn) => logger.isLevelEnabled('trace') ? fn() : undefined;
-export const lazyInfo = (logger, fn) => logger.isLevelEnabled('info') ? fn() : undefined;
-export const lazyWarn = (logger, fn) => logger.isLevelEnabled('warn') ? fn() : undefined;
-export const lazyError = (logger, fn) => logger.isLevelEnabled('error') ? fn() : undefined;
-
-// Debugging helpers
-export const debugObject = (logger, label, obj) => {
-  if (logger.isLevelEnabled('debug')) {
-    try {
-      logger.debug(`${label}: ${JSON.stringify(obj, null, 2)}`);
-    } catch (error) {
-      logger.debug(`${label}: [Object cannot be serialized]`);
-    }
-  }
-};
-
-export const traceObject = (logger, label, obj) => {
-  if (logger.isLevelEnabled('trace')) {
-    try {
-      logger.trace(`${label}: ${JSON.stringify(obj, null, 2)}`);
-    } catch (error) {
-      logger.trace(`${label}: [Object cannot be serialized]`);
-    }
-  }
-};
-
-export const debugCallback = (logger, label, callbackData) => {
-  if (logger.isLevelEnabled('debug')) {
-    logger.debug(`${label}: ${callbackData}`);
-  }
-};
-
-export const debugKeyboard = (logger, label, keyboard) => {
-  if (logger.isLevelEnabled('debug')) {
-    try {
-      logger.debug(`${label}: ${JSON.stringify(keyboard, null, 2)}`);
-    } catch (error) {
-      logger.debug(`${label}: [Keyboard cannot be serialized]`);
-    }
-  }
-}; 
+// Export main log
+export default log; 

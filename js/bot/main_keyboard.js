@@ -1,13 +1,14 @@
 import { Keyboard } from 'grammy';
+import { createLogger } from '../utils/logger.js';
+import { config } from '../config.js';
 import tgMarkdown from 'telegramify-markdown';
-import { createLogger, lazyDebug } from '../utils/logger.js';
 
-const logger = createLogger('main_keyboard');
+const log = createLogger('main_keyboard');
 const chatMessageCounts = {};
 const FIRST_MESSAGES_LIMIT = 3;
 
 export function createMainKeyboard(ctx) {
-  logger.trace(`Creating main keyboard for user: ${ctx.from?.id}`);
+  log.trace(`Creating main keyboard for user: ${ctx.from?.id}`);
   const keyboard = new Keyboard()
     .text(ctx.t('buttons.balance')).text(ctx.t('buttons.buy')).row()
     .text(ctx.t('buttons.model')).text(ctx.t('buttons.system')).row()
@@ -17,7 +18,7 @@ export function createMainKeyboard(ctx) {
     .resized()
     .placeholder(ctx.t('main_keyboard.placeholder'));
   
-  logger.trace(`Keyboard created: ${JSON.stringify({
+  log.trace(`Keyboard created: ${JSON.stringify({
     keyboard: keyboard.keyboard,
     resize_keyboard: keyboard.resize_keyboard,
     input_field_placeholder: keyboard.input_field_placeholder
@@ -27,14 +28,14 @@ export function createMainKeyboard(ctx) {
 }
 
 export async function sendMessage(ctx, text, options = {}) {
-  logger.trace(`sendMessage called with: chatId=${ctx.chat?.id}, userId=${ctx.from?.id}, textType=${typeof text}, textPreview=${typeof text === 'string' ? text.slice(0, 100) : 'object'}, options=${JSON.stringify(Object.keys(options))}`);
+  log.trace(`sendMessage called with: chatId=${ctx.chat?.id}, userId=${ctx.from?.id}, textType=${typeof text}, textPreview=${typeof text === 'string' ? text.slice(0, 100) : 'object'}, options=${JSON.stringify(Object.keys(options))}`);
 
   if (typeof text === 'object' && text !== null && 'text' in text) {
     const tmp = text;
     text = tmp.text;
     const { text: _, ...rest } = tmp;
     options = { ...options, ...rest };
-    logger.trace(`Extracted text from object: ${text.slice(0, 100)}`);
+    log.trace(`Extracted text from object: ${text.slice(0, 100)}`);
   }
 
   const chatId = ctx.chat.id;
@@ -52,19 +53,7 @@ export async function sendMessage(ctx, text, options = {}) {
     text = tgMarkdown(text, 'escape');
   }
 
-  lazyDebug(logger, () => {
-    return {
-      messageType: typeof text,
-      messagePreview: text.slice?.(0,50) || text,
-      reply_markup: options.reply_markup ? {
-        keyboard: options.reply_markup.keyboard,
-        resize_keyboard: options.reply_markup.resize_keyboard,
-        input_field_placeholder: options.reply_markup.input_field_placeholder
-      } : undefined,
-      parse_mode: options.parse_mode
-    };
-  });
-  logger.debug('sendMessage', lazyDebug(logger, () => ({
+  log.debug('sendMessage', {
     messageType: typeof text,
     messagePreview: text.slice?.(0,50) || text,
     reply_markup: options.reply_markup ? {
@@ -73,6 +62,6 @@ export async function sendMessage(ctx, text, options = {}) {
       input_field_placeholder: options.reply_markup.input_field_placeholder
     } : undefined,
     parse_mode: options.parse_mode
-  })));
+  });
   return ctx.reply(text, options);
 }
