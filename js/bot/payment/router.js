@@ -437,7 +437,7 @@ paymentRouter.on('message:successful_payment', async (ctx) => {
   const { successful_payment } = ctx.message;
   log.info('SUCCESSFUL PAYMENT:');
   for (const [k, v] of Object.entries(successful_payment)) {
-    log.info(`${k} = ${v}`);
+    log.info(() => `${k} = ${v}`);
   }
   
   if (successful_payment.invoice_payload.startsWith('donation')) {
