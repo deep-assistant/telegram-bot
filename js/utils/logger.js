@@ -30,25 +30,20 @@ const logger = pino({
   }
 });
 
+// Helper to add module prefix to logger methods
+const addModulePrefix = (logger, module) => {
+  const methods = ['debug', 'info', 'warn', 'error', 'trace'];
+  methods.forEach(method => {
+    const original = logger[method].bind(logger);
+    logger[method] = (msg, ...args) => original(`[${module}] ${msg}`, ...args);
+  });
+  return logger;
+};
+
 // Create child loggers for different modules with module prefix
 export const createLogger = (module) => {
   const childLogger = logger.child({ module });
-  
-  // Store original methods
-  const originalDebug = childLogger.debug.bind(childLogger);
-  const originalInfo = childLogger.info.bind(childLogger);
-  const originalWarn = childLogger.warn.bind(childLogger);
-  const originalError = childLogger.error.bind(childLogger);
-  const originalTrace = childLogger.trace.bind(childLogger);
-  
-  // Override with module prefix
-  childLogger.debug = (msg, ...args) => originalDebug(`[${module}] ${msg}`, ...args);
-  childLogger.info = (msg, ...args) => originalInfo(`[${module}] ${msg}`, ...args);
-  childLogger.warn = (msg, ...args) => originalWarn(`[${module}] ${msg}`, ...args);
-  childLogger.error = (msg, ...args) => originalError(`[${module}] ${msg}`, ...args);
-  childLogger.trace = (msg, ...args) => originalTrace(`[${module}] ${msg}`, ...args);
-  
-  return childLogger;
+  return addModulePrefix(childLogger, module);
 };
 
 // Export main logger
