@@ -13,4 +13,8 @@ WEBHOOK_PATH = "/webhook"
 WEBHOOK_HOST = "0.0.0.0"
 WEBHOOK_PORT = 3000
 
+# HTTPX Configuration
+# Controls SSL certificate verification for all HTTP requests made through services/utils.py
+# Set to True to disable SSL verification (useful for development with self-signed certificates)
+HTTPX_DISABLE_SSL_VERIFY = False
 
