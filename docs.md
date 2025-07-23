@@ -24,7 +24,7 @@ import OpenAI from 'openai';
 const openai = new OpenAI({
   // You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
   apiKey: "DEEP_TOKEN", 
-  baseURL: "https://api.deep-foundation.tech/v1/"
+  baseURL: "https://api.deep.assistant.run.place/v1/"
 });
 
 async function main() {
@@ -47,7 +47,7 @@ import OpenAI from 'openai';
 const openai = new OpenAI({
   // You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
   apiKey: "DEEP_TOKEN", 
-  baseURL: "https://api.deep-foundation.tech/v1/"
+  baseURL: "https://api.deep.assistant.run.place/v1/"
 });
 
 async function main() {
@@ -77,7 +77,7 @@ formData.append("file", file.buffer, file.originalname);
 formData.append("model", "whisper-1");
 formData.append("language", "RU");
 
-const response = await fetch("https://api.deep-foundation.tech/v1/audio/transcriptions", {
+const response = await fetch("https://api.deep.assistant.run.place/v1/audio/transcriptions", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${DEEP_TOKEN}`,
@@ -98,7 +98,7 @@ console.log(responseData) // {"text": "hello"}
 import fetch from 'node-fetch';
 import { writeFileSync } from 'fs';
 
-const API_URL = 'https://api.deep-foundation.tech/v1/audio/speech';
+const API_URL = 'https://api.deep.assistant.run.place/v1/audio/speech';
 const TOKEN = 'DEEP_TOKEN'; 
 
 const requestBody = {
@@ -160,7 +160,7 @@ from openai import OpenAI
 openai = OpenAI(
     # You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
     api_key="DEEP_TOKEN",
-    base_url="https://api.deep-foundation.tech/v1/",
+    base_url="https://api.deep.assistant.run.place/v1/",
 )
 
 chat_completion = openai.chat.completions.create(
@@ -180,7 +180,7 @@ from openai import OpenAI
 openai = OpenAI(
     # You can get a token in the bot https://t.me/DeepGPTBot calling the `/api` command
     api_key="DEEP_TOKEN",
-    base_url="https://api.deep-foundation.tech/v1/",
+    base_url="https://api.deep.assistant.run.place/v1/",
 )
 
 stream = openai.chat.completions.create(
@@ -200,7 +200,7 @@ for chunk in stream:
 import requests
 
 API_KEY = 'DEEP_TOKEN'  
-url = "https://api.deep-foundation.tech/v1/audio/transcriptions"
+url = "https://api.deep.assistant.run.place/v1/audio/transcriptions"
 
 file_buffer = b'...'
 file_name = 'your_file_name.mp3' 
@@ -226,7 +226,7 @@ print(response_data)  # {"text": "hello"}
 import requests
 import json
 
-API_URL = 'https://api.deep-foundation.tech/v1/audio/speech'
+API_URL = 'https://api.deep.assistant.run.place/v1/audio/speech'
 TOKEN = 'DEEP_TOKEN'  
 
 request_body = {
