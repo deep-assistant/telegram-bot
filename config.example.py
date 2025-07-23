@@ -1,6 +1,6 @@
 TOKEN = "" # Token from @BotFather
 ANALYTICS_URL = "https://6651b4300001d.tgrasp.co"
-PROXY_URL = "https://api.deep-foundation.tech"
+PROXY_URL = "https://api.deep.assistant.run.place"
 ADMIN_TOKEN = "" # Admin token for api.deep-foundation.tech
 KEY_DEEPINFRA = ""
 IS_DEV = True

@@ -8,6 +8,7 @@ This folder contains the **JavaScript** implementation of the Deep-Assistant Tel
 
 If you don’t have Bun yet, install it globally:
 
+
 ```bash
 curl -fsSL https://bun.sh/install | bash
 # or on macOS with Homebrew
@@ -34,7 +35,7 @@ bun --version
 2. Open `config.js` in your editor and fill in at least:
 
    * `TOKEN` – Telegram bot token from **@BotFather**
-   * `ADMIN_TOKEN` – Admin token for <https://api.deep-foundation.tech> (optional unless you use API features)
+   * `ADMIN_TOKEN` – Admin token for <https://api.deep.assistant.run.place> (optional unless you use API features)
    * Any other keys you plan to use (payments, DeepInfra, etc.)
 
 3. Leave `IS_DEV: true` while developing locally. Switch it to `false` for production-like analytics routing.
