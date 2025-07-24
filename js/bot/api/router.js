@@ -10,9 +10,9 @@ export const apiRouter = new Router();
 function getApiMessage(token) {
   return {
     text: `API KEY: \`${token.id}\` \n` +
-          `API URL: https://api.deep-foundation.tech/v1/ \n` +
-          `API URL Whisper: https://api.deep-foundation.tech/v1/audio/transcriptions  \n` +
-          `API URL Completions: https://api.deep-foundation.tech/v1/chat/completions \n\n` +
+          `API URL: https://api.deep.assistant.run.place/v1/ \n` +
+          `API URL Whisper: https://api.deep.assistant.run.place/v1/audio/transcriptions  \n` +
+          `API URL Completions: https://api.deep.assistant.run.place/v1/chat/completions \n\n` +
           `Ваш баланс: ${token.tokens_gpt}⚡️️ \n\n` +
           `https://github.com/deep-foundation/deep-gpt/blob/main/docs.md - 📄 Документация по работе с API`,
     reply_markup: {
