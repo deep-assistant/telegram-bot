@@ -1,3 +1,5 @@
 .env
+.env.keys
 node_modules
 logs
+.telegram_session

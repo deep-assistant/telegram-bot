@@ -14,4 +14,8 @@ export const config = {
   webhookHost: process.env.WEBHOOK_HOST || "0.0.0.0",
   webhookPort: parseInt(process.env.WEBHOOK_PORT) || 3000,
   stopEnabled: process.env.STOP_ENABLED === "true" || false,
+  telegramApiId: process.env.TELEGRAM_API_ID || "",
+  telegramApiHash: process.env.TELEGRAM_API_HASH || "",
+  telegramPhone: process.env.TELEGRAM_PHONE || "",
+  telegramBotName: process.env.TELEGRAM_BOT_NAME || "@DeepGPTBot",
 };
