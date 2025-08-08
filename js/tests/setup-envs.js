@@ -28,6 +28,10 @@ async function updateEnvFile(botInfo) {
   
   dotenvx.set('TELEGRAM_BOT_NAME', botName, { path: '.env', encrypt: false });
   console.log(`✅ Updated .env with TELEGRAM_BOT_NAME=${botName}`);
+  
+  // Ensure STOP_ENABLED is set to true for testing
+  dotenvx.set('STOP_ENABLED', 'true', { path: '.env', encrypt: false });
+  console.log(`✅ Updated .env with STOP_ENABLED=true`);
 }
 
 async function setupEnvs() {
