@@ -150,9 +150,19 @@ async function testBotInteraction() {
   }
 }
 
-if (import.meta.main) {
-  testBotInteraction().catch((error) => {
-    console.error('Test execution failed:', error);
-    process.exit(1);
+// Detect execution context
+const isRunningViaBunTest = process.argv.join(' ').includes('bun test') || process.env.NODE_ENV === 'test';
+
+if (isRunningViaBunTest) {
+  // Bun test framework execution
+  const { test, describe } = await import('bun:test');
+  
+  describe('Bot Integration Tests', () => {
+    test('should start bot, handle /start command, and shutdown with /stop', async () => {
+      await testBotInteraction();
+    }, 60000); // 60 second timeout for integration test
   });
+} else if (import.meta.main) {
+  // Direct execution only
+  await testBotInteraction();
 }
