@@ -25,6 +25,7 @@ export const SUNO_COMMAND = '/suno';
 export const SUNO_TEXT = '🎵 Генерация музыки';
 export const HERE_AND_NOW_COMMAND = '/here_and_now';
 export const API_COMMAND = '/api';
+export const STOP_COMMAND = '/stop';
 
 export const ALL_COMMANDS = [
   PAYMENT_COMMAND_START,
@@ -53,7 +54,8 @@ export const ALL_COMMANDS = [
   SUNO_COMMAND,
   SUNO_TEXT,
   HERE_AND_NOW_COMMAND,
-  API_COMMAND
+  API_COMMAND,
+  STOP_COMMAND
 ];
 
 // --- Helper functions for backward-compatibility with aiogram version ---

@@ -66,6 +66,8 @@ start:
     /text - Send text message
   app_link: >
     Link to the application: https://t.me/DeepGPTBot/App
+  stop_disabled: "Stop command is disabled."
+  stop_shutdown: "🛑 Bot has been shut down."
 
 main_keyboard:
   balance: ✨ Balance

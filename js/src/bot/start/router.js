@@ -4,7 +4,8 @@ import { createLogger } from '../../utils/logger.js';
 import { config } from '../../config.js';
 import { sendMessage, createMainKeyboard } from '../main_keyboard.js';
 import tgMarkdown from 'telegramify-markdown';
-import { helpText, helpCommand, appCommand } from '../commands.js';
+import { helpText, helpCommand, appCommand, STOP_COMMAND } from '../commands.js';
+import { shutdownEmitter } from '../../index.js';
 import { checkSubscription } from '../gpt/utils.js';
 
 const log = createLogger('start_router');
@@ -89,6 +90,22 @@ startRouter.hears([helpCommand(), helpText()], async (ctx) => {
 
 startRouter.hears(appCommand(), async (ctx) => {
   await sendMessage(ctx, ctx.t('start.app_link'));
+});
+
+startRouter.command('stop', async (ctx) => {
+  if (!config.stopEnabled) {
+    await sendMessage(ctx, ctx.t('start.stop_disabled'));
+    return;
+  }
+  
+  log.info(`Stop command received from user ${ctx.from.id} (${ctx.from.username || ctx.from.first_name})`);
+  
+  // Send final message while connection is still active
+  await sendMessage(ctx, ctx.t('start.stop_shutdown'));
+  
+  // Trigger immediate graceful shutdown
+  log.info('Initiating graceful shutdown due to /stop command');
+  shutdownEmitter.emit('shutdown');
 });
 
 
