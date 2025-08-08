@@ -1,5 +1,6 @@
 import { Bot } from 'grammy';
 import { run } from '@grammyjs/runner';
+import { EventEmitter } from 'events';
 import { config } from './config.js';
 import { startRouter } from './bot/start/router.js';
 // import agreementRouter from './bot/agreement/router.js';
@@ -16,6 +17,11 @@ import { i18n } from './i18n.js';
 import { createLogger } from './utils/logger.js';
 
 const log = createLogger('main');
+
+// Global shutdown emitter
+export const shutdownEmitter = new EventEmitter();
+let currentBot = null;
+let currentRunner = null;
 
 // Enhanced AlbumMiddleware with batching (from bot_run.js)
 function albumMiddleware() {
@@ -81,6 +87,35 @@ async function onStartup() {
   log.info('Bot is starting...');
 }
 
+async function gracefulShutdown() {
+  log.info('Bot is shutting down gracefully...');
+  
+  try {
+    // Stop the runner if it exists (for polling mode)
+    if (currentRunner) {
+      log.info('Stopping bot runner...');
+      await currentRunner.stop();
+    }
+
+    // Delete webhook if bot exists
+    if (currentBot) {
+      try {
+        await currentBot.api.deleteWebhook();
+        log.info('Webhook deleted successfully');
+      } catch (err) {
+        log.warn('Failed to delete webhook:', () => err.message);
+      }
+    }
+    
+    log.info('Bot shutdown completed');
+  } catch (err) {
+    log.error('Error during graceful shutdown:', () => err);
+  }
+  
+  // Finally exit
+  process.exit(0);
+}
+
 async function onShutdown() {
   log.info('Bot is shutting down...');
 }
@@ -89,26 +124,28 @@ async function startBot() {
   log.info('Starting bot...');
   
   // Initialize the bot based on the development flag (mirroring Python logic)
-  let bot;
   if (config.isDev) {
-    bot = new Bot(config.botToken);
+    currentBot = new Bot(config.botToken);
   } else {
     // Production mode with analytics URL
-    bot = new Bot(config.botToken, {
+    currentBot = new Bot(config.botToken, {
       // Note: grammY doesn't have direct session configuration like aiogram
       // We'll handle analytics through API calls when needed
     });
   }
   
+  // Set up shutdown listener
+  shutdownEmitter.once('shutdown', gracefulShutdown);
+  
   // Add middlewares
-  bot.use(i18n);
-  bot.use(albumMiddleware());
+  currentBot.use(i18n);
+  currentBot.use(albumMiddleware());
   
   // Apply routers
-  applyRouters(bot);
+  applyRouters(currentBot);
   
   // Error handling
-  bot.catch((err) => {
+  currentBot.catch((err) => {
     log.error('Bot error:', () => err);
     if (config.isDev) {
       log.error('Development mode: Bot will exit due to error');
@@ -122,14 +159,14 @@ async function startBot() {
       
       // Delete existing webhook first
       try {
-        await bot.api.deleteWebhook({ drop_pending_updates: true });
+        await currentBot.api.deleteWebhook({ drop_pending_updates: true });
       } catch (err) {
         log.warn('Failed to delete webhook:', () => err.message);
       }
       
       // Set new webhook
       try {
-        await bot.api.setWebhook(config.webhookUrl);
+        await currentBot.api.setWebhook(config.webhookUrl);
       } catch (err) {
         log.warn('Failed to set webhook:', () => err.message);
       }
@@ -144,7 +181,7 @@ async function startBot() {
           const url = new URL(req.url);
           if (url.pathname === config.webhookPath && req.method === 'POST') {
             req.json().then(update => {
-              bot.handleUpdate(update);
+              currentBot.handleUpdate(update);
             });
             return new Response('OK', { status: 200 });
           }
@@ -153,24 +190,8 @@ async function startBot() {
       });
 
       // Handle shutdown
-      process.on('SIGINT', async () => {
-        await onShutdown();
-        try {
-          await bot.api.deleteWebhook();
-        } catch (err) {
-          log.warn('Failed to delete webhook:', () => err.message);
-        }
-        process.exit(0);
-      });
-      process.on('SIGTERM', async () => {
-        await onShutdown();
-        try {
-          await bot.api.deleteWebhook();
-        } catch (err) {
-          log.warn('Failed to delete webhook:', () => err.message);
-        }
-        process.exit(0);
-      });
+      process.on('SIGINT', gracefulShutdown);
+      process.on('SIGTERM', gracefulShutdown);
 
       // Keep process alive
       return new Promise(() => {});
@@ -180,19 +201,25 @@ async function startBot() {
       
       // Delete webhook if exists (mirroring Python logic)
       try {
-        await bot.api.deleteWebhook({ drop_pending_updates: true });
+        await currentBot.api.deleteWebhook({ drop_pending_updates: true });
       } catch (err) {
         log.warn('Failed to delete webhook:', () => err.message);
       }
       
       await onStartup();
       
+      // Handle shutdown for polling mode
+      process.on('SIGINT', gracefulShutdown);
+      process.on('SIGTERM', gracefulShutdown);
+      
       // Start polling with options (mirroring Python skip_updates=False, drop_pending_updates=True)
-      await run(bot, {
+      currentRunner = run(currentBot, {
         runner: {
           drop_pending_updates: true
         }
       });
+      
+      await currentRunner;
     }
   } catch (err) {
     log.error('Bot encountered an error:', () => err);
