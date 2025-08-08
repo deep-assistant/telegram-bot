@@ -1,4 +1,4 @@
-import { tokenizeService, GPTModels } from './services/index.js';
+import { tokenizeService, GPTModels } from '../src/services/index.js';
 
 async function hello() {
   const token = await tokenizeService.create_new_token(1495307231);

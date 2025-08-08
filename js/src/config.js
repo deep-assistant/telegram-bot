@@ -1,0 +1,16 @@
+export const config = {
+  botToken: process.env.TOKEN || "",
+  analyticsUrl: process.env.ANALYTICS_URL || "https://6651b4300001d.tgrasp.co",
+  proxyUrl: process.env.PROXY_URL || "https://api.deep.assistant.run.place",
+  adminToken: process.env.ADMIN_TOKEN || "",
+  keyDeepinfra: process.env.KEY_DEEPINFRA || "",
+  isDev: process.env.IS_DEV === "true" || false,
+  paymentsToken: process.env.PAYMENTS_TOKEN || "",
+  goApiKey: process.env.GO_API_KEY || "",
+  guoGuoKey: process.env.GUO_GUO_KEY || "",
+  webhookEnabled: process.env.WEBHOOK_ENABLED === "true" || false,
+  webhookUrl: process.env.WEBHOOK_URL || null,
+  webhookPath: process.env.WEBHOOK_PATH || "/webhook",
+  webhookHost: process.env.WEBHOOK_HOST || "0.0.0.0",
+  webhookPort: parseInt(process.env.WEBHOOK_PORT) || 3000,
+};
