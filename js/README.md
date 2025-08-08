@@ -25,20 +25,20 @@ bun --version
 
 ## 2. Prepare configuration
 
-1. Copy the example configuration file and edit it with your own credentials:
+1. Copy the example environment file and edit it with your own credentials:
 
    ```bash
    cd js
-   cp config.example.js config.js
+   cp .env.example .env
    ```
 
-2. Open `config.js` in your editor and fill in at least:
+2. Open `.env` in your editor and fill in at least:
 
    * `TOKEN` – Telegram bot token from **@BotFather**
    * `ADMIN_TOKEN` – Admin token for <https://api.deep.assistant.run.place> (optional unless you use API features)
    * Any other keys you plan to use (payments, DeepInfra, etc.)
 
-3. Leave `IS_DEV: true` while developing locally. Switch it to `false` for production-like analytics routing.
+3. Leave `IS_DEV=true` while developing locally. Switch it to `IS_DEV=false` for production-like analytics routing.
 
 ---
 
@@ -61,19 +61,19 @@ This creates/updates `bun.lockb` and a minimal `package.json` when necessary.
 ### Development (long-polling)
 
 ```bash
-bun run index.js    # or simply `bun index.js`
+bun run src/index.js    # or simply `bun src/index.js`
 ```
 
-The bot will start in long-polling mode (default when `IS_DEV` is `true`). Check your terminal for the "Starting bot…" log.
+The bot will start in long-polling mode (default when `IS_DEV=true`). Check your terminal for the "Starting bot…" log.
 
 ### Production (webhook)
 
-1. Set `WEBHOOK_ENABLED: true` and configure `WEBHOOK_URL`, `WEBHOOK_PATH`, `WEBHOOK_HOST`, `WEBHOOK_PORT` in `config.js`.
+1. Set `WEBHOOK_ENABLED=true` and configure `WEBHOOK_URL`, `WEBHOOK_PATH`, `WEBHOOK_HOST`, `WEBHOOK_PORT` in your `.env` file.
 2. Ensure your server is reachable from the internet (HTTPS is required by Telegram).
 3. Start the bot just like in development:
 
    ```bash
-   bun run index.js
+   bun run src/index.js
    ```
 
 The dispatcher will automatically register/unregister the webhook on startup/shutdown.
@@ -86,7 +86,7 @@ The dispatcher will automatically register/unregister the webhook on startup/shu
 | --------------------------- | ---------------------------- |
 | Install deps                | `bun install`               |
 | Add a new dependency        | `bun add <pkg>`             |
-| Run the bot                 | `bun run index.js`          |
+| Run the bot                 | `bun run src/index.js`      |
 | Run a single file           | `bun <file>.js`             |
 | Update all deps             | `bun update`                |
 
@@ -102,9 +102,9 @@ The dispatcher will automatically register/unregister the webhook on startup/shu
 
 **A:** Run `bun add <package>` and try again. Bun only installs what it detects from current imports.
 
-**Q:** _How do I run tests?_ (none yet)
+**Q:** _How do I run tests?_
 
-**A:** Coming soon! Feel free to contribute.
+**A:** Run `bun tests/test.js` to execute the test file.
 
 ---
 
