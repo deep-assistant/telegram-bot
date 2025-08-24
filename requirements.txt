@@ -1,4 +1,4 @@
-aiogram~=3.6.0
+aiogram~=3.18.0
 tiktoken==0.7.0
 vedis==0.7.2
 aiofiles==23.2.1
