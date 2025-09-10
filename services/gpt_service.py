@@ -32,6 +32,7 @@ class SystemMessages(Enum):
     QuestionAnswer = "question_answer"
     DeepPromt = "deep"
     Transcribe = "transcribe"
+    ExpressAnswers = "express_answers"
 
 is_requesting = {}
 

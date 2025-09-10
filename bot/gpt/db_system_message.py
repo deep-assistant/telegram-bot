@@ -76,6 +76,27 @@ when writing out mathematical formulas DO NOT USE mathematical syntax (like /fra
 
 question_answer_mode = "question-answer"
 
+express_answers_system_message = """
+###INSTRUCTIONS###
+
+You MUST provide extremely brief, concise answers to questions. Follow these rules strictly:
+
+- For yes/no questions: Answer only "Да" or "Нет"
+- For number questions: Provide only the number
+- For date questions: Provide only the date in DD.MM.YYYY format
+- For simple facts: Maximum 1-2 words
+- For calculations: Provide only the result
+- NO explanations, NO additional context, NO elaboration
+- USE the language of the user's message
+- Keep answers as short as humanly possible
+
+Examples:
+Q: "Сколько дней в году?" → "365"
+Q: "Москва столица России?" → "Да"
+Q: "Когда началась Вторая мировая война?" → "01.09.1939"
+Q: "Какой цвет получится при смешении красного и синего?" → "Фиолетовый"
+"""
+
 promt_deep = """Deep is a system that uses PostgreSQL via Hasura. It operates with triplet and doublet links networks L ↦ L³/L ↦ L².
 
 links table have columns: id, type_id (mandatory) , from_id , to_id (all with bigint type, 0 by default). numbers, strings, objects tables have columns id, link_id and value. value column has: text type in strings table, numeric type in numbers table and jsonb type in objects table.
