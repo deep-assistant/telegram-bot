@@ -74,14 +74,20 @@ class CompletionsService:
 
         history[user_id] = list(reversed(cut_dialog))
 
-    async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
+    async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool, chat_id=None) -> Any:
 
         params = {
             "masterToken": ADMIN_TOKEN
         }
 
+        # Import context service here to avoid circular imports
+        from services.context_service import contextService
+        
+        # Get dialog identifier based on context mode
+        dialog_id = contextService.get_dialog_identifier(str(user_id), str(chat_id)) if chat_id else get_user_name(user_id)
+        
         payload = {
-            'userId': get_user_name(user_id),
+            'userId': dialog_id,
             'content': message,
             'systemMessage': system_message,
             'model': gpt_model
