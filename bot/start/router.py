@@ -87,6 +87,10 @@ async def start(message: types.Message):
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
 
+    # Check if this is the user's first time starting the bot
+    existing_user_tokens = await tokenizeService.get_user_tokens(message.from_user.id)
+    is_first_start = existing_user_tokens is None
+
     # always force sending the keyboard
     keyboard = create_main_keyboard()
     await send_message(message, text=hello_text, reply_markup=keyboard)
@@ -95,21 +99,32 @@ async def start(message: types.Message):
 
     is_subscribe = await check_subscription(message)
 
-    # Уведомляем реферера, что пользователь перешёл по ссылке, но ещё не подписался
-    if ref_user_id: # and str(ref_user_id) != str(message.from_user.id) and not is_subscribe
+    # Immediate notification for friend clicking /start button
+    if ref_user_id and str(ref_user_id) != str(message.from_user.id):
         try:
             chat_id = int(ref_user_id)
         except (TypeError, ValueError):
             chat_id = None
 
         if chat_id:
-            user_name = message.from_user.username
+            user_name = message.from_user.username or "Пользователь"
             user_mention = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.full_name}</a>"
-            await message.bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    f"""
-🎉 По вашей реферальной ссылке перешли: @{user_name} ({user_mention}).
+            
+            # Send immediate notification with user name
+            if is_first_start:
+                notification_text = f"""
+🎉 Ваш друг {user_mention} (@{user_name}) впервые запустил бота по вашей реферальной ссылке!
+
+Чтобы {message.from_user.full_name} стал вашим рефералом, он должен подписаться на канал @gptDeep.
+
+Как только это произойдёт вы получите <b>5 000</b>⚡️ единоразово и <b>+500</b>⚡️️ к ежедневному пополнению баланса.
+
+Если вдруг этого долго не происходит, то возможно вашему другу нужна помощь, <b>попробуйте написать ему в личные сообщения</b>. 
+Если и это не помогает, то обратитесь в поддержку в сообществе @deepGPT и мы поможем вам разобраться с ситуацией.
+"""
+            else:
+                notification_text = f"""
+🔄 Ваш друг {user_mention} (@{user_name}) снова перешёл по вашей реферальной ссылке.
 
 Чтобы вашему другу стать вашим рефералом, он должен подписаться на канал @gptDeep.
 
@@ -118,7 +133,10 @@ async def start(message: types.Message):
 Если вдруг этого долго не происходит, то возможно вашему другу нужна помощь, <b>попробуйте написать ему в личные сообщения</b>. 
 Если и это не помогает, то обратитесь в поддержку в сообществе @deepGPT и мы поможем вам разобраться с ситуацией.
 """
-                ),
+            
+            await message.bot.send_message(
+                chat_id=chat_id,
+                text=notification_text,
                 parse_mode="HTML"
             )
 
