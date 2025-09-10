@@ -164,30 +164,109 @@ async function startBot() {
         log.warn('Failed to delete webhook:', () => err.message);
       }
       
-      // Set new webhook
+      // Set new webhook with enhanced options
       try {
-        await currentBot.api.setWebhook(config.webhookUrl);
+        const webhookOptions = {
+          url: config.webhookUrl,
+          drop_pending_updates: true,
+          max_connections: config.webhookMaxConnections
+        };
+        
+        // Add secret token if configured
+        if (config.webhookSecretToken) {
+          webhookOptions.secret_token = config.webhookSecretToken;
+        }
+        
+        await currentBot.api.setWebhook(webhookOptions);
+        log.info(`Webhook configured with max_connections: ${config.webhookMaxConnections}`);
       } catch (err) {
         log.warn('Failed to set webhook:', () => err.message);
       }
       
       await onStartup();
 
-      // Start webhook server
-      Bun.serve({
+      // Start enhanced webhook server with performance optimizations
+      const server = Bun.serve({
         port: config.webhookPort,
         hostname: config.webhookHost,
-        fetch(req) {
+        
+        // Enhanced request handler with security and monitoring
+        async fetch(req) {
           const url = new URL(req.url);
-          if (url.pathname === config.webhookPath && req.method === 'POST') {
-            req.json().then(update => {
-              currentBot.handleUpdate(update);
-            });
-            return new Response('OK', { status: 200 });
+          const startTime = Date.now();
+          
+          try {
+            // Health check endpoint
+            if (url.pathname === '/health' && req.method === 'GET') {
+              return new Response(JSON.stringify({
+                status: 'healthy',
+                timestamp: Date.now(),
+                webhook_url: config.webhookUrl
+              }), {
+                headers: { 'Content-Type': 'application/json' },
+                status: 200
+              });
+            }
+            
+            // Webhook handler with optimizations
+            if (url.pathname === config.webhookPath && req.method === 'POST') {
+              // Validate content type
+              const contentType = req.headers.get('content-type');
+              if (!contentType || !contentType.includes('application/json')) {
+                log.warn('Invalid content type for webhook request');
+                return new Response('Bad Request', { status: 400 });
+              }
+              
+              // Validate secret token if configured
+              if (config.webhookSecretToken) {
+                const secretHeader = req.headers.get('x-telegram-bot-api-secret-token');
+                if (secretHeader !== config.webhookSecretToken) {
+                  log.warn('Invalid webhook secret token');
+                  return new Response('Unauthorized', { status: 401 });
+                }
+              }
+              
+              // Parse and handle update with error handling
+              try {
+                const update = await req.json();
+                
+                // Handle update asynchronously for better throughput
+                setImmediate(() => {
+                  currentBot.handleUpdate(update).catch(err => {
+                    log.error('Error handling update:', () => err);
+                  });
+                });
+                
+                const responseTime = Date.now() - startTime;
+                log.debug(`Webhook request processed in ${responseTime}ms`);
+                
+                return new Response('OK', { 
+                  status: 200,
+                  headers: {
+                    'Content-Type': 'text/plain',
+                    'X-Response-Time': `${responseTime}ms`
+                  }
+                });
+              } catch (err) {
+                log.error('Error parsing webhook JSON:', () => err);
+                return new Response('Bad Request', { status: 400 });
+              }
+            }
+            
+            return new Response('Not Found', { status: 404 });
+          } catch (err) {
+            log.error('Webhook server error:', () => err);
+            return new Response('Internal Server Error', { status: 500 });
           }
-          return new Response('Not Found', { status: 404 });
         },
+        
+        // Enable better performance options
+        development: config.isDev,
       });
+      
+      log.info(`Enhanced webhook server started on ${config.webhookHost}:${config.webhookPort}`);
+      log.info(`Webhook URL: ${config.webhookUrl}`);
+      log.info(`Health check: http://${config.webhookHost}:${config.webhookPort}/health`);
 
       // Handle shutdown
       process.on('SIGINT', gracefulShutdown);

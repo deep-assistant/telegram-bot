@@ -1,4 +1,7 @@
 import asyncio
+import logging
+import aiohttp
+from contextlib import asynccontextmanager
 
 from aiogram import Bot, Dispatcher, BaseMiddleware
 from aiogram.client.default import DefaultBotProperties
@@ -6,6 +9,8 @@ from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
 
 import config
 from bot.agreement import agreementRouter
@@ -19,6 +24,7 @@ from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
 from bot.diagnostics import diagnosticsRouter
+from bot.middlewares import WebhookSecurityMiddleware
 
 
 def apply_routers(dp: Dispatcher) -> None:
@@ -85,55 +91,163 @@ class AlbumMiddleware(BaseMiddleware):
         return result
 
 
-# Startup and shutdown hooks for webhook mode.
+# Connection pool manager for better throughput
+@asynccontextmanager
+async def create_session():
+    """Create optimized aiohttp session with connection pooling."""
+    connector = aiohttp.TCPConnector(
+        limit=100,  # Total connection pool size
+        limit_per_host=30,  # Per-host connection limit
+        keepalive_timeout=30,  # Keep connections alive for 30 seconds
+        enable_cleanup_closed=True,  # Clean up closed connections
+        use_dns_cache=True,  # Cache DNS lookups
+    )
+    
+    timeout = aiohttp.ClientTimeout(total=30, connect=5)
+    
+    async with aiohttp.ClientSession(
+        connector=connector,
+        timeout=timeout,
+        headers={'User-Agent': 'TelegramBot/1.0'}
+    ) as session:
+        yield session
+
+
+# Enhanced startup and shutdown hooks for webhook mode.
 async def on_startup(dp: Dispatcher):
-    print("Bot is starting...")
+    logging.info("Bot is starting...")
     if config.WEBHOOK_ENABLED:
-        await dp.bot.set_webhook(config.WEBHOOK_URL)
+        # Configure webhook with additional options for better throughput
+        webhook_info = await dp.bot.get_webhook_info()
+        if webhook_info.url != config.WEBHOOK_URL:
+            await dp.bot.set_webhook(
+                url=config.WEBHOOK_URL,
+                drop_pending_updates=True,
+                max_connections=getattr(config, 'WEBHOOK_MAX_CONNECTIONS', 40),
+                secret_token=getattr(config, 'WEBHOOK_SECRET_TOKEN', None)
+            )
+            logging.info(f"Webhook set to: {config.WEBHOOK_URL}")
+        else:
+            logging.info("Webhook already configured correctly")
 
 
 async def on_shutdown(dp: Dispatcher):
-    print("Bot is shutting down...")
+    logging.info("Bot is shutting down...")
     if config.WEBHOOK_ENABLED:
         await dp.bot.delete_webhook()
+        logging.info("Webhook deleted")
+
+
+async def create_webhook_app(dp: Dispatcher, bot: Bot) -> web.Application:
+    """Create optimized webhook application with performance enhancements."""
+    app = web.Application()
+    
+    # Add health check endpoint
+    async def health_check(request):
+        return web.json_response({
+            'status': 'healthy',
+            'timestamp': asyncio.get_event_loop().time(),
+            'webhook_url': config.WEBHOOK_URL
+        })
+    
+    # Add metrics endpoint (if enabled)
+    if getattr(config, 'WEBHOOK_METRICS_ENABLED', False):
+        webhook_middleware = None
+        for middleware in dp.message.middlewares:
+            if isinstance(middleware, WebhookSecurityMiddleware):
+                webhook_middleware = middleware
+                break
+        
+        async def metrics(request):
+            if webhook_middleware:
+                return web.json_response(webhook_middleware.get_metrics())
+            return web.json_response({'error': 'Metrics not available'})
+        
+        app.router.add_get('/metrics', metrics)
+    
+    app.router.add_get('/health', health_check)
+    
+    # Setup webhook handler
+    SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+    ).register(app, path=config.WEBHOOK_PATH)
+    
+    return app
 
 
 async def bot_run() -> None:
+    # Configure logging
+    logging.basicConfig(
+        level=getattr(config, 'LOG_LEVEL', logging.INFO),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
     dp = Dispatcher(storage=MemoryStorage())
+    
+    # Add security middleware for webhook mode
+    if config.WEBHOOK_ENABLED:
+        dp.message.middleware(WebhookSecurityMiddleware())
+    
     dp.message.middleware(AlbumMiddleware())
     apply_routers(dp)
 
-    # Initialize the bot based on the development flag.
-    if config.IS_DEV:
-        bot = Bot(
-            token=config.TOKEN,
-            default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
-        )
-    else:
-        bot = Bot(
-            token=config.TOKEN,
-            default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
-            session=AiohttpSession(
-                api=TelegramAPIServer.from_base(config.ANALYTICS_URL)
+    # Create optimized session for better performance
+    async with create_session() as session:
+        # Initialize the bot based on the development flag.
+        if config.IS_DEV:
+            bot = Bot(
+                token=config.TOKEN,
+                default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
+                session=AiohttpSession(session=session)
             )
-        )
+        else:
+            bot = Bot(
+                token=config.TOKEN,
+                default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
+                session=AiohttpSession(
+                    api=TelegramAPIServer.from_base(config.ANALYTICS_URL),
+                    session=session
+                )
+            )
 
-    # Choose between webhook and polling modes.
-    if config.WEBHOOK_ENABLED:
-        # Set webhook and start webhook mode.
-        await bot.set_webhook(config.WEBHOOK_URL)
-        await dp.start_webhook(
-            webhook_path=config.WEBHOOK_PATH,  # e.g., '/webhook'
-            on_startup=on_startup,
-            on_shutdown=on_shutdown,
-            host=config.WEBHOOK_HOST,          # e.g., '0.0.0.0'
-            port=config.WEBHOOK_PORT           # e.g., 3000
-        )
-    else:
-        # Delete webhook if exists and start polling.
-        await bot.delete_webhook()
-        await dp.start_polling(
-            bot,
-            skip_updates=False,
-            drop_pending_updates=True
-        )
+        # Choose between webhook and polling modes.
+        if config.WEBHOOK_ENABLED:
+            # Create optimized webhook application
+            app = await create_webhook_app(dp, bot)
+            
+            # Start webhook mode with enhanced configuration
+            runner = web.AppRunner(app)
+            await runner.setup()
+            
+            site = web.TCPSite(
+                runner,
+                host=config.WEBHOOK_HOST,
+                port=config.WEBHOOK_PORT,
+                reuse_address=True,
+                reuse_port=True,  # Enable SO_REUSEPORT for better performance
+            )
+            
+            await on_startup(dp)
+            await site.start()
+            
+            logging.info(f"Webhook server started on {config.WEBHOOK_HOST}:{config.WEBHOOK_PORT}")
+            logging.info(f"Webhook URL: {config.WEBHOOK_URL}")
+            logging.info(f"Health check: http://{config.WEBHOOK_HOST}:{config.WEBHOOK_PORT}/health")
+            
+            try:
+                # Keep the server running
+                await asyncio.Event().wait()
+            except KeyboardInterrupt:
+                logging.info("Received shutdown signal")
+            finally:
+                await on_shutdown(dp)
+                await runner.cleanup()
+        else:
+            # Delete webhook if exists and start polling.
+            await bot.delete_webhook()
+            await dp.start_polling(
+                bot,
+                skip_updates=False,
+                drop_pending_updates=True
+            )
