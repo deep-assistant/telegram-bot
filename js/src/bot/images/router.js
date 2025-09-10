@@ -1,5 +1,4 @@
-import { Router } from 'aiogram';
-import { types, InlineKeyboardMarkup, InlineKeyboardButton } from 'aiogram/types.js';
+import { Composer, InlineKeyboard } from 'grammy';
 
 import { TextCommand, StateCommand } from '../filters.js';
 import { isEmptyPrompt } from '../empty_prompt.js';
@@ -12,7 +11,7 @@ import { imageService } from '../../services/image_service.js';
 import { tokenizeService } from '../../services/tokenize_service.js';
 import { imageModelsValues, samplersValues, sizeValues, stepsValues, cgfValues } from '../../services/image_utils.js';
 
-export const imagesRouter = new Router();
+export const imagesRouter = new Composer();
 
 // Confirmed banned words
 const confirmedBannedWords = [

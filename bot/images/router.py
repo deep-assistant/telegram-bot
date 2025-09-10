@@ -483,6 +483,16 @@ async def handle_generate_image(message: types.Message):
 
         image = await imageService.generate_midjourney(user_id, message.text, task_id_get)
 
+        # Import error handler
+        from services.error_handler import get_user_friendly_error_message
+        
+        # Check for errors in the response
+        error_message = get_user_friendly_error_message(image, "midjourney")
+        if error_message:
+            await message.answer(error_message)
+            await wait_message.delete()
+            return
+
         await message.bot.send_chat_action(message.chat.id, "typing")
 
         await send_variation_image(
@@ -521,6 +531,16 @@ async def upscale_midjourney_callback_query(callback: CallbackQuery):
 Вы также получите результат генерации по готовности.""")
 
     image = await imageService.upscale_image(task_id, index, task_id_get)
+
+    # Import error handler
+    from services.error_handler import get_user_friendly_error_message
+    
+    # Check for errors in the response
+    error_message = get_user_friendly_error_message(image, "midjourney")
+    if error_message:
+        await callback.message.answer(error_message)
+        await wait_message.delete()
+        return
 
     await callback.message.reply_photo(image["task_result"]["discord_image_url"])
     await send_photo_as_file(
@@ -568,6 +588,16 @@ async def variation_midjourney_callback_query(callback: CallbackQuery):
 Вы также получите результат генерации по готовности.""")
 
     image = await imageService.variation_image(task_id, index, task_id_get)
+
+    # Import error handler
+    from services.error_handler import get_user_friendly_error_message
+    
+    # Check for errors in the response
+    error_message = get_user_friendly_error_message(image, "midjourney")
+    if error_message:
+        await callback.message.answer(error_message)
+        await wait_message.delete()
+        return
 
     await send_variation_image(
         callback.message,
