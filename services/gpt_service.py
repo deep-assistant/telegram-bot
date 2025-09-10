@@ -29,6 +29,7 @@ class SystemMessages(Enum):
     Default = "default"
     SoftwareDeveloper = "software_developer"
     Happy = "happy"
+    Lawyer = "lawyer"
     QuestionAnswer = "question_answer"
     DeepPromt = "deep"
     Transcribe = "transcribe"

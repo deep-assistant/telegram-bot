@@ -5,6 +5,7 @@ import {
   defaultSystemMessage,
   happySystemMessage,
   softwareDeveloperSystemMessage,
+  lawyerSystemMessage,
   questionAnswerMode,
   promtDeep,
   transcribe
@@ -14,6 +15,7 @@ export const systemMessages = {
   [SystemMessages.Default]: defaultSystemMessage,
   [SystemMessages.Happy]: happySystemMessage,
   [SystemMessages.SoftwareDeveloper]: softwareDeveloperSystemMessage,
+  [SystemMessages.Lawyer]: lawyerSystemMessage,
   [SystemMessages.DeepPromt]: promtDeep,
   [SystemMessages.QuestionAnswer]: questionAnswerMode,
   [SystemMessages.Transcribe]: transcribe
@@ -24,6 +26,7 @@ export const textSystemMessages = {
   [SystemMessages.Default]: '🤖 Стандартный',
   [SystemMessages.Happy]: '🥳 Веселый',
   [SystemMessages.SoftwareDeveloper]: '👨‍💻 Программист',
+  [SystemMessages.Lawyer]: '⚖️ Юрист',
   [SystemMessages.DeepPromt]: '🕳️ Wanderer from the Deep',
   [SystemMessages.QuestionAnswer]: '💬 Вопрос-ответ',
   [SystemMessages.Transcribe]: '🎤 Голос в текст'
@@ -72,6 +75,13 @@ export function createSystemMessageKeyboard(currentSystemMessage) {
       ),
       SystemMessages.SoftwareDeveloper
     )
+    .text(
+      getSystemMessageText(
+        textSystemMessages[SystemMessages.Lawyer],
+        textSystemMessages[currentSystemMessage]
+      ),
+      SystemMessages.Lawyer
+    ).row()
     .text(
       getSystemMessageText(
         textSystemMessages[SystemMessages.DeepPromt],
