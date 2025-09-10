@@ -3,6 +3,7 @@ import os
 
 from aiogram.client.session import aiohttp
 from aiogram.types import Message, FSInputFile
+from services.utils import extract_human_readable_filename
 
 # Global constant to control SSL certificate verification.
 SKIP_SSL_CHECK = False
@@ -46,7 +47,15 @@ async def download_image(photo_url: str, file_path: str, skip_ssl: bool = SKIP_S
 
 async def send_photo(message: Message, photo_url: str, caption, ext=".jpg", reply_markup=None):
     print(photo_url)
-    photo_path = 'photo' + ext
+    
+    # Extract human-readable filename from URL
+    filename = extract_human_readable_filename(photo_url)
+    # Use extracted filename but keep the original extension logic if provided
+    if ext != ".jpg":
+        name_part, _ = os.path.splitext(filename)
+        filename = name_part + ext
+    
+    photo_path = filename
 
     # Download the image
     await download_image(photo_url, photo_path)
@@ -63,7 +72,15 @@ async def send_photo(message: Message, photo_url: str, caption, ext=".jpg", repl
 
 async def send_photo_as_file(message: Message, photo_url: str, caption, ext=".jpg", reply_markup=None):
     print(photo_url)
-    photo_path = 'photo' + ext
+    
+    # Extract human-readable filename from URL
+    filename = extract_human_readable_filename(photo_url)
+    # Use extracted filename but keep the original extension logic if provided
+    if ext != ".jpg":
+        name_part, _ = os.path.splitext(filename)
+        filename = name_part + ext
+    
+    photo_path = filename
 
     # Download the image
     await download_image(photo_url, photo_path)

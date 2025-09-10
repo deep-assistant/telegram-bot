@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { extractHumanReadableFilename } from '../services/utils.js';
 
 export const SKIP_SSL_CHECK = false;
 
@@ -31,7 +32,16 @@ export async function downloadImage(photoUrl, filePath, skipSsl = SKIP_SSL_CHECK
 }
 
 export async function sendPhoto(message, photoUrl, caption, ext = ".jpg", replyMarkup = null) {
-  const photoPath = 'photo' + ext;
+  // Extract human-readable filename from URL
+  let filename = extractHumanReadableFilename(photoUrl);
+  // Use extracted filename but keep the original extension logic if provided
+  if (ext !== ".jpg") {
+    const lastDotIndex = filename.lastIndexOf('.');
+    const namePart = lastDotIndex !== -1 ? filename.substring(0, lastDotIndex) : filename;
+    filename = namePart + ext;
+  }
+  
+  const photoPath = filename;
   await downloadImage(photoUrl, photoPath);
   // Stub: replace with actual sendPhoto implementation
   const returnedMessage = await message.answerPhoto(photoPath, caption, replyMarkup);
@@ -40,7 +50,16 @@ export async function sendPhoto(message, photoUrl, caption, ext = ".jpg", replyM
 }
 
 export async function sendPhotoAsFile(message, photoUrl, caption, ext = ".jpg", replyMarkup = null) {
-  const photoPath = 'photo' + ext;
+  // Extract human-readable filename from URL
+  let filename = extractHumanReadableFilename(photoUrl);
+  // Use extracted filename but keep the original extension logic if provided
+  if (ext !== ".jpg") {
+    const lastDotIndex = filename.lastIndexOf('.');
+    const namePart = lastDotIndex !== -1 ? filename.substring(0, lastDotIndex) : filename;
+    filename = namePart + ext;
+  }
+  
+  const photoPath = filename;
   await downloadImage(photoUrl, photoPath);
   // Stub: replace with actual sendDocument implementation
   const returnedMessage = await message.answerDocument(photoPath, caption, replyMarkup);
