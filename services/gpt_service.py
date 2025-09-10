@@ -11,6 +11,7 @@ class GPTModels(Enum):
     Uncensored = "uncensored"
     O1_mini = "o1-mini"
     O1_preview = "o1-preview"
+    GPT_5 = "gpt-5"
     GPT_4o_mini = "gpt-4o-mini" # it must be before "gpt-4o" to make detection of "gpt-4o-mini" work
     GPT_4_Unofficial = "gpt-4o-unofficial"
     GPT_4o = "gpt-4o"
@@ -43,6 +44,7 @@ gpt_models = {
     GPTModels.Uncensored.value: "uncensored",
     GPTModels.O1_mini.value: "o1-mini",
     GPTModels.O1_preview.value: "o1-preview",
+    GPTModels.GPT_5.value: "gpt-5",
     GPTModels.GPT_3_5.value: "gpt-3.5-turbo",
     GPTModels.GPT_4o.value: "gpt-4o",
     GPTModels.GPT_Auto.value: "gpt-auto",

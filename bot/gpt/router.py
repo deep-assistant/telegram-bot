@@ -61,6 +61,8 @@ def detect_model(model: str):
         if model_enum.value in model:
             return model_enum.value
 
+    if "gpt-5" in model:
+        return GPTModels.GPT_5.value
     if "auto" in model:
         return GPTModels.GPT_Auto.value
     if "deepseek-r1" in model:
@@ -584,6 +586,7 @@ async def handle_change_model(message: Message):
 *claude-3.5-sonnet:* 1000 токенов = 1000 ⚡️
 *claude-3-5-haiku:* 1000 токенов = 100 ⚡️
 
+*GPT-5:* 1000 токенов = 10000 ⚡️
 *GPT-4o-unofficial:* 1000 токенов = 1100 ⚡️
 *GPT-4o:* 1000 токенов = 1000 ⚡️
 *GPT-Auto:* 1000 токенов = 150 ⚡️
