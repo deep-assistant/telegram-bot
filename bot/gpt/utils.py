@@ -51,27 +51,36 @@ async def is_chat_member(message: Message) -> bool:
     return is_subscribe
 
 
-def get_tokens_message(tokens_spent: int, tokens_left: int, requested_model: str = None, responded_model: str = None):
+def get_tokens_message(tokens_spent: int, tokens_left: int, requested_model: str = None, responded_model: str = None, prompt_tokens: int = 0, total_tokens: int = 0):
     if tokens_spent <= 0:
         return None
     
+    # Calculate context usage percentage if we have the prompt tokens
+    context_usage_info = ""
+    if prompt_tokens > 0 and total_tokens > 0:
+        # Context percentage is based on prompt tokens vs total tokens in the request
+        context_percentage = round((prompt_tokens / total_tokens) * 100, 1)
+        context_usage_info = f"\n📊 Контекст: *{prompt_tokens}* токенов (*{context_percentage}%* от общего запроса)"
+    elif prompt_tokens > 0:
+        context_usage_info = f"\n📊 Контекст: *{prompt_tokens}* токенов"
+    
     if responded_model and (requested_model == responded_model):
-        return f"""🤖 Ответ от: *{responded_model}*
+        return f"""🤖 Ответ от: *{responded_model}*{context_usage_info}
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
     elif requested_model and responded_model:
         return f"""🤖 Ответ от: *{responded_model}*
-⚠️ Выбранная модель *{requested_model}* временно недоступна!
+⚠️ Выбранная модель *{requested_model}* временно недоступна!{context_usage_info}
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
     elif requested_model:
         return f"""🤖 Ответ от: *{requested_model}* (но это *не точно*)
-⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.
+⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.{context_usage_info}
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
     else:
         return f"""🤖 Ответ от: *неизвестно* (не удалось определить модель)
-⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.
+⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.{context_usage_info}
 
 ✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)"""
 

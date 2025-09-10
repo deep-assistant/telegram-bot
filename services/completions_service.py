@@ -97,6 +97,12 @@ class CompletionsService:
             response_content = completions['choices'][0]['message']['content']
 
             response_model = completions['model']
+            
+            # Extract usage information if available
+            usage_info = completions.get('usage', {})
+            prompt_tokens = usage_info.get('prompt_tokens', 0)
+            completion_tokens = usage_info.get('completion_tokens', 0)
+            total_tokens = usage_info.get('total_tokens', 0)
 
             reasoning_content = None
 
@@ -112,7 +118,16 @@ class CompletionsService:
             
             print(f"final_content: {final_content}")
 
-            return { 'success': True, "response": final_content, 'model': response_model}
+            return { 
+                'success': True, 
+                "response": final_content, 
+                'model': response_model,
+                'usage': {
+                    'prompt_tokens': prompt_tokens,
+                    'completion_tokens': completion_tokens,
+                    'total_tokens': total_tokens
+                }
+            }
         else:
             return { "success": False, "response": f"Ошибка 😔: {response.json().get('message')}" }
 
