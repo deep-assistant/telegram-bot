@@ -10,8 +10,8 @@ import { paymentRouter } from './bot/payment/router.js';
 // import imageEditingRouter from './bot/image_editing/router.js';
 // import imagesRouter from './bot/images/router.js';
 // import referralRouter from './bot/referral/router.js';
-// import sunoRouter from './bot/suno/router.js';
-// import taskRouter from './bot/tasks/router.js';
+import { sunoRouter } from './bot/suno/router.js';
+import { taskRouter } from './bot/tasks/router.js';
 // import diagnosticsRouter from './bot/diagnostics/router.js';
 import { i18n } from './i18n.js';
 import { createLogger } from './utils/logger.js';
@@ -71,7 +71,7 @@ function albumMiddleware() {
 function applyRouters(bot) {
   log.debug('Applying routers');
   // bot.use(imagesRouter);
-  // bot.use(sunoRouter);
+  bot.use(sunoRouter);
   bot.use(startRouter);
   // bot.use(diagnosticsRouter);
   // bot.use(referralRouter);
@@ -79,7 +79,7 @@ function applyRouters(bot) {
   // bot.use(apiRouter);
   // bot.use(agreementRouter);
   // bot.use(imageEditingRouter);
-  // bot.use(taskRouter);
+  bot.use(taskRouter);
   bot.use(balanceRouter);
 }
 

@@ -2,7 +2,7 @@ import { Router } from 'aiogram';
 import { Message, InlineKeyboardButton, InlineKeyboardMarkup } from 'aiogram/types.js';
 import { StartWith } from '../filters.js';
 import { sendVariationImage } from './images/router.js';
-import { sunoCreateMessages } from './suno/router.js';
+import { sunoCreateMessages } from '../suno/router.js';
 import { sendPhotoAsFile } from '../utils.js';
 import { GENERATION_FAILED_DEFAULT_ERROR_MESSAGE } from '../constants.js';
 import { imageService, sunoService } from '../../services/index.js';
