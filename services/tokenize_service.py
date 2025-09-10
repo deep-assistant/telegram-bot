@@ -75,10 +75,16 @@ class TokenizeService:
         else:
             return None
 
-    async def clear_dialog(self, user_id: str):
+    async def clear_dialog(self, user_id: str, chat_id: str = None):
+        # Import context service here to avoid circular imports
+        from services.context_service import contextService
+        
+        # Get dialog identifier based on context mode
+        dialog_id = contextService.get_dialog_identifier(str(user_id), str(chat_id)) if chat_id else get_user_name(user_id)
+        
         params = {
             "masterToken": ADMIN_TOKEN,
-            "userId": get_user_name(user_id),
+            "userId": dialog_id,
         }
 
         response = await async_delete(f"{PROXY_URL}/dialogs", params=params, headers=headers)
@@ -88,10 +94,16 @@ class TokenizeService:
         else:
             return None
 
-    async def history(self, user_id: str):
+    async def history(self, user_id: str, chat_id: str = None):
+        # Import context service here to avoid circular imports
+        from services.context_service import contextService
+        
+        # Get dialog identifier based on context mode
+        dialog_id = contextService.get_dialog_identifier(str(user_id), str(chat_id)) if chat_id else get_user_name(user_id)
+        
         payload = {
             "masterToken": ADMIN_TOKEN,
-            "dialogName": get_user_name(user_id),
+            "dialogName": dialog_id,
         }
         response = await async_get(f"{PROXY_URL}/dialog-history", params=payload, headers=headers)
         if response.status_code == 200:

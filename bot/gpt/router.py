@@ -20,7 +20,8 @@ from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, A
     Video
 from bot.gpt import change_model_command
 from bot.commands import change_system_message_command, change_system_message_text, change_model_text, \
-    balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text
+    balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text, \
+    context_command, context_text
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_message, \
@@ -30,7 +31,7 @@ from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
-    StateTypes, systemMessage
+    StateTypes, systemMessage, contextService, ContextMode
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
@@ -133,6 +134,7 @@ async def handle_gpt_request(message: Message, text: str):
             gpt_model,
             bot_model,
             questionAnswer,
+            chat_id,
         )
 
         print(json.dumps(answer, indent=4))
@@ -501,12 +503,100 @@ async def handle_balance(message: Message):
 """)
 
 
+@gptRouter.message(TextCommand([context_command(), context_text()]))
+async def handle_context_switch(message: Message):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    
+    # Check if user is allowed to use this command
+    is_agreement = await agreement_handler(message)
+    if not is_agreement:
+        return
+
+    is_subscribe = await is_chat_member(message)
+    if not is_subscribe:
+        return
+    
+    current_mode = contextService.get_context_mode(str(user_id))
+    
+    # Create inline keyboard for context switching
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"{'✅' if current_mode == ContextMode.PERSONAL else '⭕'} Личный контекст",
+                    callback_data="context_personal"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=f"{'✅' if current_mode == ContextMode.GENERAL else '⭕'} Общий контекст",
+                    callback_data="context_general"
+                )
+            ]
+        ]
+    )
+    
+    context_info = {
+        ContextMode.PERSONAL: "каждый пользователь имеет свой отдельный диалог",
+        ContextMode.GENERAL: "все пользователи в чате используют общий диалог"
+    }
+    
+    await message.answer(
+        f"""
+🔄 **Переключение контекста диалога**
+
+**Текущий режим:** {current_mode.value}
+**Описание:** {context_info[current_mode]}
+
+Выберите новый режим контекста:
+""",
+        reply_markup=keyboard
+    )
+    await asyncio.sleep(0.5)
+    await message.delete()
+
+
+@gptRouter.callback_query(TextCommandQuery(["context_personal", "context_general"]))
+async def handle_context_switch_callback(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+    new_mode_str = callback_query.data.split("_")[1]  # personal or general
+    
+    if new_mode_str == "personal":
+        new_mode = ContextMode.PERSONAL
+    else:
+        new_mode = ContextMode.GENERAL
+    
+    current_mode = contextService.get_context_mode(str(user_id))
+    
+    if new_mode == current_mode:
+        await callback_query.answer("Этот режим уже активен!")
+        return
+    
+    # Switch context mode
+    contextService.set_context_mode(str(user_id), new_mode)
+    
+    mode_names = {
+        ContextMode.PERSONAL: "Личный",
+        ContextMode.GENERAL: "Общий"
+    }
+    
+    await callback_query.answer(f"Контекст переключен на: {mode_names[new_mode]}")
+    await callback_query.message.edit_text(
+        f"✅ Контекст успешно переключен на: **{mode_names[new_mode]}**"
+    )
+    
+    await asyncio.sleep(2)
+    await callback_query.message.delete()
+
+
 @gptRouter.message(TextCommand([clear_command(), clear_text()]))
 async def handle_clear_context(message: Message):
     user_id = message.from_user.id
+    chat_id = message.chat.id
 
     try:
-        response = await tokenizeService.clear_dialog(user_id)
+        response = await tokenizeService.clear_dialog(user_id, chat_id)
 
         if not response.get("status"):
             await message.answer("Диалог уже пуст!")
@@ -672,7 +762,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
         reply_markup=create_system_message_keyboard(system_message)
     )
     if system_message != "question_answer" and current_system_message != "question_answer":
-        await tokenizeService.clear_dialog(user_id)
+        await tokenizeService.clear_dialog(user_id, callback_query.message.chat.id)
 
     await asyncio.sleep(0.5)
 
@@ -723,8 +813,9 @@ async def handle_get_history(message: types.Message):
         return
 
     user_id = message.from_user.id
+    chat_id = message.chat.id
 
-    history = await tokenizeService.history(user_id)
+    history = await tokenizeService.history(user_id, chat_id)
     if history.get("status") == 404:
         await message.answer("История диалога пуста.")
         return

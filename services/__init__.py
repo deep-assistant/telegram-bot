@@ -1,5 +1,6 @@
 from services.agreement_service import agreementService
 from services.completions_service import completionsService
+from services.context_service import contextService, ContextMode
 from services.gpt_service import gptService, GPTModels
 from services.image_editing import imageEditing
 from services.image_service import imageService
