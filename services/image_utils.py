@@ -98,3 +98,39 @@ def get_image_form_response(text):
         return image_url
     else:
         return None
+
+
+def clean_midjourney_prompt(prompt: str) -> str:
+    """
+    Remove unsupported Midjourney parameters from prompt text.
+    Removes problematic -- parameters that cause "Invalid Param Format" errors.
+    
+    Args:
+        prompt (str): The original prompt text
+        
+    Returns:
+        str: Cleaned prompt with unsupported parameters removed
+    """
+    if not prompt:
+        return prompt
+    
+    # Remove Midjourney parameters that start with --
+    # This includes various patterns like:
+    # --ar 16:9, --v 5, --style raw, --seed 123, --ar16:9 (no space), etc.
+    # We need to be careful to preserve regular double dashes in text like "-- not a parameter"
+    
+    # Pattern 1: Remove --word followed by optional space and value (like --ar 16:9 or --ar16:9)
+    pattern1 = r'\s*--[a-zA-Z]\w*(?:\s+[^\s-]+)*'
+    
+    # Pattern 2: Remove malformed parameters with space after -- (like "-- ar 16:9")
+    # The error "there should be no space after --" suggests this is invalid
+    pattern2 = r'\s*--\s+[a-zA-Z]\w*(?:\s+[^\s-]+)*'
+    
+    # Apply both patterns
+    cleaned_prompt = re.sub(pattern1, '', prompt)
+    cleaned_prompt = re.sub(pattern2, '', cleaned_prompt)
+    
+    # Remove extra whitespace and clean up the result
+    cleaned_prompt = ' '.join(cleaned_prompt.split())
+    
+    return cleaned_prompt.strip()

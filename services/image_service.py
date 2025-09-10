@@ -4,7 +4,7 @@ from openai import OpenAI
 
 from config import GO_API_KEY
 from db import data_base, db_key
-from services.image_utils import format_image_from_request, get_image_model_by_label
+from services.image_utils import format_image_from_request, get_image_model_by_label, clean_midjourney_prompt
 from services.utils import async_post, async_get
 
 generating_map = {}
@@ -247,8 +247,11 @@ class ImageService:
             return result
 
     async def generate_midjourney(self, user_id, prompt, task_id_get):
+        # Clean the prompt to remove unsupported Midjourney parameters
+        cleaned_prompt = clean_midjourney_prompt(prompt)
+        
         data = {
-            "prompt": prompt,
+            "prompt": cleaned_prompt,
             "aspect_ratio": self.get_midjourney_size(user_id),
             "process_mode": "turbo",
         }
