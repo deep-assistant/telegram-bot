@@ -198,7 +198,7 @@ async def handle_gpt_request(message: Message, text: str):
             detected_responded_gpt_model
         )
         token_message = await message.answer(tokens_message_text)
-        if message.chat.type in ['group', 'supergroup']:
+        if message.chat.type in ['group', 'supergroup', 'channel']:
             await asyncio.sleep(2)
             await token_message.delete()
     except Exception as e:
@@ -223,7 +223,7 @@ async def handle_image(message: Message):
 
 @gptRouter.message(Photo())
 async def handle_image(message: Message, album):
-    if message.chat.type in ['group', 'supergroup']:
+    if message.chat.type in ['group', 'supergroup', 'channel']:
         if message.entities is None:
             return
 
@@ -311,7 +311,7 @@ async def transcribe_voice(user_id: int, voice_file_url: str):
 @gptRouter.message(Voice())
 @gptRouter.message(Audio())
 async def handle_voice(message: Message):
-    if message.chat.type in ['group', 'supergroup']:
+    if message.chat.type in ['group', 'supergroup', 'channel']:
         if message.entities is None:
             return
         mentions = [entity for entity in message.entities if entity.type == 'mention']
@@ -376,7 +376,7 @@ async def handle_voice(message: Message):
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
-    if message.chat.type in ['group', 'supergroup']:
+    if message.chat.type in ['group', 'supergroup', 'channel']:
         if message.caption_entities is None:
             return
         mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
@@ -414,7 +414,7 @@ async def process_document(document, bot):
 
 
 def is_valid_group_message(message: Message):
-    if message.chat.type in ['group', 'supergroup']:
+    if message.chat.type in ['group', 'supergroup', 'channel']:
         if message.caption_entities is None:
             return False
         mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
@@ -450,7 +450,7 @@ async def handle_documents(message: Message, documents):
 # Handler for single document
 @gptRouter.message(Document())
 async def handle_document(message: Message):
-    # Check message validity in group/supergroup
+    # Check message validity in group/supergroup/channel
     if not is_valid_group_message(message):
         return
 
@@ -765,7 +765,7 @@ async def handle_bot_command(message: Message, batch_messages):
 
 @gptRouter.message()
 async def handle_completion(message: Message, batch_messages):
-    if message.chat.type in ['group', 'supergroup']:
+    if message.chat.type in ['group', 'supergroup', 'channel']:
         # Проверяем наличие упоминаний
         if not message.entities:
             return
