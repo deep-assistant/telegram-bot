@@ -7,6 +7,7 @@ IS_DEV = True
 PAYMENTS_TOKEN = ""
 GO_API_KEY = ""
 GUO_GUO_KEY = ""
+XAI_API_KEY = ""  # Grok API key from console.x.ai
 WEBHOOK_ENABLED = False  # or False to use polling
 WEBHOOK_URL = "https://your.domain.com/webhook"
 WEBHOOK_PATH = "/webhook"

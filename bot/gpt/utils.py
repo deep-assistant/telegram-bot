@@ -152,6 +152,16 @@ def create_change_model_keyboard(current_model: GPTModels):
         ],
         [
             InlineKeyboardButton(
+                text=get_model_text(GPTModels.Grok_2, current_model),
+                callback_data=GPTModels.Grok_2.value
+            ),
+            InlineKeyboardButton(
+                text=get_model_text(GPTModels.Grok_2_mini, current_model),
+                callback_data=GPTModels.Grok_2_mini.value
+            ),
+        ],
+        [
+            InlineKeyboardButton(
                 text=get_model_text(GPTModels.Claude_3_5_Sonnet, current_model),
                 callback_data=GPTModels.Claude_3_5_Sonnet.value
             ),

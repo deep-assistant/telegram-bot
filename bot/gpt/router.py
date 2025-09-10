@@ -77,6 +77,10 @@ def detect_model(model: str):
         return GPTModels.GPT_3_5.value
     if "gpt-4o-plus" in model:
         return GPTModels.GPT_4o
+    if "grok-2-mini" in model:
+        return GPTModels.Grok_2_mini.value
+    if "grok-2" in model:
+        return GPTModels.Grok_2.value
         
     return None
 
@@ -126,7 +130,7 @@ async def handle_gpt_request(message: Message, text: str):
         else:
             questionAnswer = False
 
-        answer = await completionsService.query_chatgpt(
+        answer = await completionsService.query_ai(
             user_id,
             text,
             system_message,
