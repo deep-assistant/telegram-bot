@@ -259,7 +259,13 @@ class ImageService:
             json=data
         )
 
-        task_id = response.json()['task_id']
+        response_data = response.json()
+        
+        # Check for errors in the initial response
+        if "error" in response_data:
+            return response_data
+            
+        task_id = response_data.get('task_id')
 
         if task_id:
             await task_id_get(task_id)
