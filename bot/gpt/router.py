@@ -189,6 +189,13 @@ async def handle_gpt_request(message: Message, text: str):
         if image is not None:
             await message.answer_photo(image)
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
+        
+        # Add Continue button to the response
+        continue_keyboard = InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[[InlineKeyboardButton(text="Продолжить ✨", callback_data=f"continue_{user_id}")]]
+        )
+        
         await asyncio.sleep(0.5)
         await message_loading.delete()
         tokens_message_text = get_tokens_message(
@@ -197,7 +204,7 @@ async def handle_gpt_request(message: Message, text: str):
             detected_requested_gpt_model, 
             detected_responded_gpt_model
         )
-        token_message = await message.answer(tokens_message_text)
+        token_message = await message.answer(tokens_message_text, reply_markup=continue_keyboard)
         if message.chat.type in ['group', 'supergroup']:
             await asyncio.sleep(2)
             await token_message.delete()
@@ -761,6 +768,30 @@ async def handle_bot_command(message: Message, batch_messages):
         text += f"\n\n{message.reply_to_message.text}"
     
     await handle_gpt_request(message, text)
+
+
+@gptRouter.callback_query(StartWithQuery("continue_"))
+async def handle_continue_query(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+    
+    # Extract user_id from callback data to verify it matches
+    callback_user_id = callback_query.data.replace("continue_", "")
+    
+    if str(user_id) != callback_user_id:
+        await callback_query.answer("Эта кнопка предназначена не для вас!", show_alert=True)
+        return
+    
+    # Remove the continue button after it's clicked
+    await callback_query.message.edit_reply_markup(reply_markup=None)
+    
+    # Create a fake message object to trigger GPT continuation
+    fake_message = callback_query.message
+    fake_message.from_user = callback_query.from_user
+    
+    # Send continue request with a prompt to continue the conversation
+    await handle_gpt_request(fake_message, "Продолжи")
+    
+    await callback_query.answer("Продолжаю ответ...")
 
 
 @gptRouter.message()
