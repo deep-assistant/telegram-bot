@@ -15,6 +15,7 @@ from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
+from bot.search import searchRouter
 from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
@@ -24,6 +25,7 @@ from bot.diagnostics import diagnosticsRouter
 def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(imagesRouter)
     dp.include_router(sunoRouter)
+    dp.include_router(searchRouter)
     dp.include_router(startRouter)
     dp.include_router(diagnosticsRouter)
     dp.include_router(referralRouter)
