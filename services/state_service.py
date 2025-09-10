@@ -16,6 +16,8 @@ class StateTypes(Enum):
     Suno = "suno"
     SunoStyle = "suno_style"
     Flux = "flux"
+    Video = "video"
+    VideoStyle = "video_style"
 
 
     Transcribe = "transcribation"
@@ -68,6 +70,14 @@ class StateService:
     def is_image_editing_state(self, user_id: str) -> bool:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.ImageEditing.value
+
+    def is_video_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.Video.value
+
+    def is_video_style_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.VideoStyle.value
 
 
 stateService = StateService()

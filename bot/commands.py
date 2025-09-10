@@ -74,6 +74,12 @@ def suno_command():
 def suno_text():
     return "🎵 Генерация музыки"
 
+def video_command():
+    return "/video"
+
+def video_text():
+    return "🎬 Генерация видео"
+
 def here_and_now_command():
     return "/here_and_now"
 
@@ -106,6 +112,8 @@ all_commands = [
     get_remove_background_command(),
     suno_command(),
     suno_text(),
+    video_command(),
+    video_text(),
     here_and_now_command(),
     api_command(),
 ]

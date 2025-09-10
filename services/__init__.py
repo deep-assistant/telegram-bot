@@ -8,3 +8,4 @@ from services.state_service import stateService, StateTypes
 from services.suno_service import sunoService
 from services.system_message_service import systemMessage
 from services.tokenize_service import tokenizeService
+from services.video_service import videoService

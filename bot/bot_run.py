@@ -19,11 +19,13 @@ from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
 from bot.diagnostics import diagnosticsRouter
+from bot.video import videoRouter
 
 
 def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(imagesRouter)
     dp.include_router(sunoRouter)
+    dp.include_router(videoRouter)
     dp.include_router(startRouter)
     dp.include_router(diagnosticsRouter)
     dp.include_router(referralRouter)
