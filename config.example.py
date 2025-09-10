@@ -18,3 +18,9 @@ WEBHOOK_PORT = 3000
 # Set to True to disable SSL verification (useful for development with self-signed certificates)
 HTTPX_DISABLE_SSL_VERIFY = False
 
+# Web Search API Keys (optional - the service will work with DuckDuckGo only if these are not provided)
+# Get Bing Search API key from: https://azure.microsoft.com/en-us/services/cognitive-services/bing-web-search-api/
+BING_API_KEY = ""
+# Get Serper API key from: https://serper.dev/
+SERPER_API_KEY = ""
+
