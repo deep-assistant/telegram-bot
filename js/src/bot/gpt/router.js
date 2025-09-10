@@ -16,7 +16,9 @@ import {
   CLEAR_COMMAND,
   CLEAR_TEXT,
   GET_HISTORY_COMMAND,
-  GET_HISTORY_TEXT
+  GET_HISTORY_TEXT,
+  TIME_ESTIMATION_COMMAND,
+  TIME_ESTIMATION_TEXT
 } from '../commands.js';
 import { getSystemMessage, systemMessagesList, createSystemMessageKeyboard } from './system_messages.js';
 import { isChatMember, sendMarkdownMessage, getTokensMessage, createChangeModelKeyboard } from './utils.js';
@@ -30,7 +32,8 @@ import {
   referralsService,
   stateService,
   StateTypes,
-  systemMessage
+  systemMessage,
+  timeEstimationService
 } from '../../services/index.js';
 import { DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE } from '../constants.js';
 
@@ -88,12 +91,12 @@ async function handleGptRequest(message, text) {
     if (!stateService.is_default_state(userId)) return;
 
     const chatId = message.chat.id;
-    const botModel = gptService.get_current_model(userId);
-    const gptModel = gptService.get_mapping_gpt_model(userId);
+    const botModel = await gptService.getCurrentModel(userId);
+    const gptModel = await gptService.getMappingGptModel(userId);
     await message.bot.send_chat_action(chatId, 'typing');
 
     // System message and token check
-    let sysMsg = gptService.get_current_system_message(userId);
+    let sysMsg = await gptService.getCurrentSystemMessage(userId);
     const tokensBefore = await tokenizeService.get_tokens(userId);
     if ((tokensBefore.tokens || 0) <= 0) {
       await message.answer(
@@ -104,9 +107,17 @@ async function handleGptRequest(message, text) {
     sysMsg = getSystemMessage(sysMsg);
     questionAnswer = (sysMsg === 'question-answer');
 
-    const answer = await completionsService.query_chatgpt(
+    // Start timing the response
+    const startTime = Date.now();
+    
+    const answer = await completionsService.queryChatGPT(
       userId, text, sysMsg, gptModel, botModel, questionAnswer
     );
+    
+    // Record response time
+    const responseTime = Date.now() - startTime;
+    await timeEstimationService.recordResponseTime(userId, responseTime);
+    
     // Log and detect models
     const requestedVal = detectModel(gptModel);
     const respondedVal = detectModel(answer.model);
@@ -358,6 +369,26 @@ gptRouter.message(TextCommand([CHANGE_MODEL_COMMAND, CHANGE_MODEL_TEXT]), async 
   const currentModel = gptService.get_current_model(userId);
   const infoText = `Выберите модель: 🤖\n**o3-mini:** ... \n**GPT-3.5-turbo:** ...`;
   await message.answer(infoText, { reply_markup: createChangeModelKeyboard(currentModel) });
+  await new Promise(r => setTimeout(r, 500));
+  await message.delete();
+});
+
+// Time estimation command handler
+gptRouter.message(TextCommand([TIME_ESTIMATION_COMMAND, TIME_ESTIMATION_TEXT]), async (message) => {
+  // const agreed = await agreementHandler(message);
+  // if (!agreed) return;
+  const subscribed = await isChatMember(message);
+  if (!subscribed) return;
+  const userId = message.from_user.id;
+  
+  try {
+    const estimationMessage = await timeEstimationService.getEstimationMessage(userId);
+    await message.answer(estimationMessage);
+  } catch (error) {
+    console.error('Error getting time estimation:', error);
+    await message.answer('❌ Произошла ошибка при получении статистики времени ответа.');
+  }
+  
   await new Promise(r => setTimeout(r, 500));
   await message.delete();
 });

@@ -6,6 +6,7 @@ import { startRouter } from './bot/start/router.js';
 // import agreementRouter from './bot/agreement/router.js';
 // import apiRouter from './bot/api/router.js';
 import { balanceRouter } from './bot/balance/router.js';
+import { gptRouter } from './bot/gpt/router.js';
 import { paymentRouter } from './bot/payment/router.js';
 // import imageEditingRouter from './bot/image_editing/router.js';
 // import imagesRouter from './bot/images/router.js';
@@ -75,6 +76,7 @@ function applyRouters(bot) {
   bot.use(startRouter);
   // bot.use(diagnosticsRouter);
   // bot.use(referralRouter);
+  bot.use(gptRouter);
   bot.use(paymentRouter);
   // bot.use(apiRouter);
   // bot.use(agreementRouter);

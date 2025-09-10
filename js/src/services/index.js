@@ -7,6 +7,7 @@ import { referralsService } from './referrals_service.js';
 import { stateService, StateTypes } from './state_service.js';
 import { sunoService } from './suno_service.js';
 import { systemMessage } from './system_message_service.js';
+import { timeEstimationService } from './time_estimation_service.js';
 import { tokenizeService } from './tokenize_service.js';
 
 export {
@@ -21,5 +22,6 @@ export {
   StateTypes,
   sunoService,
   systemMessage,
+  timeEstimationService,
   tokenizeService
 };
