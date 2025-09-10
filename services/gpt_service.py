@@ -23,6 +23,8 @@ class GPTModels(Enum):
     DeepSeek_Chat = "deepseek-chat"
     DeepSeek_Reasoner = "deepseek-reasoner"
     O3_mini = "o3-mini"
+    Grok_2 = "grok-2"
+    Grok_2_mini = "grok-2-mini"
 
 class SystemMessages(Enum):
     Custom = "custom"
@@ -55,6 +57,8 @@ gpt_models = {
     GPTModels.DeepSeek_Chat.value: "deepseek-chat",
     GPTModels.DeepSeek_Reasoner.value: "deepseek-reasoner",
     GPTModels.O3_mini.value: "o3-mini",
+    GPTModels.Grok_2.value: "grok-2",
+    GPTModels.Grok_2_mini.value: "grok-2-mini",
 }
 
 

@@ -8,6 +8,10 @@ from openai import OpenAI
 from bot.utils import get_user_name
 from bot.constants import DEFAULT_ERROR_MESSAGE
 from config import PROXY_URL, ADMIN_TOKEN, KEY_DEEPINFRA, GO_API_KEY
+try:
+    from config import XAI_API_KEY
+except ImportError:
+    XAI_API_KEY = None
 from services.gpt_service import GPTModels
 from services.utils import async_post
 
@@ -73,6 +77,76 @@ class CompletionsService:
             cut_dialog.append(item)
 
         history[user_id] = list(reversed(cut_dialog))
+
+    async def query_grok(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
+        """Handle Grok API calls directly to xAI"""
+        if not XAI_API_KEY:
+            return {
+                "success": False, 
+                "response": "Ошибка 😔: XAI_API_KEY не настроен в config.py. Получите ключ на console.x.ai"
+            }
+        
+        headers = {
+            "Authorization": f"Bearer {XAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        # Build conversation history for Grok
+        messages = []
+        if system_message:
+            messages.append({"role": "system", "content": system_message})
+        
+        if not singleMessage:
+            user_history = self.get_history(user_id)
+            messages.extend(user_history)
+        
+        messages.append({"role": "user", "content": message})
+
+        payload = {
+            "model": gpt_model,
+            "messages": messages,
+            "temperature": 0.3,
+            "max_tokens": 4000
+        }
+
+        try:
+            response = await async_post("https://api.x.ai/v1/chat/completions", json=payload, headers=headers)
+            
+            if response.status_code == 200:
+                result = response.json()
+                response_content = result['choices'][0]['message']['content']
+                response_model = result['model']
+                
+                # Update history
+                if not singleMessage:
+                    self.update_history(user_id, {"role": "user", "content": message})
+                    self.update_history(user_id, {"role": "assistant", "content": response_content})
+                    self.cut_history(user_id)
+                
+                return {
+                    'success': True, 
+                    "response": response_content, 
+                    'model': response_model
+                }
+            else:
+                error_msg = response.json().get('error', {}).get('message', 'Unknown error')
+                return {
+                    "success": False, 
+                    "response": f"Ошибка Grok API 😔: {error_msg}"
+                }
+        except Exception as e:
+            return {
+                "success": False, 
+                "response": f"Ошибка подключения к Grok 😔: {str(e)}"
+            }
+
+    async def query_ai(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
+        """Main method that routes to appropriate AI service based on model"""
+        # Check if it's a Grok model
+        if bot_model in [GPTModels.Grok_2, GPTModels.Grok_2_mini]:
+            return await self.query_grok(user_id, message, system_message, gpt_model, bot_model, singleMessage)
+        else:
+            return await self.query_chatgpt(user_id, message, system_message, gpt_model, bot_model, singleMessage)
 
     async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
 
