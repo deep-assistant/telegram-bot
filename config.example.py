@@ -13,6 +13,10 @@ WEBHOOK_PATH = "/webhook"
 WEBHOOK_HOST = "0.0.0.0"
 WEBHOOK_PORT = 3000
 
+# Error Reporting Configuration
+# Comma-separated list of admin user IDs who should receive error notifications
+ADMIN_USER_IDS = ""  # Example: "123456789,987654321"
+
 # HTTPX Configuration
 # Controls SSL certificate verification for all HTTP requests made through services/utils.py
 # Set to True to disable SSL verification (useful for development with self-signed certificates)
