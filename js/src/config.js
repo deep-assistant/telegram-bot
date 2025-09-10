@@ -13,6 +13,8 @@ export const config = {
   webhookPath: process.env.WEBHOOK_PATH || "/webhook",
   webhookHost: process.env.WEBHOOK_HOST || "0.0.0.0",
   webhookPort: parseInt(process.env.WEBHOOK_PORT) || 3000,
+  webhookSecretToken: process.env.WEBHOOK_SECRET_TOKEN || null,
+  webhookMaxConnections: parseInt(process.env.WEBHOOK_MAX_CONNECTIONS) || 40,
   stopEnabled: process.env.STOP_ENABLED === "true" || false,
   telegramApiId: process.env.TELEGRAM_API_ID || "",
   telegramApiHash: process.env.TELEGRAM_API_HASH || "",

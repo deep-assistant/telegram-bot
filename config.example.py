@@ -13,6 +13,15 @@ WEBHOOK_PATH = "/webhook"
 WEBHOOK_HOST = "0.0.0.0"
 WEBHOOK_PORT = 3000
 
+# Webhook performance and security settings
+WEBHOOK_MAX_CONNECTIONS = 40  # Max simultaneous connections from Telegram
+WEBHOOK_SECRET_TOKEN = ""  # Optional secret token for webhook validation
+WEBHOOK_MAX_REQUESTS_PER_MINUTE = 100  # Rate limiting per user
+WEBHOOK_METRICS_ENABLED = False  # Enable metrics endpoint at /metrics
+
+# Logging configuration
+LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR
+
 # HTTPX Configuration
 # Controls SSL certificate verification for all HTTP requests made through services/utils.py
 # Set to True to disable SSL verification (useful for development with self-signed certificates)
