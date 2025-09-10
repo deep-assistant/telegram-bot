@@ -51,8 +51,13 @@ taskRouter.message(StartWith('1:suno:'), async (message) => {
       await sunoCreateMessages(message, task);
       return;
     }
-    if (status === 'processing') {
+    if (status === 'processing' || status === 'pending') {
       await message.answer('⌛️ Задача в процессе!');
+      return;
+    }
+    if (status === 'failed') {
+      const humanReadableError = sunoService.getHumanReadableError(task.data?.error);
+      await message.answer(humanReadableError);
       return;
     }
     await message.answer(GENERATION_FAILED_DEFAULT_ERROR_MESSAGE);
