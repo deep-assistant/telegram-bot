@@ -16,6 +16,31 @@ def get_model_text(model: GPTModels, current_model: GPTModels):
 
     return model.value
 
+def get_model_description(model: GPTModels) -> str:
+    """Get detailed description for a model including capabilities and data cutoff"""
+    descriptions = {
+        GPTModels.O3_mini: "🚀 O3-mini - Новейшая модель OpenAI с улучшенным рассуждением (данные до октября 2023)",
+        GPTModels.O1_preview: "🧠 O1-preview - Модель с глубоким рассуждением, лучше для сложных задач (данные до октября 2023)",
+        GPTModels.O1_mini: "💡 O1-mini - Компактная версия O1 для быстрых рассуждений (данные до октября 2023)",
+        GPTModels.DeepSeek_Chat: "💬 DeepSeek Chat - Быстрая и эффективная модель для диалогов (данные до 2023)",
+        GPTModels.DeepSeek_Reasoner: "🔍 DeepSeek Reasoner - Специализируется на логических рассуждениях (данные до 2023)",
+        GPTModels.Claude_3_5_Sonnet: "🎭 Claude 3.5 Sonnet - Сбалансированная модель для творческих и аналитических задач (данные до апреля 2024)",
+        GPTModels.Claude_3_7_Sonnet: "🎭 Claude 3.7 Sonnet - Улучшенная версия с лучшим пониманием контекста (данные до апреля 2024)",
+        GPTModels.Claude_3_Opus: "🎨 Claude 3 Opus - Самая мощная модель Claude для сложных задач (данные до августа 2023)",
+        GPTModels.Claude_3_5_Haiku: "⚡ Claude 3.5 Haiku - Быстрая модель для простых задач (данные до июля 2024)",
+        GPTModels.GPT_Auto: "🔄 GPT Auto - Автоматический выбор лучшей GPT модели (данные до октября 2023)",
+        GPTModels.GPT_4_Unofficial: "🌐 GPT-4 Unofficial - Неофициальная версия GPT-4 (данные до апреля 2023)",
+        GPTModels.GPT_4o: "🚀 GPT-4o - Мультимодальная модель OpenAI (данные до октября 2023)",
+        GPTModels.GPT_4o_mini: "💎 GPT-4o mini - Компактная версия GPT-4o (данные до октября 2023)",
+        GPTModels.GPT_3_5: "⚡ GPT-3.5 - Быстрая и экономичная модель (данные до сентября 2021)",
+        GPTModels.Llama3_1_405B: "🦙 Llama 3.1 405B - Мощная открытая модель Meta (данные до декабря 2023)",
+        GPTModels.Llama3_1_70B: "🦙 Llama 3.1 70B - Средняя открытая модель Meta (данные до декабря 2023)",
+        GPTModels.Llama3_1_8B: "🦙 Llama 3.1 8B - Быстрая открытая модель Meta (данные до декабря 2023)",
+        GPTModels.Llama_3_70b: "🦙 Llama 3 70B - Предыдущая версия от Meta (данные до марта 2024)",
+        GPTModels.Uncensored: "🔓 Uncensored - Модель без ограничений контента (данные до 2023)"
+    }
+    return descriptions.get(model, f"📖 {model.value} - Универсальная языковая модель")
+
 
 subscribe_text = """
 📰 Чтобы пользоваться ботом необходимо подписаться на наш канал! @gptDeep
@@ -114,11 +139,34 @@ def split_message(message):
 
 async def send_markdown_message(message: Message, text: str):
     parts = split_message(text)
-    for part in parts:
+    for i, part in enumerate(parts):
         try:
-            await send_message(message, text=telegramify_markdown.markdownify(part), parse_mode=ParseMode.MARKDOWN_V2)
+            # Add continue button only to the last part of the message
+            if i == len(parts) - 1:
+                continue_keyboard = InlineKeyboardMarkup(
+                    inline_keyboard=[[
+                        InlineKeyboardButton(
+                            text="➡️ Продолжить",
+                            callback_data="continue_response"
+                        )
+                    ]]
+                )
+                await send_message(message, text=telegramify_markdown.markdownify(part), parse_mode=ParseMode.MARKDOWN_V2, reply_markup=continue_keyboard)
+            else:
+                await send_message(message, text=telegramify_markdown.markdownify(part), parse_mode=ParseMode.MARKDOWN_V2)
         except Exception as e:
-            await send_message(message, text=part, parse_mode=None)
+            if i == len(parts) - 1:
+                continue_keyboard = InlineKeyboardMarkup(
+                    inline_keyboard=[[
+                        InlineKeyboardButton(
+                            text="➡️ Продолжить",
+                            callback_data="continue_response"
+                        )
+                    ]]
+                )
+                await send_message(message, text=part, parse_mode=None, reply_markup=continue_keyboard)
+            else:
+                await send_message(message, text=part, parse_mode=None)
             logging.error(f"Failed to send message as markdown: {e}")
     return parts
 

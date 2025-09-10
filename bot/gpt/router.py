@@ -24,10 +24,10 @@ from bot.commands import change_system_message_command, change_system_message_te
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_message, \
-    create_change_model_keyboard, checked_text
+    create_change_model_keyboard, checked_text, get_model_description
 from bot.utils import include
 from bot.utils import send_photo_as_file
-from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
+from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE, get_context_clear_failed_error_message
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
     StateTypes, systemMessage
@@ -513,12 +513,14 @@ async def handle_clear_context(message: Message):
             return
 
         if response is None:
-            await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE)
-            logging.error(f"Cannot clear dialog context for user {user_id}, response is None.")
+            error_id = str(uuid.uuid4())
+            await message.answer(get_context_clear_failed_error_message(error_id))
+            logging.error(f"Cannot clear dialog context for user {user_id}, response is None. Error ID: {error_id}")
             return
     except Exception as e:
-        await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE)
-        logging.error(f"Error clearing dialog context for user {user_id}: {e}")
+        error_id = str(uuid.uuid4())
+        await message.answer(get_context_clear_failed_error_message(error_id))
+        logging.error(f"Error clearing dialog context for user {user_id}: {e}. Error ID: {error_id}")
         return
 
     await message.answer("Контекст диалога успешно очищен! 👌🏻")
@@ -567,32 +569,23 @@ async def handle_change_model(message: Message):
 
     current_model = gptService.get_current_model(message.from_user.id)
 
-    text = """
-Выберите модель: 🤖  
+    # Generate model descriptions
+    model_descriptions = "\n".join([f"• {get_model_description(model)}" for model in GPTModels])
+    
+    text = f"""
+🤖 **Выберите модель и ознакомьтесь с их описаниями:**
 
-Как рассчитывается стоимость в ⚡️️ для моделей?
+**📖 Описания моделей:**
+{model_descriptions}
 
-*o3-mini:* 1000 токенов = 800 ⚡️
-
-*o1-preview:* 1000 токенов = 5000 ⚡️
-*o1-mini:* 1000 токенов = 800 ⚡️
-
-*deepseek-reasoner:* 1000 токенов = 320 ⚡️
-*deepseek-chat:* 1000 токенов = 160 ⚡️
-
-*claude-3-opus:* 1000 токенов = 6000 ⚡️
-*claude-3.5-sonnet:* 1000 токенов = 1000 ⚡️
-*claude-3-5-haiku:* 1000 токенов = 100 ⚡️
-
-*GPT-4o-unofficial:* 1000 токенов = 1100 ⚡️
-*GPT-4o:* 1000 токенов = 1000 ⚡️
-*GPT-Auto:* 1000 токенов = 150 ⚡️
-*GPT-4o-mini:* 1000 токенов = 70 ⚡️
-*GPT-3.5-turbo:* 1000 токенов = 50 ⚡️
-
-*Llama3.1-405B:* 1000 токенов = 500 ⚡️
-*Llama3.1-70B:* 1000 токенов = 250 ⚡️
-*Llama-3.1-8B:* 1000 токенов = 20 ⚡️
+**💰 Стоимость в ⚡️ за 1000 токенов:**
+*o3-mini:* 800 ⚡️
+*o1-preview:* 5000 ⚡️ | *o1-mini:* 800 ⚡️
+*deepseek-reasoner:* 320 ⚡️ | *deepseek-chat:* 160 ⚡️
+*claude-3-opus:* 6000 ⚡️ | *claude-3.5-sonnet:* 1000 ⚡️ | *claude-3-5-haiku:* 100 ⚡️
+*GPT-4o-unofficial:* 1100 ⚡️ | *GPT-4o:* 1000 ⚡️ | *GPT-Auto:* 150 ⚡️
+*GPT-4o-mini:* 70 ⚡️ | *GPT-3.5-turbo:* 50 ⚡️
+*Llama3.1-405B:* 500 ⚡️ | *Llama3.1-70B:* 250 ⚡️ | *Llama-3.1-8B:* 20 ⚡️
 
 """
 
@@ -710,6 +703,24 @@ async def handle_change_model_query(callback_query: CallbackQuery):
 
     await callback_query.answer(f"Текущая модель успешно сменена на {checked_text(gpt_model.value)}")
     await callback_query.message.delete()
+
+
+@gptRouter.callback_query(TextCommandQuery(["continue_response"]))
+async def handle_continue_response(callback_query: CallbackQuery):
+    """Handle continue button press by sending a follow-up message to continue the conversation"""
+    user_id = callback_query.from_user.id
+    
+    # Check if user is still valid (subscribed, agreed, etc.)
+    message = callback_query.message
+    
+    # Remove the continue button from the original message
+    await callback_query.message.edit_reply_markup(reply_markup=None)
+    
+    # Send a continue prompt to the AI
+    continue_prompt = "Продолжи свой предыдущий ответ."
+    await handle_gpt_request(message, continue_prompt)
+    
+    await callback_query.answer("📝 Продолжаю ответ...")
 
 
 @gptRouter.message(TextCommand([get_history_command(), get_history_text()]))
