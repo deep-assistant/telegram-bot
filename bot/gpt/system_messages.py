@@ -3,12 +3,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot.gpt.utils import checked_text
 from services.gpt_service import SystemMessages
 
-from .db_system_message import default_system_message, happy_system_message, software_developer_system_message, question_answer_mode, promt_deep, transcribe
+from .db_system_message import default_system_message, happy_system_message, software_developer_system_message, lawyer_system_message, question_answer_mode, promt_deep, transcribe
 
 system_messages = {
     SystemMessages.Default.value: default_system_message,
     SystemMessages.Happy.value: happy_system_message,
     SystemMessages.SoftwareDeveloper.value: software_developer_system_message,
+    SystemMessages.Lawyer.value: lawyer_system_message,
     SystemMessages.DeepPromt.value: promt_deep,
     SystemMessages.QuestionAnswer.value: question_answer_mode,
     SystemMessages.Transcribe.value: transcribe
@@ -19,6 +20,7 @@ text_system_messages = {
     SystemMessages.Default.value: "🤖 Стандартный",
     SystemMessages.Happy.value: "🥳 Веселый",
     SystemMessages.SoftwareDeveloper.value: "👨‍💻 Программист",
+    SystemMessages.Lawyer.value: "⚖️ Юрист",
     SystemMessages.DeepPromt.value: "🕳️ Wanderer from the Deep",
     SystemMessages.QuestionAnswer.value: "💬 Вопрос-ответ",
     SystemMessages.Transcribe.value: "🎤 Голос в текст"
@@ -77,6 +79,15 @@ def create_system_message_keyboard(current_system_message: str):
                 ),
                 callback_data=SystemMessages.SoftwareDeveloper.value
             ),
+            InlineKeyboardButton(
+                text=get_system_message_text(
+                    text_system_messages[SystemMessages.Lawyer.value],
+                    text_system_messages[current_system_message]
+                ),
+                callback_data=SystemMessages.Lawyer.value
+            )
+        ],
+        [
             InlineKeyboardButton(
                 text=get_system_message_text(
                     text_system_messages[SystemMessages.DeepPromt.value],
