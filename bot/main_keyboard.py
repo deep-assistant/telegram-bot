@@ -4,6 +4,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, Message, Callback
 from bot.commands import change_model_text, change_system_message_text, balance_text 
 from bot.commands import clear_text, get_history_text, images_command_text
 from bot.commands import referral_command_text, suno_text, balance_payment_command_text
+from bot.commands import save_context_text, list_contexts_text
 
 # Dictionary to track message counts per chat since bot startup
 chat_message_counts = {}
@@ -30,6 +31,10 @@ def create_main_keyboard():
             [
                 KeyboardButton(text=clear_text()),
                 KeyboardButton(text=get_history_text())
+            ],
+            [
+                KeyboardButton(text=save_context_text()),
+                KeyboardButton(text=list_contexts_text())
             ],
             [
                 KeyboardButton(text=referral_command_text()),

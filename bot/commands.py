@@ -80,6 +80,24 @@ def here_and_now_command():
 def api_command():
     return "/api"
 
+def save_context_command():
+    return "/save_context"
+
+def save_context_text():
+    return "💾 Сохранить контекст"
+
+def list_contexts_command():
+    return "/contexts"
+
+def list_contexts_text():
+    return "📚 Мои контексты"
+
+def load_context_command():
+    return "/load_context"
+
+def delete_context_command():
+    return "/delete_context"
+
 all_commands = [
     payment_command_start(),
     payment_command_text(),
@@ -108,4 +126,10 @@ all_commands = [
     suno_text(),
     here_and_now_command(),
     api_command(),
+    save_context_command(),
+    save_context_text(),
+    list_contexts_command(),
+    list_contexts_text(),
+    load_context_command(),
+    delete_context_command(),
 ]

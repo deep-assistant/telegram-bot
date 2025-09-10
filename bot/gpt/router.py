@@ -20,7 +20,9 @@ from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, A
     Video
 from bot.gpt import change_model_command
 from bot.commands import change_system_message_command, change_system_message_text, change_model_text, \
-    balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text
+    balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text, \
+    save_context_command, save_context_text, list_contexts_command, list_contexts_text, \
+    load_context_command, delete_context_command
 from bot.gpt.system_messages import get_system_message, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_message, \
@@ -30,7 +32,7 @@ from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
-    StateTypes, systemMessage
+    StateTypes, systemMessage, contextService
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
@@ -746,6 +748,174 @@ async def handle_get_history(message: types.Message):
     await asyncio.sleep(0.5)
     await message.delete()
 
+
+@gptRouter.message(TextCommand([save_context_command(), save_context_text()]))
+async def handle_save_context(message: types.Message):
+    is_agreement = await agreement_handler(message)
+    if not is_agreement:
+        return
+
+    is_subscribe = await is_chat_member(message)
+    if not is_subscribe:
+        return
+
+    user_id = message.from_user.id
+    
+    # Check if there's a current context to save
+    current_context = await contextService.get_current_context(user_id)
+    if not current_context:
+        await message.answer("❌ Нет активного контекста для сохранения!")
+        return
+    
+    # Ask for context name
+    await message.answer("💾 Введите имя для сохранения контекста:")
+    stateService.set_state(user_id, StateTypes.ContextNaming)
+
+
+@gptRouter.message(StateCommand(StateTypes.ContextNaming))
+async def handle_context_naming(message: types.Message):
+    user_id = message.from_user.id
+    context_name = message.text.strip()
+    
+    if not context_name:
+        await message.answer("❌ Имя контекста не может быть пустым!")
+        return
+    
+    if len(context_name) > 50:
+        await message.answer("❌ Имя контекста слишком длинное (максимум 50 символов)!")
+        return
+    
+    # Get current context
+    current_context = await contextService.get_current_context(user_id)
+    if not current_context:
+        await message.answer("❌ Не удалось получить текущий контекст!")
+        stateService.set_default_state(user_id)
+        return
+    
+    # Check if context name already exists
+    existing_context = contextService.get_context(user_id, context_name)
+    if existing_context:
+        await message.answer("❌ Контекст с таким именем уже существует! Выберите другое имя.")
+        return
+    
+    # Save the context
+    if contextService.save_context(user_id, context_name, current_context):
+        await message.answer(f"✅ Контекст '{context_name}' успешно сохранен!")
+    else:
+        await message.answer("❌ Ошибка при сохранении контекста!")
+    
+    stateService.set_default_state(user_id)
+
+
+@gptRouter.message(TextCommand([list_contexts_command(), list_contexts_text()]))
+async def handle_list_contexts(message: types.Message):
+    is_agreement = await agreement_handler(message)
+    if not is_agreement:
+        return
+
+    is_subscribe = await is_chat_member(message)
+    if not is_subscribe:
+        return
+
+    user_id = message.from_user.id
+    saved_contexts = contextService.get_saved_contexts(user_id)
+    
+    if not saved_contexts:
+        await message.answer("📚 У вас нет сохраненных контекстов.")
+        return
+    
+    context_list = "📚 **Ваши сохраненные контексты:**\n\n"
+    for name, context in saved_contexts.items():
+        created_date = context.get('created_at', '').split('T')[0] if context.get('created_at') else 'Неизвестно'
+        context_list += f"• **{name}** (создан: {created_date})\n"
+    
+    context_list += f"\nИспользуйте {load_context_command()} <имя> чтобы загрузить контекст\n"
+    context_list += f"Используйте {delete_context_command()} <имя> чтобы удалить контекст"
+    
+    await message.answer(context_list)
+
+
+@gptRouter.message(StartWithQuery([load_context_command()]))
+async def handle_load_context(message: types.Message):
+    is_agreement = await agreement_handler(message)
+    if not is_agreement:
+        return
+
+    is_subscribe = await is_chat_member(message)
+    if not is_subscribe:
+        return
+
+    user_id = message.from_user.id
+    parts = message.text.split(' ', 1)
+    
+    if len(parts) < 2:
+        await message.answer(f"❌ Укажите имя контекста: {load_context_command()} <имя>")
+        return
+    
+    context_name = parts[1].strip()
+    context = contextService.get_context(user_id, context_name)
+    
+    if not context:
+        await message.answer(f"❌ Контекст '{context_name}' не найден!")
+        return
+    
+    loading_message = await message.answer("⌛️ Загружаем контекст...")
+    
+    # Clear current context to prepare for loading saved one
+    success = await contextService.restore_context(user_id, context['data'])
+    
+    if success:
+        contextService.update_last_used(user_id, context_name)
+        
+        # Show the context data to the user
+        context_preview = ""
+        if 'messages' in context['data']:
+            messages = context['data']['messages']
+            if messages:
+                # Show first few messages as preview
+                preview_count = min(3, len(messages))
+                for i, msg in enumerate(messages[:preview_count]):
+                    role = msg.get('role', 'unknown')
+                    content = msg.get('content', '')[:100] + ('...' if len(msg.get('content', '')) > 100 else '')
+                    context_preview += f"\n**{role.title()}**: {content}\n"
+                
+                if len(messages) > preview_count:
+                    context_preview += f"\n... и еще {len(messages) - preview_count} сообщений"
+        
+        message_text = f"✅ Контекст '{context_name}' готов к использованию!\n"
+        message_text += f"Ваш текущий диалог очищен. Теперь вы можете продолжить разговор с сохраненным контекстом."
+        
+        if context_preview:
+            message_text += f"\n\n📝 **Предпросмотр контекста:**{context_preview}"
+        
+        await loading_message.edit_text(message_text)
+    else:
+        await loading_message.edit_text(f"❌ Ошибка при загрузке контекста '{context_name}'!")
+
+
+@gptRouter.message(StartWithQuery([delete_context_command()]))
+async def handle_delete_context(message: types.Message):
+    is_agreement = await agreement_handler(message)
+    if not is_agreement:
+        return
+
+    is_subscribe = await is_chat_member(message)
+    if not is_subscribe:
+        return
+
+    user_id = message.from_user.id
+    parts = message.text.split(' ', 1)
+    
+    if len(parts) < 2:
+        await message.answer(f"❌ Укажите имя контекста: {delete_context_command()} <имя>")
+        return
+    
+    context_name = parts[1].strip()
+    
+    if contextService.delete_context(user_id, context_name):
+        await message.answer(f"✅ Контекст '{context_name}' успешно удален!")
+    else:
+        await message.answer(f"❌ Контекст '{context_name}' не найден или ошибка при удалении!")
 
 
 @gptRouter.message(TextCommand(["/bot", "/bot@DeepGPTBot"]))  # Укажите все возможные варианты

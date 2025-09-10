@@ -19,6 +19,7 @@ class StateTypes(Enum):
 
 
     Transcribe = "transcribation"
+    ContextNaming = "context_naming"
 
  
 class StateService:
@@ -68,6 +69,14 @@ class StateService:
     def is_image_editing_state(self, user_id: str) -> bool:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.ImageEditing.value
+
+    def set_state(self, user_id: str, state: StateTypes):
+        """Set the current state for a user"""
+        self.set_current_state(user_id, state)
+    
+    def set_default_state(self, user_id: str):
+        """Set the user state to default"""
+        self.set_current_state(user_id, StateTypes.Default)
 
 
 stateService = StateService()
