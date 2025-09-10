@@ -30,7 +30,7 @@ from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
-    StateTypes, systemMessage
+    StateTypes, systemMessage, statisticsService
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
@@ -177,6 +177,12 @@ async def handle_gpt_request(message: Message, text: str):
             return
 
         gpt_tokens_after = await tokenizeService.get_tokens(user_id)
+
+        # Track statistics
+        tokens_spent = gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0)
+        statisticsService.track_user_activity(str(user_id), "gpt_message")
+        statisticsService.track_token_usage(str(user_id), tokens_spent, bot_model)
+        statisticsService.track_model_usage(str(user_id), bot_model, "default")
 
         format_text = format_image_from_request(answer.get("response"))
         image = format_text["image"]
@@ -355,6 +361,12 @@ async def handle_voice(message: Message):
     response_json = await transcribe_voice(message.from_user.id, file_url)
 
     if response_json.get("success"):
+        # Track transcription statistics
+        energy_spent = response_json.get("energy", 0)
+        statisticsService.track_user_activity(str(message.from_user.id), "voice_transcribe")
+        statisticsService.track_token_usage(str(message.from_user.id), energy_spent, "transcription")
+        statisticsService.track_model_usage(str(message.from_user.id), "transcription", "voice")
+        
         await message.answer(f"""
 🎤 Обработка аудио затратила `{response_json.get("energy")}`⚡️ 
 
