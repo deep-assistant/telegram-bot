@@ -18,3 +18,7 @@ WEBHOOK_PORT = 3000
 # Set to True to disable SSL verification (useful for development with self-signed certificates)
 HTTPX_DISABLE_SSL_VERIFY = False
 
+# Statistics Configuration
+# Admin user IDs for statistics access (comma-separated list of Telegram user IDs)
+ADMIN_IDS = []
+

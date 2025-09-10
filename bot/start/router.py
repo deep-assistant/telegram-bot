@@ -9,7 +9,7 @@ from bot.filters import TextCommand
 from bot.commands import help_text, help_command, app_command
 from bot.gpt.utils import check_subscription
 from bot.main_keyboard import create_main_keyboard, send_message
-from services import tokenizeService, referralsService
+from services import tokenizeService, referralsService, statisticsService
 
 startRouter = Router()
 
@@ -84,6 +84,9 @@ async def create_token_if_not_exist(user_id):
 
 @startRouter.message(CommandStart())
 async def start(message: types.Message):
+    # Track user activity
+    statisticsService.track_user_activity(str(message.from_user.id), "start_command")
+    
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
 
