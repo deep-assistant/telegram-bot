@@ -68,6 +68,30 @@ sunoRouter.message(
         await message.answer('Это ID вашей генерации.\n\nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n\nВы также получите результат генерации по готовности.');
       }
       const generation = await sunoService.generateSuno(message.text, taskIdGet);
+      
+      // Check if generation failed
+      if (!generation || !generation.data || generation.data.status === 'failed') {
+        if (generation?.humanReadableError) {
+          await message.answer(generation.humanReadableError);
+        } else {
+          const errorMsg = generation?.data?.error?.message || generation?.data?.error?.raw_message || '';
+          if (errorMsg) {
+            await message.answer(sunoService.getHumanReadableError(generation.data.error));
+          } else {
+            await message.answer('❌ Произошла ошибка при генерации музыки. Попробуйте позже или измените описание.');
+          }
+        }
+        await waitMessage.delete();
+        return;
+      }
+      
+      // Check if generation completed successfully
+      if (generation.data.status !== 'completed') {
+        await message.answer('❌ Генерация музыки не завершилась успешно. Попробуйте позже.');
+        await waitMessage.delete();
+        return;
+      }
+      
       await sunoCreateMessages(message, generation);
       await tokenizeService.update_user_token(userId, 5700, 'subtract');
       await message.answer(`\n🤖 Затрачено на генерацию музыкальной композиции **Suno**: **5700**\n\n❔ /help - Информация по ⚡️`);

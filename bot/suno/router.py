@@ -73,14 +73,20 @@ async def suno_create_messages(message: Message, generation: dict):
         logging.error(f"Suno: нет audio_url. generation={generation}")
         status = data.get('status') if data else 'unknown'
         error_info = data.get('error', {}) if data else {}
-        error_message = error_info.get('message', 'Неизвестная ошибка')
         
-        await message.answer(
-            f"❌ Не удалось получить аудиофайл от Suno.\n\n"
-            f"Статус: {status}\n"
-            f"Ошибка: {error_message}\n\n"
-            f"Попробуйте позже или измените запрос."
-        )
+        if status == 'failed' and error_info:
+            # Use human-readable error message for failed tasks
+            human_readable_error = sunoService.get_human_readable_error(error_info)
+            await message.answer(human_readable_error)
+        else:
+            # Fallback for other cases
+            error_message = error_info.get('message', 'Неизвестная ошибка')
+            await message.answer(
+                f"❌ Не удалось получить аудиофайл от Suno.\n\n"
+                f"Статус: {status}\n"
+                f"Ошибка: {error_message}\n\n"
+                f"Попробуйте позже или измените запрос."
+            )
 
     await message.answer(
         text="Cгенерировать Suno еще? 🔥",
@@ -263,6 +269,7 @@ async def suno_style_handler(message: Message):
 
         generation = await sunoService.generate_suno(topic, style, task_id_get)
 
+        # Check if generation failed or returned no data
         if not generation or not generation.get('data'):
             await message.answer(
                 "❌ Произошла ошибка при генерации музыки. Возможные причины:\n"
@@ -273,12 +280,23 @@ async def suno_style_handler(message: Message):
             )
             sunoService.clear_user_data(str(user_id))
             return
-
-        await suno_create_messages(message, generation)
-
-        # Списываем токены только если generation успешна
+            
         status = generation.get('data', {}).get('status')
+        
+        # Handle failed generations with proper error messages
+        if status == "failed":
+            error_info = generation.get('data', {}).get('error', {})
+            if error_info:
+                human_readable_error = sunoService.get_human_readable_error(error_info)
+                await message.answer(human_readable_error)
+            else:
+                await message.answer("❌ Генерация завершилась с ошибкой. Попробуйте позже или измените описание.")
+            sunoService.clear_user_data(str(user_id))
+            return
+
+        # Handle completed generations
         if status == "completed":
+            await suno_create_messages(message, generation)
             await tokenizeService.update_token(user_id, 5700, "subtract")
             await message.answer(
                 f"""
@@ -289,7 +307,7 @@ async def suno_style_handler(message: Message):
             )
         else:
             await message.answer(
-                "⚡️ Энергия не была списана, так как генерация завершилась с ошибкой."
+                "⚡️ Энергия не была списана, так как генерация не завершилась успешно."
             )
 
         await wait_message.delete()
