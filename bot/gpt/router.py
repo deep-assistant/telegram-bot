@@ -177,6 +177,11 @@ async def handle_gpt_request(message: Message, text: str):
             return
 
         gpt_tokens_after = await tokenizeService.get_tokens(user_id)
+        
+        # Extract usage information from the response
+        usage_info = answer.get('usage', {})
+        prompt_tokens = usage_info.get('prompt_tokens', 0)
+        total_tokens = usage_info.get('total_tokens', 0)
 
         format_text = format_image_from_request(answer.get("response"))
         image = format_text["image"]
@@ -195,7 +200,9 @@ async def handle_gpt_request(message: Message, text: str):
             gpt_tokens_before.get("tokens", 0) - gpt_tokens_after.get("tokens", 0), 
             gpt_tokens_after.get("tokens", 0), 
             detected_requested_gpt_model, 
-            detected_responded_gpt_model
+            detected_responded_gpt_model,
+            prompt_tokens,
+            total_tokens
         )
         token_message = await message.answer(tokens_message_text)
         if message.chat.type in ['group', 'supergroup']:
