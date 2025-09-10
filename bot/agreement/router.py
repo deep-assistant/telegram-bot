@@ -15,7 +15,7 @@ class AgreementStatuses(Enum):
 
 
 async def agreement_handler(message: Message) -> bool:
-    is_agreement = agreementService.get_agreement_status(message.from_user.id)
+    is_agreement = await agreementService.get_agreement_status(message.from_user.id)
 
     if not is_agreement:
         await message.answer(
@@ -40,10 +40,10 @@ async def agreement_handler(message: Message) -> bool:
 async def handle_change_system_message_query(callback_query: CallbackQuery):
     if callback_query.data == AgreementStatuses.ACCEPT_AGREEMENT.value:
         await callback_query.answer("Успешно! Спасибо! 🥰")
-        agreementService.set_agreement_status(callback_query.from_user.id, True)
+        await agreementService.set_agreement_status(callback_query.from_user.id, True)
         await callback_query.message.delete()
 
-    if callback_query.data == AgreementStatuses.ACCEPT_AGREEMENT.value:
+    if callback_query.data == AgreementStatuses.DECLINE_AGREEMENT.value:
         await callback_query.answer(
             "К сожалению, мы не можем вам предоставить функционал без подтверждения согласия! ☹️")
 
