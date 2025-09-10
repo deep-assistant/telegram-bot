@@ -299,13 +299,31 @@ async def transcribe_voice_sync(user_id: str, voice_file_url: str):
         return {"success": False, "text": f"Error: Голосовое сообщение не распознано"}
 
 
-executor = ThreadPoolExecutor()
+# Use a larger thread pool to handle concurrent audio requests
+executor = ThreadPoolExecutor(max_workers=10)
 
 
 async def transcribe_voice(user_id: int, voice_file_url: str):
+    """
+    Transcribe voice message asynchronously.
+    Fixed to properly handle concurrent requests.
+    """
     loop = asyncio.get_event_loop()
-    response = await loop.run_in_executor(executor, transcribe_voice_sync, user_id, voice_file_url)
-    return await response
+    
+    # Create a partial function to avoid async issues in executor
+    def sync_wrapper():
+        # Run the async function in a new event loop for this thread
+        import asyncio
+        new_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(new_loop)
+        try:
+            result = new_loop.run_until_complete(transcribe_voice_sync(user_id, voice_file_url))
+            return result
+        finally:
+            new_loop.close()
+    
+    response = await loop.run_in_executor(executor, sync_wrapper)
+    return response
 
 
 @gptRouter.message(Voice())
