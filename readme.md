@@ -28,7 +28,22 @@ WEBHOOK_PATH = "/webhook"
 WEBHOOK_HOST = "0.0.0.0"
 WEBHOOK_PORT = 3000
 ```
-4. Start the bot
+4. (Optional) Configure error reporting by setting admin user IDs:
+```python
+ADMIN_USER_IDS = "123456789,987654321"  # Your Telegram user IDs
+```
+
+5. Start the bot
 ```sh
 python3 __main__.py
 ```
+
+## Features
+
+- AI-powered conversations with multiple models
+- Image generation and editing
+- Error reporting system with admin notifications
+- User management and referral system
+- Payment integration
+
+For error reporting setup, see [ERROR_REPORTING_SETUP.md](ERROR_REPORTING_SETUP.md)
