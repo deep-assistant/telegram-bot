@@ -30,7 +30,7 @@ from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
-    StateTypes, systemMessage
+    StateTypes, systemMessage, message_timeout_service
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
@@ -38,6 +38,15 @@ from services.utils import async_post, async_get
 gptRouter = Router()
 
 questionAnswer = False
+
+
+def schedule_user_message_timeout(message: Message):
+    """Helper function to schedule timeout for any user message."""
+    message_timeout_service.schedule_message_deletion(
+        message.bot, 
+        message.chat.id, 
+        message.message_id
+    )
 
 
 async def answer_markdown_file(message: Message, md_content: str):
@@ -82,6 +91,10 @@ def detect_model(model: str):
 
 async def handle_gpt_request(message: Message, text: str):
     user_id = message.from_user.id
+    
+    # Schedule the user message for deletion after timeout
+    schedule_user_message_timeout(message)
+    
     message_loading = await message.answer("**⌛️Ожидайте ответ...**")
 
     try:
@@ -154,6 +167,9 @@ async def handle_gpt_request(message: Message, text: str):
         print(detected_responded_gpt_model, 'detected_responded_gpt_model')
 
         if not answer.get("success"):
+            # Mark message as processed even in error cases
+            message_timeout_service.mark_message_processed(message.chat.id, message.message_id)
+            
             if answer.get('response') == "Ошибка 😔: Превышен лимит использования токенов.":
                 await message.answer(
                     text=f"""
@@ -189,6 +205,10 @@ async def handle_gpt_request(message: Message, text: str):
         if image is not None:
             await message.answer_photo(image)
             await send_photo_as_file(message, image, "Вот картинка в оригинальном качестве")
+        
+        # Mark the user message as processed to prevent deletion
+        message_timeout_service.mark_message_processed(message.chat.id, message.message_id)
+        
         await asyncio.sleep(0.5)
         await message_loading.delete()
         tokens_message_text = get_tokens_message(
@@ -202,6 +222,8 @@ async def handle_gpt_request(message: Message, text: str):
             await asyncio.sleep(2)
             await token_message.delete()
     except Exception as e:
+        # Mark message as processed in case of exceptions
+        message_timeout_service.mark_message_processed(message.chat.id, message.message_id)
         print(e)
 
 
@@ -465,6 +487,9 @@ async def handle_document(message: Message):
 
 @gptRouter.message(TextCommand([balance_text(), balance_command()]))
 async def handle_balance(message: Message):
+    # Schedule the user message for deletion after timeout
+    schedule_user_message_timeout(message)
+    
     gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)
 
     referral = await referralsService.get_referral(message.from_user.id)
