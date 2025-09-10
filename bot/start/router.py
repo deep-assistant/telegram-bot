@@ -87,7 +87,88 @@ async def start(message: types.Message):
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
 
-    # always force sending the keyboard
+    # Check if message is from a group chat
+    if message.chat.type in ['group', 'supergroup']:
+        # Send response as private message to the user
+        keyboard = create_main_keyboard()
+        try:
+            await message.bot.send_message(
+                chat_id=message.from_user.id,
+                text=hello_text,
+                reply_markup=keyboard,
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            # If unable to send private message (e.g., user hasn't started bot privately)
+            # Send a brief message in the group asking user to start bot privately
+            await message.reply(
+                "Привет! Пожалуйста, начните диалог со мной в личных сообщениях: @" + 
+                (await message.bot.get_me()).username,
+                reply_to_message_id=message.message_id
+            )
+            return
+        
+        # For group chats, we still need to process tokens and referrals
+        # but send additional messages to private chat
+        await create_token_if_not_exist(message.from_user.id)
+        
+        # Check subscription using user ID directly for group chat scenarios
+        # Note: We pass the original message but check_subscription should handle this
+        is_subscribe = await check_subscription(message)
+        
+        # Handle referral logic
+        if ref_user_id:
+            try:
+                chat_id = int(ref_user_id)
+            except (TypeError, ValueError):
+                chat_id = None
+
+            if chat_id:
+                user_name = message.from_user.username
+                user_mention = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.full_name}</a>"
+                await message.bot.send_message(
+                    chat_id=chat_id,
+                    text=(
+                        f"""
+🎉 По вашей реферальной ссылке перешли: @{user_name} ({user_mention}).
+
+Чтобы вашему другу стать вашим рефералом, он должен подписаться на канал @gptDeep.
+
+Как только это произойдёт вы получите <b>5 000</b>⚡️ единоразово и <b>+500</b>⚡️️ к ежедневному пополнению баланса.
+
+Если вдруг этого долго не происходит, то возможно вашему другу нужна помощь, <b>попробуйте написать ему в личные сообщения</b>. 
+Если и это не помогает, то обратитесь в поддержку в сообществе @deepGPT и мы поможем вам разобраться с ситуацией.
+"""
+                    ),
+                    parse_mode="HTML"
+                )
+
+        if not is_subscribe:
+            if str(ref_user_id) == str(message.from_user.id):
+                return
+
+            await message.bot.send_message(
+                chat_id=message.from_user.id,
+                text=ref_text,
+                reply_markup=types.InlineKeyboardMarkup(
+                    resize_keyboard=True,
+                    inline_keyboard=[
+                        [
+                            types.InlineKeyboardButton(text="Подписаться 👊🏻", url="https://t.me/gptDeep"),
+                        ],
+                        [
+                            types.InlineKeyboardButton(text="Проверить ✅",
+                                                       callback_data=f"ref-is-subscribe {ref_user_id} {message.from_user.id}"),
+                        ]
+                    ]
+                )
+            )
+            return
+
+        await handle_referral(message, message.from_user.id, ref_user_id)
+        return
+    
+    # Normal behavior for private chats
     keyboard = create_main_keyboard()
     await send_message(message, text=hello_text, reply_markup=keyboard)
 
