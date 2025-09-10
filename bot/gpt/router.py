@@ -28,6 +28,7 @@ from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_mess
 from bot.utils import include
 from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
+from bot.error_handler import send_error_message_with_guid
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
     StateTypes, systemMessage
@@ -202,7 +203,13 @@ async def handle_gpt_request(message: Message, text: str):
             await asyncio.sleep(2)
             await token_message.delete()
     except Exception as e:
-        print(e)
+        print(e)  # Keep original logging for backwards compatibility
+        await send_error_message_with_guid(message, e, "handle_gpt_request")
+        await asyncio.sleep(0.5)
+        try:
+            await message_loading.delete()
+        except Exception:
+            pass  # Ignore if already deleted
 
 
 async def get_photos_links(message, photos):
@@ -398,6 +405,7 @@ async def handle_document(message: Message):
         logging.error(f"Failed to process document, a file is not supported: {e}")
     except Exception as e:
         logging.error(f"Failed to process document: {e}")
+        await send_error_message_with_guid(message, e, "handle_document")
 
 
 async def process_document(document, bot):
@@ -519,6 +527,7 @@ async def handle_clear_context(message: Message):
     except Exception as e:
         await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE)
         logging.error(f"Error clearing dialog context for user {user_id}: {e}")
+        await send_error_message_with_guid(message, e, "clear_dialog_context")
         return
 
     await message.answer("Контекст диалога успешно очищен! 👌🏻")
