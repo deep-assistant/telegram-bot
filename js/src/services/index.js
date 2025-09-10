@@ -1,4 +1,5 @@
 import { agreementService } from './agreement_service.js';
+import { apiPriorityService } from './api_priority_service.js';
 import { completionsService } from './completions_service.js';
 import { gptService, GPTModels } from './gpt_service.js';
 import { imageEditing } from './image_editing.js';
@@ -11,6 +12,7 @@ import { tokenizeService } from './tokenize_service.js';
 
 export {
   agreementService,
+  apiPriorityService,
   completionsService,
   gptService,
   GPTModels,
