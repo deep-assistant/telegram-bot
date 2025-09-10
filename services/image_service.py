@@ -8,6 +8,8 @@ from services.image_utils import format_image_from_request, get_image_model_by_l
 from services.utils import async_post, async_get
 
 generating_map = {}
+pending_upscale_operations = {}
+pending_variation_operations = {}
 
 
 async def txt2img(prompt, negative_prompt, model, width, height, guidance_scale, steps, wait_image):
@@ -180,6 +182,32 @@ class ImageService:
             data_base[db_key(user_id, self.FLUX_MODEL)] = state
         data_base.commit()
 
+    def is_upscale_pending(self, user_id: str, task_id: str, index: str) -> bool:
+        """Check if an upscale operation is already pending for this user/task/index combination"""
+        operation_key = f"{user_id}:{task_id}:{index}"
+        return operation_key in pending_upscale_operations
+
+    def set_upscale_pending(self, user_id: str, task_id: str, index: str, pending: bool):
+        """Set the pending status for an upscale operation"""
+        operation_key = f"{user_id}:{task_id}:{index}"
+        if pending:
+            pending_upscale_operations[operation_key] = True
+        else:
+            pending_upscale_operations.pop(operation_key, None)
+
+    def is_variation_pending(self, user_id: str, task_id: str, index: str) -> bool:
+        """Check if a variation operation is already pending for this user/task/index combination"""
+        operation_key = f"{user_id}:{task_id}:{index}"
+        return operation_key in pending_variation_operations
+
+    def set_variation_pending(self, user_id: str, task_id: str, index: str, pending: bool):
+        """Set the pending status for a variation operation"""
+        operation_key = f"{user_id}:{task_id}:{index}"
+        if pending:
+            pending_variation_operations[operation_key] = True
+        else:
+            pending_variation_operations.pop(operation_key, None)
+
     async def generate(self, prompt: str, user_id: str, wait_image):
 
         model = get_image_model_by_label(self.get_current_image(user_id))
@@ -270,34 +298,83 @@ class ImageService:
         response = await async_post("https://api.goapi.ai/mj/v2/fetch", json={"task_id": task_id})
         return response.json()
 
-    async def upscale_image(self, task_id, index, task_id_get):
+    async def upscale_image(self, task_id, index, task_id_get, user_id: str = None):
         print(task_id)
-        response = await async_post(
-            "https://api.goapi.ai/mj/v2/upscale",
-            headers={"X-API-KEY": GO_API_KEY},
-            json={"origin_task_id": task_id, "index": index, }
-        )
+        
+        try:
+            response = await async_post(
+                "https://api.goapi.ai/mj/v2/upscale",
+                headers={"X-API-KEY": GO_API_KEY},
+                json={"origin_task_id": task_id, "index": index, }
+            )
 
-        task_id = response.json()['task_id']
+            response_data = response.json()
+            
+            # Check for "repeat task detected" error
+            if 'error' in response_data:
+                error = response_data['error']
+                if error.get('code') == 10000 and 'repeat task detected' in error.get('message', '').lower():
+                    # Return a specific error response for repeat task detection
+                    return {
+                        "error": "repeat_task_detected",
+                        "message": "This upscale operation was already submitted. Please wait for the previous operation to complete."
+                    }
+                else:
+                    # Re-raise other API errors
+                    raise Exception(f"API Error: {error.get('message', 'Unknown error')}")
 
-        if task_id:
-            await task_id_get(task_id)
+            new_task_id = response_data['task_id']
 
-        return await self.try_fetch_midjourney(task_id)
+            if new_task_id:
+                await task_id_get(new_task_id)
 
-    async def variation_image(self, task_id, index, task_id_get):
-        response = await async_post(
-            "https://api.goapi.ai/mj/v2/variation",
-            headers={"X-API-KEY": GO_API_KEY},
-            json={"origin_task_id": task_id, "index": index, }
-        )
+            return await self.try_fetch_midjourney(new_task_id)
+            
+        except Exception as e:
+            # Handle any unexpected errors
+            print(f"Error in upscale_image: {e}")
+            return {
+                "error": "api_error", 
+                "message": f"Failed to submit upscale request: {str(e)}"
+            }
 
-        task_id = response.json()['task_id']
+    async def variation_image(self, task_id, index, task_id_get, user_id: str = None):
+        try:
+            response = await async_post(
+                "https://api.goapi.ai/mj/v2/variation",
+                headers={"X-API-KEY": GO_API_KEY},
+                json={"origin_task_id": task_id, "index": index, }
+            )
 
-        if task_id:
-            await task_id_get(task_id)
+            response_data = response.json()
+            
+            # Check for "repeat task detected" error
+            if 'error' in response_data:
+                error = response_data['error']
+                if error.get('code') == 10000 and 'repeat task detected' in error.get('message', '').lower():
+                    # Return a specific error response for repeat task detection
+                    return {
+                        "error": "repeat_task_detected",
+                        "message": "This variation operation was already submitted. Please wait for the previous operation to complete."
+                    }
+                else:
+                    # Re-raise other API errors
+                    raise Exception(f"API Error: {error.get('message', 'Unknown error')}")
 
-        return await self.try_fetch_midjourney(task_id)
+            new_task_id = response_data['task_id']
+
+            if new_task_id:
+                await task_id_get(new_task_id)
+
+            return await self.try_fetch_midjourney(new_task_id)
+            
+        except Exception as e:
+            # Handle any unexpected errors
+            print(f"Error in variation_image: {e}")
+            return {
+                "error": "api_error", 
+                "message": f"Failed to submit variation request: {str(e)}"
+            }
 
     async def generate_flux(self, user_id, prompt, task_id_get):
         payload = {

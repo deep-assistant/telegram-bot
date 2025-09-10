@@ -509,80 +509,138 @@ async def handle_generate_image(message: types.Message):
 async def upscale_midjourney_callback_query(callback: CallbackQuery):
     task_id = callback.data.split(" ")[1]
     index = callback.data.split(" ")[2]
+    user_id = callback.from_user.id
+
+    # Check if this upscale operation is already pending
+    if imageService.is_upscale_pending(str(user_id), task_id, index):
+        await callback.answer("⚠️ Увеличение этого изображения уже выполняется. Пожалуйста, дождитесь завершения.", show_alert=True)
+        return
+
+    # Mark this upscale operation as pending
+    imageService.set_upscale_pending(str(user_id), task_id, index, True)
 
     wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.")
 
-    async def task_id_get(task_id: str):
-        await callback.message.answer(f"`1:midjourney:{task_id}:upscale`")
-        await callback.message.answer(f"""Это ID вашей генерации.
-                                      
+    try:
+        async def task_id_get(task_id: str):
+            await callback.message.answer(f"`1:midjourney:{task_id}:upscale`")
+            await callback.message.answer(f"""Это ID вашей генерации.
+                                          
 Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
-                                      
+                                          
 Вы также получите результат генерации по готовности.""")
 
-    image = await imageService.upscale_image(task_id, index, task_id_get)
+        image = await imageService.upscale_image(task_id, index, task_id_get, str(user_id))
 
-    await callback.message.reply_photo(image["task_result"]["discord_image_url"])
-    await send_photo_as_file(
-        callback.message,
-        image["task_result"]["discord_image_url"],
-        ext=".png",
-        caption="Вот ваше изображение в оригинальном качестве"
-    )
-    await callback.message.answer(text="Cгенерировать Midjourney еще?", reply_markup=InlineKeyboardMarkup(
-        resize_keyboard=True,
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=f"Сгенерировать 🔥",
-                    callback_data="midjourney-generate"
-                )
-            ]
-        ],
-    )
-                                  )
+        # Check if we got an error response
+        if isinstance(image, dict) and "error" in image:
+            await wait_message.delete()
+            
+            if image["error"] == "repeat_task_detected":
+                await callback.message.answer("⚠️ Этот запрос на увеличение уже был отправлен ранее. Пожалуйста, дождитесь завершения предыдущей операции.")
+            else:
+                await callback.message.answer(f"❌ Ошибка при увеличении изображения: {image['message']}")
+            return
 
-    await tokenizeService.update_token(callback.from_user.id, 1600, "subtract")
-    await callback.message.answer(f"""
+        await callback.message.reply_photo(image["task_result"]["discord_image_url"])
+        await send_photo_as_file(
+            callback.message,
+            image["task_result"]["discord_image_url"],
+            ext=".png",
+            caption="Вот ваше изображение в оригинальном качестве"
+        )
+        await callback.message.answer(text="Cгенерировать Midjourney еще? 🔥", reply_markup=InlineKeyboardMarkup(
+            resize_keyboard=True,
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=f"Сгенерировать 🔥",
+                        callback_data="midjourney-generate"
+                    )
+                ]
+            ],
+        )
+                                      )
+
+        await tokenizeService.update_token(callback.from_user.id, 1600, "subtract")
+        await callback.message.answer(f"""
 🤖 Затрачено на генерацию увеличенного изображения Midjourney 1600⚡️
 
 ❔ /help - Информация по ⚡️
 """)
 
-    await wait_message.delete()
+        await wait_message.delete()
+
+    except Exception as e:
+        await wait_message.delete()
+        await callback.message.answer("❌ Произошла ошибка при увеличении изображения. Попробуйте позже.")
+        logging.error(f"Error in upscale callback: {e}")
+    
+    finally:
+        # Always clear the pending status when done
+        imageService.set_upscale_pending(str(user_id), task_id, index, False)
 
 
 @imagesRouter.callback_query(StartWithQuery("variation-midjourney"))
 async def variation_midjourney_callback_query(callback: CallbackQuery):
     task_id = callback.data.split(" ")[1]
     index = callback.data.split(" ")[2]
+    user_id = callback.from_user.id
+
+    # Check if this variation operation is already pending
+    if imageService.is_variation_pending(str(user_id), task_id, index):
+        await callback.answer("⚠️ Генерация вариаций этого изображения уже выполняется. Пожалуйста, дождитесь завершения.", show_alert=True)
+        return
+
+    # Mark this variation operation as pending
+    imageService.set_variation_pending(str(user_id), task_id, index, True)
 
     wait_message = await callback.message.answer("**⌛️Ожидайте генерацию...**\nПримерное время ожидания *1-3 минуты*.")
 
-    async def task_id_get(task_id: str):
-        await callback.message.answer(f"`1:midjourney:{task_id}:generate`")
-        await callback.message.answer(f"""Это ID вашей генерации.
-                                      
+    try:
+        async def task_id_get(task_id: str):
+            await callback.message.answer(f"`1:midjourney:{task_id}:generate`")
+            await callback.message.answer(f"""Это ID вашей генерации.
+                                          
 Просто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.
-                                      
+                                          
 Вы также получите результат генерации по готовности.""")
 
-    image = await imageService.variation_image(task_id, index, task_id_get)
+        image = await imageService.variation_image(task_id, index, task_id_get, str(user_id))
 
-    await send_variation_image(
-        callback.message,
-        image["task_result"]["discord_image_url"],
-        image["task_id"]
-    )
+        # Check if we got an error response
+        if isinstance(image, dict) and "error" in image:
+            await wait_message.delete()
+            
+            if image["error"] == "repeat_task_detected":
+                await callback.message.answer("⚠️ Этот запрос на генерацию вариаций уже был отправлен ранее. Пожалуйста, дождитесь завершения предыдущей операции.")
+            else:
+                await callback.message.answer(f"❌ Ошибка при генерации вариаций: {image['message']}")
+            return
 
-    await tokenizeService.update_token(callback.from_user.id, 8700, "subtract")
-    await callback.message.answer(f"""
+        await send_variation_image(
+            callback.message,
+            image["task_result"]["discord_image_url"],
+            image["task_id"]
+        )
+
+        await tokenizeService.update_token(callback.from_user.id, 8700, "subtract")
+        await callback.message.answer(f"""
 🤖 Затрачено на генерацию вариации изображения Midjourney 8700⚡️
 
 ❔ /help - Информация по ⚡️
 """)
 
-    await wait_message.delete()
+        await wait_message.delete()
+
+    except Exception as e:
+        await wait_message.delete()
+        await callback.message.answer("❌ Произошла ошибка при генерации вариаций. Попробуйте позже.")
+        logging.error(f"Error in variation callback: {e}")
+    
+    finally:
+        # Always clear the pending status when done
+        imageService.set_variation_pending(str(user_id), task_id, index, False)
 
 # Черновик прайс листа для Midjourney (для остальных моделей нужно проводить исследование, чтобы составить хотя бы приблизительный прайс-лист)
 #   - Первичная генерация - 3300⚡️
