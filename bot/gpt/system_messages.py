@@ -3,7 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot.gpt.utils import checked_text
 from services.gpt_service import SystemMessages
 
-from .db_system_message import default_system_message, happy_system_message, software_developer_system_message, question_answer_mode, promt_deep, transcribe
+from .db_system_message import default_system_message, happy_system_message, software_developer_system_message, question_answer_mode, promt_deep, transcribe, express_answers_system_message
 
 system_messages = {
     SystemMessages.Default.value: default_system_message,
@@ -11,7 +11,8 @@ system_messages = {
     SystemMessages.SoftwareDeveloper.value: software_developer_system_message,
     SystemMessages.DeepPromt.value: promt_deep,
     SystemMessages.QuestionAnswer.value: question_answer_mode,
-    SystemMessages.Transcribe.value: transcribe
+    SystemMessages.Transcribe.value: transcribe,
+    SystemMessages.ExpressAnswers.value: express_answers_system_message
 }
 
 text_system_messages = {
@@ -21,7 +22,8 @@ text_system_messages = {
     SystemMessages.SoftwareDeveloper.value: "👨‍💻 Программист",
     SystemMessages.DeepPromt.value: "🕳️ Wanderer from the Deep",
     SystemMessages.QuestionAnswer.value: "💬 Вопрос-ответ",
-    SystemMessages.Transcribe.value: "🎤 Голос в текст"
+    SystemMessages.Transcribe.value: "🎤 Голос в текст",
+    SystemMessages.ExpressAnswers.value: "⚡ Экспресс-ответы"
 }
 
 
@@ -92,6 +94,13 @@ def create_system_message_keyboard(current_system_message: str):
                     text_system_messages[current_system_message]
                 ),
                 callback_data=SystemMessages.QuestionAnswer.value
+            ),
+            InlineKeyboardButton(
+                text=get_system_message_text(
+                    text_system_messages[SystemMessages.ExpressAnswers.value],
+                    text_system_messages[current_system_message]
+                ),
+                callback_data=SystemMessages.ExpressAnswers.value
             )
         ],
         [
