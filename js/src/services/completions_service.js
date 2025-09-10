@@ -50,10 +50,74 @@ class CompletionsService {
     const cutDialog = [];
     let symbols = 0;
     for (const item of reverted) {
-      if (symbols >= 6000) continue;
+      // Count symbols in the current item
+      let itemLength = 0;
+      if (typeof item === 'string') {
+        itemLength = item.length;
+      } else if (item && item.content) {
+        itemLength = String(item.content).length;
+      } else if (item) {
+        itemLength = JSON.stringify(item).length;
+      }
+      
+      // If adding this item would exceed the limit, stop
+      if (symbols + itemLength >= 4000) break;
+      
       cutDialog.push(item);
+      symbols += itemLength;
     }
     history[userId] = cutDialog.reverse();
+  }
+
+  // Enhanced method to validate and truncate message content
+  validateMessageLength(content, maxLength = 4000) {
+    if (!content) return content;
+    
+    // Handle string content
+    if (typeof content === 'string') {
+      if (content.length <= maxLength) return content;
+      return content.substring(0, maxLength) + '\n\n[Сообщение обрезано из-за превышения лимита длины]';
+    }
+    
+    // Handle array content (for multimodal)
+    if (Array.isArray(content)) {
+      let totalLength = 0;
+      const truncatedContent = [];
+      
+      for (const item of content) {
+        if (item.type === 'text') {
+          const textLength = item.text ? item.text.length : 0;
+          if (totalLength + textLength > maxLength) {
+            const remainingLength = maxLength - totalLength;
+            if (remainingLength > 100) {
+              truncatedContent.push({
+                ...item,
+                text: item.text.substring(0, remainingLength) + '\n\n[Сообщение обрезано из-за превышения лимита длины]'
+              });
+            }
+            break;
+          }
+          totalLength += textLength;
+          truncatedContent.push(item);
+        } else {
+          // Keep non-text items (like images) as they don't contribute to text length
+          truncatedContent.push(item);
+        }
+      }
+      
+      return truncatedContent;
+    }
+    
+    return content;
+  }
+
+  async query_chatgpt(userId, message, systemMessage, gptModel, botModel, singleMessage) {
+    // Cut history to prevent context from becoming too long
+    this.cutHistory(userId);
+    
+    // Validate and truncate message content to prevent API errors
+    const validatedMessage = this.validateMessageLength(message, 4000);
+    return this.queryChatGPT(userId, validatedMessage, systemMessage, gptModel, botModel, singleMessage);
   }
 
   async queryChatGPT(userId, message, systemMessage, gptModel, botModel, singleMessage) {
@@ -90,9 +154,11 @@ const response = await asyncPost(`${config.proxyUrl}/completions`, { params, jso
     if (attempt === 3) {
       return { text: DEFAULT_ERROR_MESSAGE, url_image: null };
     }
+    // Validate prompt length to prevent API errors
+    const validatedPrompt = this.validateMessageLength(prompt, 4000);
     const conversation = await getFreeConversation();
     const url = `https://api.goapi.xyz/api/chatgpt/v1/conversation/${conversation}`;
-const payload = JSON.stringify({ model: 'gpt-4o', content: { content_type: 'multimodal_text', parts: [prompt] }, stream: true });
+const payload = JSON.stringify({ model: 'gpt-4o', content: { content_type: 'multimodal_text', parts: [validatedPrompt] }, stream: true });
 const headers = { 'X-API-Key': config.goApiKey, 'Content-Type': 'application/json' };
 const response = await asyncPost(url, { data: payload, headers });
     let images = [];
