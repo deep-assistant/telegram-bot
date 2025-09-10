@@ -19,6 +19,7 @@ from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
 from bot.diagnostics import diagnosticsRouter
+from bot.middlewares.PromptEditingMiddleware import PromptEditingMiddleware
 
 
 def apply_routers(dp: Dispatcher) -> None:
@@ -101,6 +102,8 @@ async def on_shutdown(dp: Dispatcher):
 async def bot_run() -> None:
     dp = Dispatcher(storage=MemoryStorage())
     dp.message.middleware(AlbumMiddleware())
+    dp.message.middleware(PromptEditingMiddleware())
+    dp.callback_query.middleware(PromptEditingMiddleware())
     apply_routers(dp)
 
     # Initialize the bot based on the development flag.
