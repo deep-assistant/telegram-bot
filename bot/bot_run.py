@@ -8,6 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 import config
+from services.reminder_service import reminderService
 from bot.agreement import agreementRouter
 from bot.api.router import apiRouter
 from bot.gpt import gptRouter
@@ -15,6 +16,7 @@ from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
+from bot.reminder import reminderRouter
 from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
@@ -27,6 +29,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(startRouter)
     dp.include_router(diagnosticsRouter)
     dp.include_router(referralRouter)
+    dp.include_router(reminderRouter)
     dp.include_router(paymentsRouter)
     dp.include_router(apiRouter)
     dp.include_router(agreementRouter)
@@ -88,6 +91,7 @@ class AlbumMiddleware(BaseMiddleware):
 # Startup and shutdown hooks for webhook mode.
 async def on_startup(dp: Dispatcher):
     print("Bot is starting...")
+    await reminderService.restore_reminders(dp.bot)
     if config.WEBHOOK_ENABLED:
         await dp.bot.set_webhook(config.WEBHOOK_URL)
 
@@ -132,6 +136,8 @@ async def bot_run() -> None:
     else:
         # Delete webhook if exists and start polling.
         await bot.delete_webhook()
+        # Restore reminders for polling mode
+        await reminderService.restore_reminders(bot)
         await dp.start_polling(
             bot,
             skip_updates=False,

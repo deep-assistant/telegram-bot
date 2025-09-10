@@ -80,6 +80,18 @@ def here_and_now_command():
 def api_command():
     return "/api"
 
+def remind_command():
+    return "/remind"
+
+def remind_command_text():
+    return "📅 Напоминания"
+
+def list_reminders_command():
+    return "/list_reminders"
+
+def cancel_reminder_command():
+    return "/cancel_reminder"
+
 all_commands = [
     payment_command_start(),
     payment_command_text(),
@@ -108,4 +120,8 @@ all_commands = [
     suno_text(),
     here_and_now_command(),
     api_command(),
+    remind_command(),
+    remind_command_text(),
+    list_reminders_command(),
+    cancel_reminder_command(),
 ]
