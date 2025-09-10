@@ -32,3 +32,28 @@ WEBHOOK_PORT = 3000
 ```sh
 python3 __main__.py
 ```
+
+## Bot Features
+
+The bot supports the following capabilities:
+- 🤖 Chat with various AI models (GPT-4, Claude, Llama, etc.)
+- 🖼️ Image generation (Midjourney, DALL-E, Flux)
+- 🎵 Music generation (Suno AI)
+- 🎬 Video generation (Kling AI)
+- 🎤 Audio transcription (Whisper)
+- 🔊 Text-to-speech synthesis (TTS)
+- 💰 Payment and token system
+- 👥 Referral system
+
+### Video Generation
+
+To generate videos, use the `/video` command or the "🎬 Генерация видео" button.
+
+Available styles:
+- **realistic** - photorealistic video
+- **cartoon** - cartoon style
+- **anime** - anime style
+- **cinematic** - cinematic style
+- **artistic** - artistic style
+
+Cost: 8000⚡️ per generation
