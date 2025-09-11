@@ -7,6 +7,7 @@ IS_DEV = True
 PAYMENTS_TOKEN = ""
 GO_API_KEY = ""
 GUO_GUO_KEY = ""
+OPENROUTER_API_KEY = ""
 WEBHOOK_ENABLED = False  # or False to use polling
 WEBHOOK_URL = "https://your.domain.com/webhook"
 WEBHOOK_PATH = "/webhook"
