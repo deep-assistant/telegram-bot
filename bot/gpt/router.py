@@ -227,17 +227,15 @@ async def handle_image(message: Message, album):
         if message.entities is None:
             return
 
-        # Получаем список всех сущностей типа 'mention'
-        mentions = [
-            entity for entity in message.entities if entity.type == 'mention'
-        ]
+        # Check if bot is specifically mentioned
+        bot_username = "DeepGPTBot"
+        mentioned = any(
+            entity.type == "mention" 
+            and message.caption and message.caption[entity.offset + 1 : entity.offset + entity.length] == bot_username
+            for entity in message.entities
+        )
 
-        # Проверяем, упомянут ли бот
-        if not any(
-            mention.offset <= 0 < mention.offset + mention.length and
-            message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
-            for mention in mentions
-        ):
+        if not mentioned:
             return
     photos = []
 
@@ -314,8 +312,16 @@ async def handle_voice(message: Message):
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
             return
-        mentions = [entity for entity in message.entities if entity.type == 'mention']
-        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+        
+        # Check if bot is specifically mentioned
+        bot_username = "DeepGPTBot"
+        mentioned = any(
+            entity.type == "mention" 
+            and message.text and message.text[entity.offset + 1 : entity.offset + entity.length] == bot_username
+            for entity in message.entities
+        )
+        
+        if not mentioned:
             return
         
     user_id = message.from_user.id
@@ -379,8 +385,16 @@ async def handle_document(message: Message):
     if message.chat.type in ['group', 'supergroup']:
         if message.caption_entities is None:
             return
-        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
-        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
+        
+        # Check if bot is specifically mentioned in caption
+        bot_username = "DeepGPTBot"
+        mentioned = any(
+            entity.type == "mention" 
+            and message.caption and message.caption[entity.offset + 1 : entity.offset + entity.length] == bot_username
+            for entity in message.caption_entities
+        )
+        
+        if not mentioned:
             return
     try:
         user_document = message.document if message.document else None
@@ -417,8 +431,16 @@ def is_valid_group_message(message: Message):
     if message.chat.type in ['group', 'supergroup']:
         if message.caption_entities is None:
             return False
-        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']
-        return any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions)
+        
+        # Check if bot is specifically mentioned in caption
+        bot_username = "DeepGPTBot"
+        mentioned = any(
+            entity.type == "mention" 
+            and message.caption and message.caption[entity.offset + 1 : entity.offset + entity.length] == bot_username
+            for entity in message.caption_entities
+        )
+        
+        return mentioned
     return True
 
 
