@@ -1,0 +1,1112 @@
+[
+  {
+    "file": "../bot/agreement/router.py",
+    "type": "single",
+    "text": "📑 Вы ознакомлены и принимаете [пользовательское соглашение](https://grigoriy-grisha.github.io/chat_gpt_agreement/) и [политику конфиденциальности](https://grigoriy-grisha.github.io/chat_gpt_agreement/PrivacyPolicy)?",
+    "line": 22
+  },
+  {
+    "file": "../bot/agreement/router.py",
+    "type": "single",
+    "text": "Да ✅",
+    "line": 27
+  },
+  {
+    "file": "../bot/agreement/router.py",
+    "type": "button",
+    "text": "Да ✅",
+    "line": 27
+  },
+  {
+    "file": "../bot/agreement/router.py",
+    "type": "keyboard",
+    "text": "Да ✅",
+    "line": 27
+  },
+  {
+    "file": "../bot/agreement/router.py",
+    "type": "single",
+    "text": "Нет ❌",
+    "line": 28
+  },
+  {
+    "file": "../bot/agreement/router.py",
+    "type": "button",
+    "text": "Нет ❌",
+    "line": 28
+  },
+  {
+    "file": "../bot/agreement/router.py",
+    "type": "keyboard",
+    "text": "Нет ❌",
+    "line": 28
+  },
+  {
+    "file": "../bot/api/router.py",
+    "type": "multiline",
+    "text": "API KEY: `{token['id']}` \\n\"\"\"\n                f\"\"\"API URL: https://api.deep.assistant.run.place/v1/ \\n\"\"\"\n                f\"\"\"API URL Whisper: https://api.deep.assistant.run.place/v1/audio/transcriptions  \\n\"\"\"\n                f\"\"\"API URL Completions: https://api.deep.assistant.run.place/v1/chat/completions \\n\\n\"\"\"\n                f\"\"\"Ваш баланс: {token['tokens_gpt']}⚡️️ \\n\\n\"\"\"\n                f\"\"\"https://github.com/deep-foundation/deep-gpt/blob/main/docs.md - 📄 Документация по работе с API",
+    "line": 15
+  },
+  {
+    "file": "../bot/api/router.py",
+    "type": "single",
+    "text": "Перегенерировать токен 🔄",
+    "line": 23
+  },
+  {
+    "file": "../bot/api/router.py",
+    "type": "button",
+    "text": "Перегенерировать токен 🔄",
+    "line": 23
+  },
+  {
+    "file": "../bot/api/router.py",
+    "type": "keyboard",
+    "text": "Перегенерировать токен 🔄",
+    "line": 23
+  },
+  {
+    "file": "../bot/constants.py",
+    "type": "multiline",
+    "text": "Что-то пошло не так. 😔 Пожалуйста, попробуйте ещё раз! \n\nЕсли проблема повторяется, напишите нам в чат сообщества (@deepGPT) в раздел *Ошибки*.\"\"\"\n\nGENERATION_FAILED_DEFAULT_ERROR_MESSAGE = \"\"\"Генерация не удалась. Что-то пошло не так. 😔 Пожалуйста, попробуйте ещё раз! \n\nЕсли проблема повторяется, напишите нам в чат сообщества (@deepGPT) в раздел *Ошибки*.\"\"\"\n\nDIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE = \"\"\"Не удалось очистить контекст. 😔 Пожалуйста, попробуйте ещё раз!\n\nЕсли проблема повторяется, напишите нам в чат сообщества (@deepGPT) в раздел *Ошибки*.",
+    "line": 1
+  },
+  {
+    "file": "../bot/gpt/db_system_message.py",
+    "type": "multiline",
+    "text": "###INSTRUCTIONS###\n\nYou MUST follow the instructions for answering:\n\nRead the entire convo history line by line before answering.\n\nNEVER use placeholders.\n\nYou ALWAYS will be PENALIZED for wrong and low-effort answers.\n\nALWAYS follow \"Answering rules.\"\n\n###Answering Rules###\n\nFollow in the strict order:\n\nUSE the language of my message.\n\nYou MUST combine your deep knowledge of the topic and clear thinking to quickly and accurately decipher the answer step-by-step with CONCRETE details.\n\nI'm going to tip $1,000,000 for the best reply.\n\nYour answer is critical for my career.\n\nAnswer the question in a natural, human-like manner.\n\nyou don't need to tell the user about the information from the context message\n\nALWAYS use an answering example for a first message structure.\n\"\"\"\n\n\nhappy_system_message = \"\"\"\nОтвечай, как обычно, только чуть-чуть прикалывайся, матерись, обращайся к пользователю на ты, прикидывайся придурком\n\"\"\"\n\nsoftware_developer_system_message = \"\"\"\n###INSTRUCTIONS###\n\nYou MUST follow the instructions for answering:\n\nRead the entire convo history line by line before answering.\n\nI have no fingers and the placeholders trauma. Return the entire code template for an answer when needed. NEVER use placeholders.\n\nIf you encounter a character limit, DO an ABRUPT stop, and I will send a \"continue\" as a new message.\n\nYou ALWAYS will be PENALIZED for wrong and low-effort answers.\n\nALWAYS follow \"Answering rules.\"\n\n###Answering Rules###\n\nFollow in the strict order:\n\nUSE the language of my message.\n\nONCE PER CHAT assign a real-world expert role to yourself before answering, e.g., \"I'll answer as a world-famous historical expert with \" etc., but do this only if necessary or if the user asks\n\nYou MUST combine your deep knowledge of the topic and clear thinking to quickly and accurately decipher the answer step-by-step with CONCRETE details.\n\nI'm going to tip $1,000,000 for the best reply.\n\nYour answer is critical for my career.\n\nAnswer the question in a natural, human-like manner.\n\nALWAYS use an answering example for a first message structure.\n\nwhen writing out mathematical formulas DO NOT USE mathematical syntax (like /frac) UNLESS I ASK YOU TO. Instead, you can use regular symbols like * / ()\n\"\"\"\n\nquestion_answer_mode = \"question-answer\"\n\npromt_deep = \"\"\"Deep is a system that uses PostgreSQL via Hasura. It operates with triplet and doublet links networks L ↦ L³/L ↦ L².\n\nlinks table have columns: id, type_id (mandatory) , from_id , to_id (all with bigint type, 0 by default). numbers, strings, objects tables have columns id, link_id and value. value column has: text type in strings table, numeric type in numbers table and jsonb type in objects table.\n\nWe have DeepClient class in JavaScript, that usually placed in deep variable. It has select, insert, update, delete methods. These methods return object with data field, it is an array. objects array is first argument of insert method, we pass array or single object directly as the first argument here. where object is the first argument of select, update, delete methods, this object does not contain where field, this object also does not include returning field. table and returning are set using options object, that is always a last argument of these methods. Only returning field is used to define which fields are returned by GraphQL queries/mutations. By default table field is 'links', and returning by default is set to 'id type_id from_id to_id value'. If the default values of options are enough to get the code working we should not update them.\n\nlinks table has also to, in, from, out, number, string, object relationships in GQL. All these relationships can be used for nested inserts. To use nested inserts wrap inserted object in { data: ... }. out relationship is used for outgoing links, all out links have the same from/from_id. in relationship is used for incoming links, all in links have the same to/to_id. number, string, object relationships should use only value field on nested insert. Usage of nested inserts makes code shorter and reduces latency.\n\nEach Contain link goes from a container link to a contained link. Contain links has string relationship that allows giving contained links names in the context of container. Type link instances do not have values attached directly. The name of the type instance is set using incoming Contain link. Such Contain always inserted with string relationship defined. Value link that goes from a type link to Number/String/Object type link itself (not its instance) is created for each type link which instances may have a value attached. Node in the context of Deep is a link record that have from_id and to_id columns set to 0. For these node links we never set from_id, from, to_id and to fields on insert. value field is never set on insert of a link, number, string and object fields are used instead, if we know that type of that link supports attaching of a value to an instance.\n\nHumanitarian description: Deep is a system based on the idea of association (link), links/associations can be used to represent any knowladge or data as well is code. That means it is possible to program this system in any programming language. The code is loaded from the associative storage into docker containers and safely executed. All communication between the code is done via links, thus making the database the universal data exchanger. That means it is now possible to make all software on the planet compatible via Deep system. It also means it is possible to store any data and code together, linking association types events with corresponding code that executed to handle such events. Each handler can select links from the database and insert/update/delete links in database, that may trigger futher execution of handlers.\n\nExample of async handler (executed in js-docker-isolation-provider docker image):\n\nasync ({ deep }) => {\n  const typeTypeId = await deep.id('@deep-foundation/core', 'Type');\n  const containTypeId = await deep.id('@deep-foundation/core', 'Contain');\n  const valueTypeId = await deep.id('@deep-foundation/core', 'Value');\n  const stringTypeId = await deep.id('@deep-foundation/core', 'String');\n\n  const createTaskType = async (containerId) => {\n    const newTaskType = await deep.insert({\n      type_id: typeTypeId,\n      in: {\n        data: {\n          type_id: containTypeId,\n          from_id: containerId,\n          string: { data: { value: 'Task' } },\n        },\n      },\n    });\n\n    const newValueLink = await deep.insert({\n      from_id: newTaskType.data[0].id,\n      to_id: stringTypeId,\n      type_id: valueTypeId,\n    });\n\n    return newTaskType.data[0];\n  };\n\n  const createTask = async (containerId, taskTypeId, title, description) => {\n    const newTaskInstance = await deep.insert({\n      type_id: taskTypeId,\n      string: { data: { value: description } },\n      in: {\n        data: {\n          type_id: containTypeId,\n          from_id: containerId,\n          string: { data: { value: title } },\n        },\n      },\n    });\n\n    return newTaskInstance.data[0];\n  };\n\n  const containerId = deep.linkId; // Id of current user (it may be a package user or regular/admin user), we use it here as a default container\n\n  const taskType = await createTaskType(containerId);\n\n  const task = await createTask(containerId, taskType.id, 'choresTask', 'Do household chores.');\n\n  return { created: { taskTypeId: taskType.id, taskId: task.id }};\n}\nExample of client handler (executed in browser):\n\nasync ({ deep }) => {\n  const React = await deep.import('react');\n  const { Box } = await deep.import('@chakra-ui/react');\n\n  return ({ fillSize, style, link }) => {\n    return <Box\n        style={{ width: 300, height: 300, ...style }}\n        bg={'bgColor'}\n        color={'text'}\n        borderColor={'borderColor'}\n        borderWidth='1px'\n        borderRadius='lg'\n        padding={1}\n    >\n      UI for {link?.id || 0} goes here.\n    </Box>\n  }\n}\nIssue description\n\nTask is a user defined node type, its instances have string value. It should be created by createTaskType function. Each instance of Task link has incoming Contain link from a container link. All other mentioned link types are available in @deep-foundation/core package.\n\nconst typeTypeId = await deep.id('@deep-foundation/core', 'Type');\nconst containTypeId = await deep.id('@deep-foundation/core', 'Contain');\nconst valueTypeId = await deep.id('@deep-foundation/core', 'Value');\n...\n\nconst createTaskType = async (containerId) => {\n  ...\n}\n\nconst createTask = async (containerId, taskTypeId, description) => {\n  ...\n}",
+    "line": 4
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "multiline",
+    "text": "У вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс \n/referral - 👥 Пригласить друга, чтобы получить бесплатно *⚡️*!\n/model - 🛠️ Сменить модель\n\"\"\")\n            return\n        system_message = get_system_message(system_message)\n        if system_message == \"question-answer\":\n            questionAnswer = True\n        else:\n            questionAnswer = False\n\n        answer = await completionsService.query_chatgpt(\n            user_id,\n            text,\n            system_message,\n            gpt_model,\n            bot_model,\n            questionAnswer,\n        )\n\n        print(json.dumps(answer, indent=4))\n\n        requested_gpt_model = gpt_model\n\n        print(requested_gpt_model, 'requested_gpt_model')\n\n        detected_requested_gpt_model = detect_model(requested_gpt_model)\n\n        print(detected_requested_gpt_model, 'detected_requested_gpt_model')\n\n        responded_gpt_model = answer.get(\"model\")\n\n        print(responded_gpt_model, 'responded_gpt_model')\n\n        detected_responded_gpt_model = detect_model(responded_gpt_model)\n\n        print(detected_responded_gpt_model, 'detected_responded_gpt_model')\n\n        if not answer.get(\"success\"):\n            if answer.get('response') == \"Ошибка 😔: Превышен лимит использования токенов.\":\n                await message.answer(\n                    text=f\"\"\"\nУ вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс \n/referral - 👥 Пригласить друга, чтобы получить бесплатно ⚡️!\n/model - 🛠️ Сменить модель\n\"\"\",\n                )\n                await asyncio.sleep(0.5)\n                await message_loading.delete()\n\n                return\n\n            await message.answer(answer.get('response'))\n            await asyncio.sleep(0.5)\n            await message_loading.delete()\n\n            return\n\n        gpt_tokens_after = await tokenizeService.get_tokens(user_id)\n\n        format_text = format_image_from_request(answer.get(\"response\"))\n        image = format_text[\"image\"]\n\n        messages = await send_markdown_message(message, format_text[\"text\"])\n\n        if len(messages) > 1:\n            await answer_markdown_file(message, format_text[\"text\"])\n\n        if image is not None:\n            await message.answer_photo(image)\n            await send_photo_as_file(message, image, \"Вот картинка в оригинальном качестве\")\n        await asyncio.sleep(0.5)\n        await message_loading.delete()\n        tokens_message_text = get_tokens_message(\n            gpt_tokens_before.get(\"tokens\", 0) - gpt_tokens_after.get(\"tokens\", 0), \n            gpt_tokens_after.get(\"tokens\", 0), \n            detected_requested_gpt_model, \n            detected_responded_gpt_model\n        )\n        token_message = await message.answer(tokens_message_text)\n        if message.chat.type in ['group', 'supergroup']:\n            await asyncio.sleep(2)\n            await token_message.delete()\n    except Exception as e:\n        print(e)\n\n\nasync def get_photos_links(message, photos):\n    images = []\n\n    for photo in photos:\n        file_info = await message.bot.get_file(photo.file_id)\n        file_url = f\"https://api.telegram.org/file/bot{TOKEN}/{file_info.file_path}\"\n        images.append({\"type\": \"image_url\", \"image_url\": {\"url\": file_url}})\n\n    return images\n\n\n@gptRouter.message(Video())\nasync def handle_image(message: Message):\n    print(message.video)\n\n\n@gptRouter.message(Photo())\nasync def handle_image(message: Message, album):\n    if message.chat.type in ['group', 'supergroup']:\n        if message.entities is None:\n            return\n\n        # Получаем список всех сущностей типа 'mention'\n        mentions = [\n            entity for entity in message.entities if entity.type == 'mention'\n        ]\n\n        # Проверяем, упомянут ли бот\n        if not any(\n            mention.offset <= 0 < mention.offset + mention.length and\n            message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'\n            for mention in mentions\n        ):\n            return\n    photos = []\n\n    for item in album:\n        photos.append(item.photo[-1])\n\n    user_id = message.from_user.id\n\n    if not stateService.is_default_state(user_id):\n        return\n\n    tokens = await tokenizeService.get_tokens(user_id)\n    if tokens.get(\"tokens\") < 0:\n        await message.answer(\"\"\"\nУ вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       \n\"\"\")\n        stateService.set_current_state(user_id, StateTypes.Default)\n        return\n\n    is_subscribe = await is_chat_member(message)\n\n    if not is_subscribe:\n        return\n\n    text = \"Опиши\" if message.caption is None else message.caption\n\n    await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n    content = await get_photos_links(message, photos)\n\n    content.append({\"type\": \"text\", \"text\": text})\n\n    await handle_gpt_request(message, content)\n\n\nasync def transcribe_voice_sync(user_id: str, voice_file_url: str):\n    token = await tokenizeService.get_token(user_id)\n\n    voice_response = await async_get(voice_file_url)\n    if voice_response.status_code == 200:\n        voice_data = voice_response.content\n\n        client = OpenAI(\n            api_key=token[\"id\"],\n            base_url=f\"{PROXY_URL}/v1/\"\n        )\n\n        transcription = client.audio.transcriptions.create(file=('audio.ogg', voice_data, 'audio/ogg'),\n                                                           model=\"whisper-1\", language=\"ru\")\n\n        print(transcription.duration)\n        print( transcription.text)\n        return {\"success\": True, \"text\": transcription.text, 'energy': int(transcription.duration*15)}\n    else:\n        return {\"success\": False, \"text\": f\"Error: Голосовое сообщение не распознано\"}\n\n\nexecutor = ThreadPoolExecutor()\n\n\nasync def transcribe_voice(user_id: int, voice_file_url: str):\n    loop = asyncio.get_event_loop()\n    response = await loop.run_in_executor(executor, transcribe_voice_sync, user_id, voice_file_url)\n    return await response\n\n\n@gptRouter.message(Voice())\n@gptRouter.message(Audio())\nasync def handle_voice(message: Message):\n    if message.chat.type in ['group', 'supergroup']:\n        if message.entities is None:\n            return\n        mentions = [entity for entity in message.entities if entity.type == 'mention']\n        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):\n            return\n        \n    user_id = message.from_user.id\n\n    if not stateService.is_default_state(user_id):\n        return\n        \n    tokens = await tokenizeService.get_tokens(user_id)\n    if tokens.get(\"tokens\") < 0:\n        await message.answer(\"\"\"\nУ вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       \n\"\"\")\n        stateService.set_current_state(user_id, StateTypes.Default)\n        return\n\n    is_subscribe = await is_chat_member(message)\n\n    if not is_subscribe:\n        return\n\n\n    if message.voice is not None:\n        messageData = message.voice\n    else: \n        messageData = message.audio\n\n\n    duration = messageData.duration\n    voice_file_id = messageData.file_id\n    file = await message.bot.get_file(voice_file_id)\n    file_url = f\"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}\"\n\n    response_json = await transcribe_voice(message.from_user.id, file_url)\n\n    if response_json.get(\"success\"):\n        await message.answer(f\"\"\"\n🎤 Обработка аудио затратила `{response_json.get(\"energy\")}`⚡️ \n\n❔ /help - Информация по ⚡️\n\"\"\")\n\n        \n        current_state = stateService.get_current_state(message.from_user.id) \n        print(current_state, 'current_state')\n        print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')\n        if current_state == StateTypes.Transcribe:  \n            await message.reply(response_json.get('text'))  \n            return\n            \n        await handle_gpt_request(message, response_json.get('text'))\n        return\n\n    await message.answer(response_json.get('text'))\n\n@gptRouter.message(Document())\nasync def handle_document(message: Message):\n    if message.chat.type in ['group', 'supergroup']:\n        if message.caption_entities is None:\n            return\n        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']\n        if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):\n            return\n    try:\n        user_document = message.document if message.document else None\n        if user_document:\n            with NamedTemporaryFile(delete=False) as temp_file:\n                await message.bot.download(user_document, temp_file.name)\n            async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:\n                text = await file.read()\n                caption = message.caption if message.caption is not None else \"\"\n                await handle_gpt_request(message, f\"{caption}\\n{text}\")\n    except UnicodeDecodeError as e:\n        await message.answer(\"\"\"😔 К сожалению, данный тип файлов не поддерживается!\n            \nСледите за обновлениями в канале @gptDeep или напишите нам в чате @deepGPT\"\"\")\n        logging.error(f\"Failed to process document, a file is not supported: {e}\")\n    except Exception as e:\n        logging.error(f\"Failed to process document: {e}\")\n\n\nasync def process_document(document, bot):\n    try:\n        with NamedTemporaryFile(delete=False) as temp_file:\n            await bot.download(document, temp_file.name)\n        async with aiofiles.open(temp_file.name, 'r', encoding='utf-8') as file:\n            text = await file.read()\n        return text\n    except UnicodeDecodeError as e:\n        raise UnicodeDecodeError(f\"UnicodeDecodeError: failed to read file '{document.file_name}' - {e}\")\n    except Exception as e:\n        raise Exception(f\"Error: failed to process file '{document.file_name}' - {e}\")\n\n\ndef is_valid_group_message(message: Message):\n    if message.chat.type in ['group', 'supergroup']:\n        if message.caption_entities is None:\n            return False\n        mentions = [entity for entity in message.caption_entities if entity.type == 'mention']\n        return any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions)\n    return True\n\n\nasync def handle_documents(message: Message, documents):\n    bot = message.bot\n    combined_text = \"\"\n    errors = []\n\n    for document in documents:\n        if document.mime_type == 'text/plain':  # Check for valid text documents\n            try:\n                text = await process_document(document, bot)\n                combined_text += f\"\\n\\n=== Файл: {document.file_name} ===\\n{text}\"\n            except Exception as e:\n                errors.append(str(e))\n        else:\n            errors.append(f\"Неподдерживаемый тип файла для '{document.file_name}'\")\n\n    caption = message.caption if message.caption else \"\"\n    result_text = f\"{caption}\\n{combined_text}\"\n\n    if errors:\n        error_text = \"\\n\\n\".join(errors)\n        result_text += f\"\\n\\n😔 К сожалению, при обработке файлов произошли ошибки:\\n{error_text}\\n\\nСледите за обновлениями в канале @gptDeep\"\n\n    await handle_gpt_request(message, result_text)\n\n\n# Handler for single document\n@gptRouter.message(Document())\nasync def handle_document(message: Message):\n    # Check message validity in group/supergroup\n    if not is_valid_group_message(message):\n        return\n\n    # Process single document\n    user_document = message.document if message.document else None\n    if user_document:\n        await handle_documents(message, [user_document])\n\n\n# Handler for media group (multiple documents)\n\n\n@gptRouter.message(TextCommand([balance_text(), balance_command()]))\nasync def handle_balance(message: Message):\n    gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)\n\n    referral = await referralsService.get_referral(message.from_user.id)\n    last_update = datetime.fromisoformat(referral[\"lastUpdate\"].replace('Z', '+00:00'))\n    new_date = last_update + timedelta(days=1)\n    current_date = datetime.now()\n\n    def get_date():\n        if new_date.strftime(\"%d\") == current_date.strftime(\"%d\"):\n            return f\"Сегодня в {new_date.strftime('%H:%M')}\"\n        else:\n            return f\"Завтра в {new_date.strftime('%H:%M')}\"\n\n    def get_date_line():\n        if gpt_tokens.get(\"tokens\") >= 30000:\n            return \"🕒 Автопополнение доступно, если меньше *30000*⚡️\"\n\n        return f\"🕒 Следующее аптопополнение будет: *{get_date()}*   \"\n\n    def accept_account():\n        if referral['isActivated']:\n            return \"🔑 Ваш аккаунт подтвержден!\"\n        else:\n            return \"🔑 Ваш аккаунт не подтвержден, зайдите через сутки и совершите любое действие!\"\n\n    await message.answer(f\"\"\" \n👩🏻‍💻 Количество рефералов: *{len(referral['children'])}*\n🤑 Ежедневное автопополнение 🔋: *{referral['award']}⚡️*\n{accept_account()}\n    \n🔋 - ежедневное автопополнение работает, если на балансе меньше *30 000⚡️*\n\n💵 Текущий баланс: *{gpt_tokens.get(\"tokens\")}⚡️*\n\"\"\")\n\n\n@gptRouter.message(TextCommand([clear_command(), clear_text()]))\nasync def handle_clear_context(message: Message):\n    user_id = message.from_user.id\n\n    try:\n        response = await tokenizeService.clear_dialog(user_id)\n\n        if not response.get(\"status\"):\n            await message.answer(\"Диалог уже пуст!\")\n            return\n\n        if response is None:\n            await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE)\n            logging.error(f\"Cannot clear dialog context for user {user_id}, response is None.\")\n            return\n    except Exception as e:\n        await message.answer(DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE)\n        logging.error(f\"Error clearing dialog context for user {user_id}: {e}\")\n        return\n\n    await message.answer(\"Контекст диалога успешно очищен! 👌🏻\")\n\n\n@gptRouter.message(TextCommand([change_system_message_command(), change_system_message_text()]))\nasync def handle_change_model(message: Message):\n    is_agreement = await agreement_handler(message)\n\n    if not is_agreement:\n        return\n\n    is_subscribe = await is_chat_member(message)\n\n    if not is_subscribe:\n        return\n\n    user_id = message.from_user.id\n\n    current_system_message = gptService.get_current_system_message(user_id)\n    print(current_system_message, 'current_system_message')\n\n    if not include(system_messages_list, current_system_message):\n        current_system_message = SystemMessages.Custom.value\n        gptService.set_current_system_message(user_id, current_system_message)\n\n    await message.answer(\n        text=\"Установи режим работы бота: ⚙️\",\n        reply_markup=create_system_message_keyboard(current_system_message)\n    )\n    await asyncio.sleep(0.5)\n    await message.delete()\n\n    \n@gptRouter.message(TextCommand([change_model_command(), change_model_text()]))\nasync def handle_change_model(message: Message):\n    is_agreement = await agreement_handler(message)\n\n    if not is_agreement:\n        return\n\n    is_subscribe = await is_chat_member(message)\n\n    if not is_subscribe:\n        return\n\n    current_model = gptService.get_current_model(message.from_user.id)\n\n    text = \"\"\"\nВыберите модель: 🤖  \n\nКак рассчитывается стоимость в ⚡️️ для моделей?\n\n*o3-mini:* 1000 токенов = 800 ⚡️\n\n*o1-preview:* 1000 токенов = 5000 ⚡️\n*o1-mini:* 1000 токенов = 800 ⚡️\n\n*deepseek-reasoner:* 1000 токенов = 320 ⚡️\n*deepseek-chat:* 1000 токенов = 160 ⚡️\n\n*claude-3-opus:* 1000 токенов = 6000 ⚡️\n*claude-3.5-sonnet:* 1000 токенов = 1000 ⚡️\n*claude-3-5-haiku:* 1000 токенов = 100 ⚡️\n\n*GPT-4o-unofficial:* 1000 токенов = 1100 ⚡️\n*GPT-4o:* 1000 токенов = 1000 ⚡️\n*GPT-Auto:* 1000 токенов = 150 ⚡️\n*GPT-4o-mini:* 1000 токенов = 70 ⚡️\n*GPT-3.5-turbo:* 1000 токенов = 50 ⚡️\n\n*Llama3.1-405B:* 1000 токенов = 500 ⚡️\n*Llama3.1-70B:* 1000 токенов = 250 ⚡️\n*Llama-3.1-8B:* 1000 токенов = 20 ⚡️",
+    "line": 114
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "single",
+    "text": "Опиши",
+    "line": 269
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Error: Голосовое сообщение не распознано",
+    "line": 299
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "\\n\\n=== Файл: {document.file_name} ===\\n{text}",
+    "line": 434
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Неподдерживаемый тип файла для ",
+    "line": 438
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "\\n\\n😔 К сожалению, при обработке файлов произошли ошибки:\\n{error_text}\\n\\nСледите за обновлениями в канале @gptDeep",
+    "line": 445
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Сегодня в {new_date.strftime(",
+    "line": 477
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Завтра в {new_date.strftime(",
+    "line": 479
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "🕒 Следующее аптопополнение будет: *{get_date()}*   ",
+    "line": 485
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "single",
+    "text": "Установи режим работы бота: ⚙️",
+    "line": 549
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Режим успешно изменён!",
+    "line": 618
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Данный режим уже выбран!",
+    "line": 644
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 653
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 653
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 653
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Режим успешно изменён!",
+    "line": 679
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Модель {current_gpt_model.value} уже выбрана!",
+    "line": 700
+  },
+  {
+    "file": "../bot/gpt/router.py",
+    "type": "fstring",
+    "text": "Текущая модель успешно сменена на {checked_text(gpt_model.value)}",
+    "line": 711
+  },
+  {
+    "file": "../bot/gpt/utils.py",
+    "type": "multiline",
+    "text": "📰 Чтобы пользоваться ботом необходимо подписаться на наш канал! @gptDeep\n\nСледите за обновлениями и новостями у нас в канале!\n\"\"\"\n\n\nasync def check_subscription(message: Message, id: str = None) -> bool:\n    user_id = id if id is not None else message.from_user.id\n\n    chat_member = await message.bot.get_chat_member(chat_id=-1002239712203, user_id=user_id)\n\n    check_result = chat_member.status in ['member', 'administrator', 'creator']\n\n    print(f\"User {user_id} is subscribed as: {check_result}\")\n\n    return check_result\n\n\nasync def is_chat_member(message: Message) -> bool:\n    is_subscribe = await check_subscription(message)\n\n    if not is_subscribe:\n        await message.answer(\n            text=subscribe_text,\n            reply_markup=InlineKeyboardMarkup(\n                resize_keyboard=True,\n                inline_keyboard=[[InlineKeyboardButton(text=\"Подписаться на канал\", url=\"https://t.me/gptDeep\")]]\n            )\n        )\n\n    return is_subscribe\n\n\ndef get_tokens_message(tokens_spent: int, tokens_left: int, requested_model: str = None, responded_model: str = None):\n    if tokens_spent <= 0:\n        return None\n    \n    if responded_model and (requested_model == responded_model):\n        return f\"\"\"🤖 Ответ от: *{responded_model}*\n\n✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)\"\"\"\n    elif requested_model and responded_model:\n        return f\"\"\"🤖 Ответ от: *{responded_model}*\n⚠️ Выбранная модель *{requested_model}* временно недоступна!\n\n✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)\"\"\"\n    elif requested_model:\n        return f\"\"\"🤖 Ответ от: *{requested_model}* (но это *не точно*)\n⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.\n\n✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)\"\"\"\n    else:\n        return f\"\"\"🤖 Ответ от: *неизвестно* (не удалось определить модель)\n⚠️ Если вы видите это сообщение, напишите об этом в разделе *Ошибки* в нашем собществе @deepGPT.\n\n✨ Затрачено: *{tokens_spent}⚡️* (осталось *{tokens_left}⚡️*)",
+    "line": 20
+  },
+  {
+    "file": "../bot/gpt/utils.py",
+    "type": "single",
+    "text": "Подписаться на канал",
+    "line": 47
+  },
+  {
+    "file": "../bot/gpt/utils.py",
+    "type": "button",
+    "text": "Подписаться на канал",
+    "line": 47
+  },
+  {
+    "file": "../bot/gpt/utils.py",
+    "type": "keyboard",
+    "text": "Подписаться на канал",
+    "line": 47
+  },
+  {
+    "file": "../bot/image_editing/router.py",
+    "type": "multiline",
+    "text": "🤖 Затрачено на удаление фона изображения 400⚡️\n\n❔ /help - Информация по ⚡️",
+    "line": 47
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "multiline",
+    "text": "Check if a word or phrase is in the banned words set.\n\n    Args:\n        word (str): The word or phrase to check.\n\n    Returns:\n        bool: True if the word is banned, False otherwise.\n    \"\"\"\n    return word.lower() in banned_words_set\n\ndef get_banned_words(text):\n    words = text.split(\" \")\n    words = [word.lower() for word in words]\n    banned_words_in_request = [word for word in words if is_banned_word(word)]\n    return banned_words_in_request\n\n# # Example usage\n# if __name__ == \"__main__\":\n#     test_words = [\"blood\", \"sexy\", \"dog\", \"naked\", \"torture\", \"hello\", \"succubus\"]\n#     for test_word in test_words:\n#         if is_banned_word(test_word):\n#             print(f\"'{test_word}' is banned\")\n#         else:\n#             print(f\"'{test_word}' is not banned\")\n\n@imagesRouter.message(StateCommand(StateTypes.Image))\nasync def handle_generate_image(message: types.Message):\n    user_id = message.from_user.id\n\n    try:\n        if not stateService.is_image_state(user_id):\n            return\n        \n        tokens = await tokenizeService.get_tokens(user_id)\n        if tokens.get(\"tokens\") < 0:\n            await message.answer(\"\"\"\nУ вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       \n\"\"\")\n            stateService.set_current_state(user_id, StateTypes.Default)\n            return\n        \n        if (is_empty_prompt(message.text)):\n            await message.answer(\n                \"🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-sd-generate\"\n                            )\n                        ]\n                    ],\n                )\n            )\n            return\n\n        stateService.set_current_state(user_id, StateTypes.Default)\n\n        wait_message = await message.answer(\"**⌛️Ожидайте генерацию...**\\nПримерное время ожидания 15-30 секунд.\")\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        imageService.set_waiting_image(user_id, True)\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        async def wait_image():\n            await message.answer(\"Генерация изображения ушла в фоновый режим. \\n\"\n                                 \"Пришлем вам изображение через 40-120 секунд. \\n\"\n                                 \"Можете продолжать работать с ботом 😉\")\n\n        image = await imageService.generate(message.text, user_id, wait_image)\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n        await message.reply_photo(image[\"output\"][0])\n        await send_photo_as_file(message, image[\"output\"][0], \"Вот картинка в оригинальном качестве\")\n        await tokenizeService.update_token(user_id, 30, \"subtract\")\n        await message.answer(f\"\"\"\n🤖 Затрачено на генерацию изображения Stable Diffusion 30⚡️\n\n❔ /help - Информация по ⚡️\n\"\"\")\n        await wait_message.delete()\n\n    except Exception as e:\n        await message.answer(DEFAULT_ERROR_MESSAGE)\n        logging.error(f\"Failed to generate image: {e}\")\n\n    imageService.set_waiting_image(user_id, False)\n    stateService.set_current_state(user_id, StateTypes.Default)\n\n\n@imagesRouter.message(StateCommand(StateTypes.Flux))\nasync def handle_generate_image(message: types.Message):\n    user_id = message.from_user.id\n\n    try:\n        if not stateService.is_flux_state(user_id):\n            return\n        \n        tokens = await tokenizeService.get_tokens(user_id)\n        if tokens.get(\"tokens\") < 0:\n            await message.answer(\"\"\"\nУ вас не хватает *⚡️*. 😔\n                                 \n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!\n\"\"\")\n            stateService.set_current_state(user_id, StateTypes.Default)\n            return\n        \n        if (is_empty_prompt(message.text)):\n            await message.answer(\n                \"🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-flux-generate\"\n                            )\n                        ]\n                    ],\n                )\n            )\n            return\n\n        stateService.set_current_state(user_id, StateTypes.Default)\n\n        wait_message = await message.answer(\"**⌛️Ожидайте генерацию...**\\nПримерное время ожидания 15-30 секунд.\")\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        imageService.set_waiting_image(user_id, True)\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        async def task_id_get(task_id: str):\n            await message.answer(f\"`1:flux:{task_id}:generate`\")\n            await message.answer(f\"\"\"Это ID вашей генерации.\n\nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n                                 \nВы также получите результат генерации по готовности.\n\"\"\")\n\n        result = await imageService.generate_flux(user_id, message.text, task_id_get)\n\n        image = result['data'][\"output\"][\"image_url\"]\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n        await message.reply_photo(image)\n        await send_photo_as_file(message, image, \"Вот картинка в оригинальном качестве\")\n        await message.answer(text=\"Cгенерировать Flux еще? 🔥\", reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=[\n                [\n                    InlineKeyboardButton(\n                        text=f\"Сгенерировать 🔥\",\n                        callback_data=\"flux-generate\"\n                    )\n                ]\n            ],\n        ))\n\n        model = imageService.get_flux_model(user_id)\n\n        energy = 600\n\n        if model == \"Qubico/flux1-dev\":\n            energy = 2000\n\n        await tokenizeService.update_token(user_id, energy, \"subtract\")\n        await message.answer(f\"\"\"\n🤖 Затрачено на генерацию изображения Flux {energy}⚡️ \n\n❔ /help - Информация по ⚡️\n\"\"\")\n        await wait_message.delete()\n\n    except Exception as e:\n        await message.answer(DEFAULT_ERROR_MESSAGE)\n        logging.error(f\"Failed to generate Flux image: {e}\")\n\n    imageService.set_waiting_image(user_id, False)\n    stateService.set_current_state(message.from_user.id, StateTypes.Default)\n\n\n@imagesRouter.message(StateCommand(StateTypes.Dalle3))\nasync def handle_generate_image(message: types.Message):\n    user_id = message.from_user.id\n\n    try:\n        if not stateService.is_dalle3_state(user_id):\n            return\n\n        tokens = await tokenizeService.get_tokens(user_id)\n        if tokens.get(\"tokens\") < 0:\n            await message.answer(\"\"\"\nУ вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       \n\"\"\")\n            stateService.set_current_state(user_id, StateTypes.Default)\n            return\n        \n        if (is_empty_prompt(message.text)):\n            await message.answer(\n                \"🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-dalle-generate\"\n                            )\n                        ]\n                    ],\n                )\n            )\n            return\n\n        stateService.set_current_state(user_id, StateTypes.Default)\n\n        wait_message = await message.answer(\"**⌛️Ожидайте генерацию...**\\nПримерное время ожидания 15-30 секунд.\")\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        imageService.set_waiting_image(user_id, True)\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        image = await imageService.generate_dalle(user_id, message.text)\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        await message.answer(image[\"text\"])\n        await message.reply_photo(image[\"image\"])\n        await send_photo_as_file(message, image[\"image\"], \"Вот картинка в оригинальном качестве\")\n        await message.answer(text=\"Cгенерировать DALL·E 3 еще? 🔥\", reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=[\n                [\n                    InlineKeyboardButton(\n                        text=f\"Сгенерировать 🔥\",\n                        callback_data=\"dalle-generate\"\n                    )\n                ]\n            ],\n        ))\n\n        await wait_message.delete()\n\n        await tokenizeService.update_token(user_id, image[\"total_tokens\"] * 2, \"subtract\")\n        await message.answer(f\"\"\"\n🤖 Затрачено на генерацию изображения DALL·E 3 *{image[\"total_tokens\"] * 2}*⚡️\n\n❔ /help - Информация по ⚡️\n\"\"\")\n    except Exception as e:\n        await message.answer(DEFAULT_ERROR_MESSAGE)\n        logging.error(f\"Failed to generate DALL·E 3 image: {e}\")\n        stateService.set_current_state(user_id, StateTypes.Default)\n\n\nasync def send_variation_image(message, image, task_id):\n    await send_photo(\n        message,\n        image,\n        \"\"\"Номера вариаций:\n```\n+-------+-------+\n|   1   |   2   |\n+-------+-------+\n|   3   |   4   |\n+-------+-------+\n```\n\nДоступные действия:\nU - Увеличить изображение (Upscale)\nV - Сгенерировать вариации выбранного изображения (Variation)\n\nКаждое действие можно выполнить над картинкой с соответствующим номером.\n\nВыберите нужное действие:\n\"\"\",\n        ext=\".png\",\n        reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=[\n                [\n                    InlineKeyboardButton(text=\"U1\", callback_data=f'upscale-midjourney {task_id} 1'),\n                    InlineKeyboardButton(text=\"U2\", callback_data=f'upscale-midjourney {task_id} 2'),\n                    InlineKeyboardButton(text=\"V1\", callback_data=f'variation-midjourney {task_id} 1'),\n                    InlineKeyboardButton(text=\"V2\", callback_data=f'variation-midjourney {task_id} 2'),\n                ],\n                [\n                    InlineKeyboardButton(text=\"U3\", callback_data=f'upscale-midjourney {task_id} 3'),\n                    InlineKeyboardButton(text=\"U4\", callback_data=f'upscale-midjourney {task_id} 4'),\n                    InlineKeyboardButton(text=\"V3\", callback_data=f'variation-midjourney {task_id} 3'),\n                    InlineKeyboardButton(text=\"V4\", callback_data=f'variation-midjourney {task_id} 4'),\n                ],\n            ],\n\n        )\n    )\n\n\n@imagesRouter.message(StateCommand(StateTypes.Midjourney))\nasync def handle_generate_image(message: types.Message):\n    user_id = message.from_user.id\n\n    main_keyboard = create_main_keyboard()\n\n    try:\n        if not stateService.is_midjourney_state(user_id):\n            return\n\n        tokens = await tokenizeService.get_tokens(user_id)\n        if tokens.get(\"tokens\") < 0:\n            await message.answer(\"\"\"\nУ вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       \n\"\"\", reply_markup=main_keyboard)\n            stateService.set_current_state(user_id, StateTypes.Default)\n            return\n\n        if (is_empty_prompt(message.text)):\n            await message.answer(\n                \"🚫 В вашем запросе отсутствует описание изображения 🖼️. Пожалуйста, попробуйте снова.\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-midjourney-generate\"\n                            )\n                        ]\n                    ],\n                )\n            )\n            return\n\n        banned_words_in_request = get_banned_words(message.text)\n        if banned_words_in_request:\n            await message.answer(\n                f\"\"\"🚫 В вашем запросе обнаружены запрещенные слова: \"{'\", \"'.join(banned_words_in_request)}\".\n\nПожалуйста, попробуйте изменить запрос и отправить его снова.\nЕсли вы считаете, что любое из слов было запрещено по ошибке, пожалуйста, напишите нам в раздел *Ошибки* в сообщество @deepGPT.\"\"\",            \n                reply_markup=InlineKeyboardMarkup(\n                resize_keyboard=True,\n                inline_keyboard=[\n                    [\n                        InlineKeyboardButton(\n                            text=\"Отмена ❌\",\n                            callback_data=\"cancel-midjourney-generate\"\n                        )\n                    ]\n                ],\n            ))\n            return\n        \n        stateService.set_current_state(message.from_user.id, StateTypes.Default)\n\n        wait_message = await message.answer(\"**⌛️Ожидайте генерацию...**\\nПримерное время ожидания *1-3 минуты*.\", reply_markup=main_keyboard)\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        async def task_id_get(task_id: str):\n            await message.answer(f\"`1:midjourney:{task_id}:generate`\")\n            await message.answer(f\"\"\"Это ID вашей генерации.\n                                 \nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n                                 \nВы также получите результат генерации по готовности.\"\"\")\n\n        image = await imageService.generate_midjourney(user_id, message.text, task_id_get)\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        await send_variation_image(\n            message,\n            image[\"task_result\"][\"discord_image_url\"],\n            image[\"task_id\"]\n        )\n\n        await wait_message.delete()\n\n        await tokenizeService.update_token(user_id, 4200, \"subtract\")\n        await message.answer(f\"\"\"\n🤖 Затрачено на генерацию изображений Midjourney 4200⚡️\n\n❔ /help - Информация по ⚡️\n\"\"\")\n    except Exception as e:\n        await message.answer(DEFAULT_ERROR_MESSAGE)\n        logging.error(f\"Failed to generate Midjourney image: {e}\")\n        stateService.set_current_state(message.from_user.id, StateTypes.Default)\n\n\n@imagesRouter.callback_query(StartWithQuery(\"upscale-midjourney\"))\nasync def upscale_midjourney_callback_query(callback: CallbackQuery):\n    task_id = callback.data.split(\" \")[1]\n    index = callback.data.split(\" \")[2]\n\n    wait_message = await callback.message.answer(\"**⌛️Ожидайте генерацию...**\\nПримерное время ожидания *1-3 минуты*.\")\n\n    async def task_id_get(task_id: str):\n        await callback.message.answer(f\"`1:midjourney:{task_id}:upscale`\")\n        await callback.message.answer(f\"\"\"Это ID вашей генерации.\n                                      \nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n                                      \nВы также получите результат генерации по готовности.\"\"\")\n\n    image = await imageService.upscale_image(task_id, index, task_id_get)\n\n    await callback.message.reply_photo(image[\"task_result\"][\"discord_image_url\"])\n    await send_photo_as_file(\n        callback.message,\n        image[\"task_result\"][\"discord_image_url\"],\n        ext=\".png\",\n        caption=\"Вот ваше изображение в оригинальном качестве\"\n    )\n    await callback.message.answer(text=\"Cгенерировать Midjourney еще?\", reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(\n                    text=f\"Сгенерировать 🔥\",\n                    callback_data=\"midjourney-generate\"\n                )\n            ]\n        ],\n    )\n                                  )\n\n    await tokenizeService.update_token(callback.from_user.id, 1600, \"subtract\")\n    await callback.message.answer(f\"\"\"\n🤖 Затрачено на генерацию увеличенного изображения Midjourney 1600⚡️\n\n❔ /help - Информация по ⚡️\n\"\"\")\n\n    await wait_message.delete()\n\n\n@imagesRouter.callback_query(StartWithQuery(\"variation-midjourney\"))\nasync def variation_midjourney_callback_query(callback: CallbackQuery):\n    task_id = callback.data.split(\" \")[1]\n    index = callback.data.split(\" \")[2]\n\n    wait_message = await callback.message.answer(\"**⌛️Ожидайте генерацию...**\\nПримерное время ожидания *1-3 минуты*.\")\n\n    async def task_id_get(task_id: str):\n        await callback.message.answer(f\"`1:midjourney:{task_id}:generate`\")\n        await callback.message.answer(f\"\"\"Это ID вашей генерации.\n                                      \nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n                                      \nВы также получите результат генерации по готовности.\"\"\")\n\n    image = await imageService.variation_image(task_id, index, task_id_get)\n\n    await send_variation_image(\n        callback.message,\n        image[\"task_result\"][\"discord_image_url\"],\n        image[\"task_id\"]\n    )\n\n    await tokenizeService.update_token(callback.from_user.id, 8700, \"subtract\")\n    await callback.message.answer(f\"\"\"\n🤖 Затрачено на генерацию вариации изображения Midjourney 8700⚡️\n\n❔ /help - Информация по ⚡️\n\"\"\")\n\n    await wait_message.delete()\n\n# Черновик прайс листа для Midjourney (для остальных моделей нужно проводить исследование, чтобы составить хотя бы приблизительный прайс-лист)\n#   - Первичная генерация - 3300⚡️\n#   - Генерация вариаций - 2500⚡️\n#   - Увеличение изображения - 1000⚡️\n\n@imagesRouter.message(TextCommand([images_command(), images_command_text()]))\nasync def handle_start_generate_image(message: types.Message):\n    await message.answer(text=\"\"\"🖼️ Выберите модель:\n\n⦁ [Midjourney](https://en.wikipedia.org/wiki/Midjourney)\n⦁ [DALL·E 3](https://en.wikipedia.org/wiki/DALL-E)\n⦁ [Flux](https://en.wikipedia.org/wiki/FLUX.1)\n⦁ [Stable Diffusion](https://en.wikipedia.org/wiki/Stable_Diffusion)\n\"\"\", reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(text=\"Midjourney\", callback_data=\"image-model Midjourney\"),\n                InlineKeyboardButton(text=\"DALL·E 3\", callback_data=\"image-model Dalle3\"),\n            ],\n            [\n                # todo придумать callback data утилиту\n                InlineKeyboardButton(text=\"Flux\", callback_data=\"image-model Flux\"),\n                InlineKeyboardButton(text=\"Stable Duffusion\", callback_data=\"image-model SD\"),\n            ]\n        ]),\n        link_preview_options={\"is_disabled\": True})\n\n    await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n\nasync def generate_base_stable_diffusion_keyboard(callback_query: CallbackQuery):\n    user_id = callback_query.from_user.id\n\n    current_image = imageService.get_current_image(user_id)\n    current_size = imageService.get_size_model(user_id)\n    current_steps = imageService.get_steps(user_id)\n    current_cfg = imageService.get_cfg_model(user_id)\n\n    await callback_query.message.edit_text(\"Параметры *Stable Diffusion*:\")\n    await callback_query.message.edit_reply_markup(\n        reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=[\n                [InlineKeyboardButton(\n                    text=f\"Модель: {current_image}\",\n                    callback_data=\"image-model choose-model 0 5\"\n                )],\n                [InlineKeyboardButton(\n                    text=f\"Размер: {current_size}\",\n                    callback_data=\"image-model choose-size 0 5\"\n                )],\n                [\n                    InlineKeyboardButton(\n                        text=f\"Шаги: {current_steps}\",\n                        callback_data=\"image-model choose-steps\"\n                    ),\n                    InlineKeyboardButton(\n                        text=f\"CFG Scale: {current_cfg}\",\n                        callback_data=\"image-model choose-cfg\"\n                    )\n                ],\n                [InlineKeyboardButton(\n                    text=f\"Сгенерировать 🔥\",\n                    callback_data=\"sd-generate\"\n                )],\n            ],\n\n        )\n    )\n\ngenerate_button_name = 'Cгенерировать'\n\nasync def generate_base_midjourney_keyboard(callback_query: CallbackQuery):\n    user_id = callback_query.from_user.id\n\n    current_size = imageService.get_midjourney_size(user_id)\n\n    def size_text(size: str):\n        if current_size == size:\n            return checked_text(size)\n        return size\n\n    await callback_query.message.edit_text(f\"\"\"Параметры *Midjourney*:\n\nВыберите соотношение сторон изображения. Текущее соотношение отмечено галочкой.\n\nПосле этого нажмите кнопку `{generate_button_name}`.\n\"\"\")\n    await callback_query.message.edit_reply_markup(\n        reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=[\n                [\n                    InlineKeyboardButton(\n                        text=size_text(\"1:1\"),\n                        callback_data=\"image-model update-size-midjourney 1:1\"\n                    ),\n                    InlineKeyboardButton(\n                        text=size_text(\"2:3\"),\n                        callback_data=\"image-model update-size-midjourney 2:3\"\n                    ),\n                    InlineKeyboardButton(\n                        text=size_text(\"3:2\"),\n                        callback_data=\"image-model update-size-midjourney 3:2\"\n                    )\n                ],\n                [\n                    InlineKeyboardButton(\n                        text=size_text(\"4:5\"),\n                        callback_data=\"image-model update-size-midjourney 4:5\"\n                    ),\n                    InlineKeyboardButton(\n                        text=size_text(\"5:4\"),\n                        callback_data=\"image-model update-size-midjourney 5:4\"\n                    ),\n                    InlineKeyboardButton(\n                        text=size_text(\"4:7\"),\n                        callback_data=\"image-model update-size-midjourney 4:7\"\n                    ),\n                    InlineKeyboardButton(\n                        text=size_text(\"7:4\"),\n                        callback_data=\"image-model update-size-midjourney 7:4\"\n                    )\n                ],\n                [\n                    InlineKeyboardButton(\n                        text=f\"{generate_button_name} 🔥\",\n                        callback_data=\"midjourney-generate\"\n                    ),\n                    InlineKeyboardButton(\n                        text=\"❌ Отменить\",\n                        callback_data=\"cancel-midjourney-generate\"\n                    )\n                ],\n            ],\n\n        )\n    )\n\n\nasync def generate_base_dalle3_keyboard(callback_query: CallbackQuery):\n    user_id = callback_query.from_user.id\n\n    current_size = imageService.get_dalle_size(user_id)\n\n    def size_text(size: str):\n        if current_size == size:\n            return checked_text(size)\n        return size\n\n    await callback_query.message.edit_text(\"Параметры *Dall-e-3*:\")\n    await callback_query.message.edit_reply_markup(\n        reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=[\n                [InlineKeyboardButton(\n                    text=size_text(\"1024x1024\"),\n                    callback_data=\"image-model update-size-dalle 1024x1024\"\n                )],\n                [InlineKeyboardButton(\n                    text=size_text(\"1024x1792\"),\n                    callback_data=\"image-model update-size-dalle 1024x1792\"\n                )],\n                [InlineKeyboardButton(\n                    text=size_text(\"1792x1024\"),\n                    callback_data=\"image-model update-size-dalle 1792x1024\"\n                )],\n                [InlineKeyboardButton(\n                    text=f\"Сгенерировать 🔥\",\n                    callback_data=\"dalle-generate\"\n                )],\n            ],\n\n        )\n    )\n\n\nasync def generate_base_flux_keyboard(callback_query: CallbackQuery):\n    user_id = callback_query.from_user.id\n\n    current_model = imageService.get_flux_model(user_id)\n\n    def model_text(model: str, text):\n        if current_model == model:\n            return checked_text(text)\n        return text\n\n    await callback_query.message.edit_text(\"Параметры *Flux*:\")\n    await callback_query.message.edit_reply_markup(\n        reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=[\n                [InlineKeyboardButton(\n                    text=model_text(\"Qubico/flux1-dev\", \"Модель: Flux-Dev\"),\n                    callback_data=\"image-model update-flux-model Qubico/flux1-dev\"\n                )],\n                [InlineKeyboardButton(\n                    text=model_text(\"Qubico/flux1-schnell\", \"Модель: Flux-Schnell\"),\n                    callback_data=\"image-model update-flux-model Qubico/flux1-schnell\"\n                )],\n                [InlineKeyboardButton(\n                    text=f\"Сгенерировать 🔥\",\n                    callback_data=\"flux-generate\"\n                )],\n            ],\n\n        )\n    )\n\n\ndef normalize_start_index(index_start: int):\n    return index_start if index_start > 0 else 0\n\n\ndef normalize_end_index(index_end: int, max_index: int):\n    return index_end if index_end < max_index else max_index\n\n\n@imagesRouter.callback_query(StartWithQuery(\"sd-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Image)\n    await callback_query.message.answer(\"\"\"\nНапишите запрос для генерации изображения! ‍🖼️\n\nНапример: `an astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed`\n\"\"\", reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(\n                    text=\"Отмена ❌\",\n                    callback_data=\"cancel-sd-generate\"\n                )\n            ]\n        ],\n    ))\n    \n@imagesRouter.callback_query(StartWithQuery(\"cancel-sd-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)\n    await callback_query.message.delete()\n    await callback_query.answer(\"Режим генерации изображения в Stable Diffusion успешно отменён!\")\n\n\n@imagesRouter.callback_query(StartWithQuery(\"flux-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Flux)\n    await callback_query.message.answer(\"\"\"\nНапишите запрос для генерации изображения! ‍🖼️\n\nНапример: `an astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed`\n\"\"\", reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(\n                    text=\"Отмена ❌\",\n                    callback_data=\"cancel-flux-generate\"\n                )\n            ]\n        ],\n    ))\n    \n@imagesRouter.callback_query(StartWithQuery(\"cancel-flux-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)\n    await callback_query.message.delete()\n    await callback_query.answer(\"Режим генерации изображения в Flux успешно отменён!\")\n\n\n@imagesRouter.callback_query(StartWithQuery(\"dalle-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Dalle3)\n    await callback_query.message.answer(\"\"\"\nНапишите запрос для генерации изображения! ‍🖼️\n\nНапример: `Нарисуй черную дыру, которая поглощает галактики`\n\"\"\", reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(\n                    text=\"Отмена ❌\",\n                    callback_data=\"cancel-dalle-generate\"\n                )\n            ]\n        ],\n    ))\n\n@imagesRouter.callback_query(StartWithQuery(\"cancel-dalle-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)\n    await callback_query.message.delete()\n    await callback_query.answer(\"Режим генерации изображения в DALL·E 3 отменен.\")\n\n\n@imagesRouter.callback_query(StartWithQuery(\"midjourney-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Midjourney)\n    await callback_query.message.delete()\n    await callback_query.message.answer(\"\"\"\nВыберите один из вариантов запроса для генерации изображения 🖼️ в меню снизу.\n\"\"\", reply_markup=ReplyKeyboardMarkup(\n        keyboard=[\n            # [KeyboardButton(text=\"Фотореалистичная чёрная дыра в космосе, поглощающая галактики.\")],\n            [KeyboardButton(text=\"Photorealistic black hole in space, absorbing galaxies.\")],\n            # [KeyboardButton(text=\"City skyline at night, futuristic, neon lights, high detail.\")],\n            [KeyboardButton(text=\"Силуэт города ночью, футуристический, неоновые огни, высокая детализация.\")],\n            [KeyboardButton(text=\"An astronaut riding a horse on mars artstation, hd, dramatic lighting, detailed.\")],\n        ],\n        resize_keyboard=True,\n        one_time_keyboard=True\n    ))\n\n    await callback_query.message.answer(\"\"\" \nИли напишите свой запрос для генерации изображения на любом языке, выбор языка может менять стилистические особенности изображений.\n\nНапример: \"город\" на русском языке может выглядеть как город из России, а \"city\" на английском языке как город из США или из другой страны.\n\"\"\", reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(\n                    text=\"Отмена ❌\",\n                    callback_data=\"cancel-midjourney-generate\"\n                )\n            ]\n        ],\n    ))\n\n@imagesRouter.callback_query(StartWithQuery(\"cancel-midjourney-generate\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    stateService.set_current_state(callback_query.from_user.id, StateTypes.Default)\n    await callback_query.message.delete()\n    main_keyboard = create_main_keyboard()\n    await callback_query.message.answer(\"Режим генерации изображения в Midjourney успешно отменён!\", reply_markup=main_keyboard)\n\n@imagesRouter.callback_query(StartWithQuery(\"image-model\"))\nasync def handle_image_model_query(callback_query: CallbackQuery):\n    model = callback_query.data.split(\" \")[1]\n\n    user_id = callback_query.from_user.id\n\n    if model == \"SD\":\n        await generate_base_stable_diffusion_keyboard(callback_query)\n\n    if model == \"Dalle3\":\n        await generate_base_dalle3_keyboard(callback_query)\n\n    if model == \"Midjourney\":\n        await generate_base_midjourney_keyboard(callback_query)\n\n    if model == \"Flux\":\n        await generate_base_flux_keyboard(callback_query)\n\n    if model == \"update-flux-model\":\n        value = callback_query.data.split(\" \")[2]\n\n        imageService.set_flux_model(user_id, value)\n\n        await generate_base_flux_keyboard(callback_query)\n\n    if model == \"update-size-midjourney\":\n        size = callback_query.data.split(\" \")[2]\n\n        imageService.set_midjourney_size(user_id, size)\n\n        await generate_base_midjourney_keyboard(callback_query)\n\n    if model == \"update-size-dalle\":\n        dalle_size = callback_query.data.split(\" \")[2]\n\n        imageService.set_dalle_size(user_id, dalle_size)\n\n        await generate_base_dalle3_keyboard(callback_query)\n\n    if model == \"update-model\":\n        model = callback_query.data.split(\" \")[2]\n\n        imageService.set_current_image(user_id, model)\n\n        await generate_base_stable_diffusion_keyboard(callback_query)\n\n    if model == \"update-sampler\":\n        model = callback_query.data.split(\" \")[2]\n        print(model)\n\n        imageService.set_sampler_state(user_id, model)\n\n        await generate_base_stable_diffusion_keyboard(callback_query)\n\n    if model == \"choose-model\":\n        index_start_data = int(callback_query.data.split(\" \")[2])\n        index_end_data = int(callback_query.data.split(\" \")[3])\n\n        stable_models = list(\n            map(lambda x: [InlineKeyboardButton(text=x, callback_data=f\"image-model update-model {x}\")],\n                image_models_values))\n\n        index_start = normalize_start_index(index_start_data)\n        index_end = normalize_end_index(index_end_data, len(stable_models))\n\n        copy_stable_models = stable_models[index_start:index_end]\n\n        copy_stable_models.append([InlineKeyboardButton(text=\"❌ Отменить\",\n                                                        callback_data=f\"image-model SD\")])\n\n        if index_start != 0:\n            copy_stable_models.append([InlineKeyboardButton(text=\"⬅️ Назад\",\n                                                            callback_data=f\"image-model choose-model {normalize_start_index(index_start - 5)} {index_start}\")])\n\n        if index_end != len(stable_models):\n            copy_stable_models.append([InlineKeyboardButton(text=\"➡️ Вперед\",\n                                                            callback_data=f\"image-model choose-model {index_start + 5} {normalize_end_index(index_end + 5, len(stable_models))}\")])\n\n        start_page = int(index_start / 5) + 1\n        end_page = int(len(stable_models) / 5) + 1\n\n        await callback_query.message.edit_text(f\"\"\"\n📄 Страница *{start_page}* из *{end_page}*\n👾 Модели Stable Diffusion: \n        \n        \"\"\")\n        await callback_query.message.edit_reply_markup(\n            reply_markup=InlineKeyboardMarkup(\n                resize_keyboard=True,\n                inline_keyboard=copy_stable_models\n            )\n        )\n\n    if model == \"update-size\":\n        size = callback_query.data.split(\" \")[2]\n\n        imageService.set_size_state(user_id, size)\n\n        await generate_base_stable_diffusion_keyboard(callback_query)\n\n    if model == \"choose-size\":\n        keyboard = divide_into_chunks(\n            list(\n                map(lambda x: InlineKeyboardButton(text=str(x), callback_data=f\"image-model update-size {x}\"),\n                    size_values)),\n            2\n        )\n\n        keyboard.append([InlineKeyboardButton(text=\"❌ Отменить\",\n                                              callback_data=f\"image-model SD\")])\n\n        await callback_query.message.edit_text(\"👾 Шаги Stable Diffusion: \")\n        await callback_query.message.edit_reply_markup(\n            reply_markup=InlineKeyboardMarkup(\n                resize_keyboard=True,\n                inline_keyboard=keyboard\n            )\n        )\n\n    if model == \"choose-sampler\":\n        index_start_data = int(callback_query.data.split(\" \")[2])\n        index_end_data = int(callback_query.data.split(\" \")[3])\n\n        stable_models = list(\n            map(lambda x: [InlineKeyboardButton(text=x, callback_data=f\"image-model update-sampler {x}\")],\n                samplers_values))\n\n        index_start = normalize_start_index(index_start_data)\n        index_end = normalize_end_index(index_end_data, len(stable_models))\n\n        copy_stable_models = stable_models[index_start:index_end]\n\n        copy_stable_models.append([InlineKeyboardButton(text=\"❌ Отменить\",\n                                                        callback_data=f\"image-model SD\")])\n\n        start_page = int(index_start / 5) + 1\n        end_page = int(len(stable_models) / 5) + 1\n\n        if index_start != 0:\n            copy_stable_models.append([InlineKeyboardButton(text=\"⬅️ Назад\",\n                                                            callback_data=f\"image-model choose-sampler {normalize_start_index(index_start - 5)} {index_start}\")])\n\n        if index_end != len(stable_models):\n            copy_stable_models.append([InlineKeyboardButton(text=\"➡️ Вперед\",\n                                                            callback_data=f\"image-model choose-sampler {index_start + 5} {normalize_end_index(index_end + 5, len(stable_models))}\")])\n\n        await callback_query.message.edit_text(f\"\"\"\n    📄 Страница *{start_page}* из *{end_page}*\n    👾 Сэмплеры Stable Diffusion:",
+    "line": 92
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 144
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 144
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 145
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 217
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 217
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 218
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Cгенерировать Flux еще? 🔥",
+    "line": 253
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 258
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 315
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 315
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 316
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Cгенерировать DALL·E 3 еще? 🔥",
+    "line": 342
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 347
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 440
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 440
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 441
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 461
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 461
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 462
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Cгенерировать Midjourney еще?",
+    "line": 532
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 537
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Модель: {current_image}",
+    "line": 632
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Размер: {current_size}",
+    "line": 636
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Шаги: {current_steps}",
+    "line": 641
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 650
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "❌ Отменить",
+    "line": 717
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "❌ Отменить",
+    "line": 717
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "❌ Отменить",
+    "line": 718
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 756
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 789
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 817
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 817
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 818
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 843
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 843
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 844
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 869
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 869
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 870
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Фотореалистичная чёрная дыра в космосе, поглощающая галактики.",
+    "line": 892
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Фотореалистичная чёрная дыра в космосе, поглощающая галактики.",
+    "line": 892
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Силуэт города ночью, футуристический, неоновые огни, высокая детализация.",
+    "line": 895
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Силуэт города ночью, футуристический, неоновые огни, высокая детализация.",
+    "line": 895
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 910
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 910
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 911
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "❌ Отменить",
+    "line": 992
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "❌ Отменить",
+    "line": 992
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "❌ Отменить",
+    "line": 992
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "⬅️ Назад",
+    "line": 996
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "⬅️ Назад",
+    "line": 996
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "⬅️ Назад",
+    "line": 996
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "➡️ Вперед",
+    "line": 1000
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "➡️ Вперед",
+    "line": 1000
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "➡️ Вперед",
+    "line": 1000
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "❌ Отменить",
+    "line": 1033
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "❌ Отменить",
+    "line": 1033
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "❌ Отменить",
+    "line": 1033
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "❌ Отменить",
+    "line": 1057
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "❌ Отменить",
+    "line": 1057
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "❌ Отменить",
+    "line": 1057
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "⬅️ Назад",
+    "line": 1064
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "⬅️ Назад",
+    "line": 1064
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "⬅️ Назад",
+    "line": 1064
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "➡️ Вперед",
+    "line": 1068
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "➡️ Вперед",
+    "line": 1068
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "➡️ Вперед",
+    "line": 1068
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "❌ Отменить",
+    "line": 1098
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "❌ Отменить",
+    "line": 1098
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "❌ Отменить",
+    "line": 1098
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "single",
+    "text": "❌ Отменить",
+    "line": 1124
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "button",
+    "text": "❌ Отменить",
+    "line": 1124
+  },
+  {
+    "file": "../bot/images/router.py",
+    "type": "keyboard",
+    "text": "❌ Отменить",
+    "line": 1124
+  },
+  {
+    "file": "../bot/middlewares/MiddlewareAward.py",
+    "type": "multiline",
+    "text": "🎉 Ваш аккаунт был подтвержден! \nПользователь, который пригласил вас получил *10000⚡️* и *+500⚡️* к ежедневному бесплатному пополнению!\n\n/balance - ✨ Узнать баланс\n/referral - 🔗 Приглашайте друзей - получайте больше бонусов!\n\"\"\")\n\n\n            for parent in update_parents:\n                await event.bot.send_message(chat_id=parent, text=\"\"\"\n🎉 Ваш реферал был подтвержден! \nВы получили *10000⚡️* \nИ *+500⚡️* к ежедневному бесплатному пополнению!\n\n/balance - ✨ Узнать баланс\n/referral - 🔗 Подробности рефералки",
+    "line": 16
+  },
+  {
+    "file": "../bot/payment/products.py",
+    "type": "multiline",
+    "text": "🖥 Аренда серверов.                                         \\n     \n🛠️ Создание инфраструктуры для нейросетей.                 \\n     \n🦾 Оплата нейросетевых сервисов.                           \\n\n                                                           \\n",
+    "line": 22
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "multiline",
+    "text": "Благодарим за поддержку проекта! 🤩    \nСкоро мы будем радовать вас новым и крутым функционалом!\n\nВыбери сумму пожертвования:\n\"\"\"\n\n# Создание кнопок для выбора суммы пожертвования\ndonation_buttons = [\n    [\n        InlineKeyboardButton(text=\"10 RUB\", callback_data=\"donation 10\"),\n        InlineKeyboardButton(text=\"50 RUB\", callback_data=\"donation 50\"),\n        InlineKeyboardButton(text=\"100 RUB\", callback_data=\"donation 100\"),\n    ],\n    [\n        InlineKeyboardButton(text=\"150 RUB\", callback_data=\"donation 150\"),\n        InlineKeyboardButton(text=\"250 RUB\", callback_data=\"donation 250\"),\n        InlineKeyboardButton(text=\"500 RUB\", callback_data=\"donation 500\"),\n    ]\n]\n\n\ndef payment_keyboard(stars):\n    builder = InlineKeyboardBuilder()\n    builder.button(text=f\"Оплатить {stars} ⭐️\", pay=True)\n\n    return builder.as_markup()\n\n\n# Создание клавиатуры для выбора модели\ndef create_buy_balance_keyboard_model():\n    return InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(text=\"🤖 GPT-4o\", callback_data=f\"buy-gpt {GPTModels.GPT_4o.value}\"),\n                InlineKeyboardButton(text=\"🦾 GPT-3.5\", callback_data=f\"buy-gpt {GPTModels.GPT_3_5.value}\"),\n            ],\n        ])\n\n\n# Создание клавиатуры для выбора способа оплаты\ndef create_buy_balance_keyboard_paym_payment(model):\n    return InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            [\n                InlineKeyboardButton(text=\"Telegram Stars ⭐️\", callback_data=f\"buy_method_stars {model} stars\"),\n                InlineKeyboardButton(text=\"Оплата картой 💳\", callback_data=f\"buy_method_card {model} card\"),\n            ],\n        ]\n    )\n\n\n# Обработчик команды /buy\n@paymentsRouter.message(TextCommand([payment_command_start(), payment_command_text()]))\nasync def buy(message: types.Message):\n    await message.answer(\n        text=donation_text,\n        reply_markup=InlineKeyboardMarkup(\n            resize_keyboard=True,\n            inline_keyboard=donation_buttons\n        )\n    )\n\n\n@paymentsRouter.message(TextCommand([balance_payment_command_text(), balance_payment_command_start()]))\nasync def buy_balance(message: types.Message):\n    await message.answer(text=\"Выбирете способ оплаты\",\n                         reply_markup=create_buy_balance_keyboard_paym_payment(GPTModels.GPT_4o.value))\n\n\n# Обработчик запроса \"назад к выбору модели\"\n@paymentsRouter.callback_query(StartWithQuery(\"back_buy_model\"))\nasync def handle_buy_balance_query(callback_query: CallbackQuery):\n    try:\n        await callback_query.message.edit_text(text=\"Баланс какой модели вы хотите пополнить?\")\n        await callback_query.message.edit_reply_markup(reply_markup=create_buy_balance_keyboard_model())\n    except Exception:\n        pass\n\n\n# Обработчик запроса \"назад к выбору способа оплаты\"\n@paymentsRouter.callback_query(StartWithQuery(\"back_buy_method\"))\nasync def handle_buy_balance_query(callback_query: CallbackQuery):\n    model = callback_query.data.split(\" \")[1]\n    try:\n        await callback_query.message.edit_text(text=\"Выбирете способ оплаты\")\n        await callback_query.message.edit_reply_markup(reply_markup=create_buy_balance_keyboard_paym_payment(model))\n    except Exception:\n        pass\n\n\ndef get_star_price(tokens: int, model: str):\n    base_star_price = 1.9\n    base_one_token_price = 0.0008 if model == GPTModels.GPT_4o.value else 0.00025\n    print(tokens * base_one_token_price)\n    return int(tokens * base_one_token_price / base_star_price)\n\n\ndef get_price_rub(tokens: int, model: str):\n    base_one_token_price = 0.0008 if model == GPTModels.GPT_4o.value else 0.00025\n    print(tokens * base_one_token_price)\n    return int(tokens * base_one_token_price)\n\n\ndef strikethrough(number: int):\n    result = ''.join(['\\u0336' + char for char in str(number)])\n    return result\n\n\ndef get_rub_price_keyboard(base_callback: str, prices: [int], model):\n    buttons = []\n\n    for price in prices:\n        format_price = f'{price:,}'\n        star_price = get_price_rub(price, model)\n\n        buttons.append([\n            InlineKeyboardButton(\n                text=f\"{format_price}⚡️ ({star_price} RUB)\",\n                callback_data=f\"{base_callback} {format_price} {star_price} {model}\"\n            ),\n        ])\n\n    return buttons\n\n\ndef get_star_price_keyboard(base_callback: str, prices: [int], model):\n    buttons = []\n\n    for price in prices:\n        format_price = f'{price:,}'\n        star_price = get_star_price(price, model)\n\n        buttons.append([\n            InlineKeyboardButton(\n                text=f\"{format_price}⚡️ ({star_price} ⭐️)\",\n                callback_data=f\"{base_callback} {format_price} {star_price} {model}\"\n            ),\n        ])\n\n    return buttons\n\n\n@paymentsRouter.callback_query(StartWithQuery(\"buy_method_stars\"))\nasync def handle_buy_balance_model_query(callback_query: CallbackQuery):\n    model = callback_query.data.split(\" \")[1]\n    await callback_query.message.edit_text(\"Насколько ⚡️ вы хотите пополнить баланс?\")\n\n    await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            *get_star_price_keyboard(\n                \"buy_stars\",\n                [25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000],\n                model\n            ),\n            [\n                InlineKeyboardButton(text=\"⬅️ Назад к выбору способа оплаты\",\n                                     callback_data=f\"back_buy_method {model}\"),\n            ]\n        ]))\n\n\n@paymentsRouter.callback_query(StartWithQuery(\"buy_method_card\"))\nasync def handle_buy_balance_model_query(callback_query: CallbackQuery):\n    model = callback_query.data.split(\" \")[1]\n    await callback_query.message.edit_text(\"Насколько ⚡️ вы хотите пополнить баланс?\")\n\n    await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(\n        resize_keyboard=True,\n        inline_keyboard=[\n            *get_rub_price_keyboard(\n                \"buy_card\",\n                [100000, 250000, 500000, 1000000, 2500000, 5000000],\n                model\n            ),\n            [\n                InlineKeyboardButton(text=\"⬅️ Назад к выбору способа оплаты\",\n                                     callback_data=f\"back_buy_method {model}\"),\n            ]\n        ]))\n\n\n# Обработчик запроса отправки инвойса (Telegram Stars)\n@paymentsRouter.callback_query(StartWithQuery(\"buy_stars\"))\nasync def handle_buy_balance_model_query(callback_query: CallbackQuery):\n    amount = int(callback_query.data.split(\" \")[2])\n    tokens = callback_query.data.split(\" \")[1]\n    model = callback_query.data.split(\" \")[3]\n    await callback_query.message.answer_invoice(\n        title=\"Покупка ⚡️\",\n        description=f\"Купить {tokens}⚡️?\",\n        prices=[LabeledPrice(label=\"XTR\", amount=amount)],\n        provider_token=\"\",\n        payload=f\"buy_balance {tokens.replace(',', '')} {model} stars\",\n        currency=\"XTR\",\n        reply_markup=payment_keyboard(amount),\n    )\n    await asyncio.sleep(0.5)\n    await callback_query.message.delete()\n\n\n# Обработчик запроса отправки инвойса (переводом на счёт)\n@paymentsRouter.callback_query(StartWithQuery(\"buy_card\"))\nasync def handle_buy_balance_model_query(callback_query: CallbackQuery):\n    amount = int(callback_query.data.split(\" \")[2]) * 100\n    tokens = callback_query.data.split(\" \")[1]\n    model = callback_query.data.split(\" \")[3]\n\n    await callback_query.bot.send_invoice(\n        callback_query.message.chat.id,\n        **buy_balance_product,\n        description=f\"🤩 Покупка {tokens}⚡️\",\n        payload=f\"buy_balance {tokens.replace(',', '')} {model} card\",\n        prices=[types.LabeledPrice(label=f\"Покупка {tokens}⚡️\", amount=amount)],\n        provider_data=json.dumps(\n            {\n                \"receipt\": {\n                    \"items\": [{\n                        \"description\": f\"🤩 Покупка {tokens}⚡️\",\n                        \"quantity\": \"1\",\n                        \"amount\": {\n                            \"value\": str(int(amount / 100)) + \".00\",\n                            \"currency\": \"RUB\",\n                        },\n                        \"vat_code\": 1,\n                        \"payment_mode\" : \"full_payment\",\n                        \"payment_subject\" : \"commodity\"\n\n                    }],\n                    \"email\": \"edtimyr@gmail.com\"\n                }\n            }\n        )\n\n    )\n    print(\"PAYMENTS_TOKEN\")\n    print(config.PAYMENTS_TOKEN)\n    await asyncio.sleep(0.5)\n\n    await callback_query.message.delete()\n\n\n@paymentsRouter.callback_query(StartWithQuery(\"donation\"))\nasync def handle_change_model_query(callback_query: CallbackQuery):\n    amount = int(callback_query.data.split(\" \")[1]) * 100\n\n    await callback_query.bot.send_invoice(\n        callback_query.message.chat.id,\n        **donation_product,\n        prices=[types.LabeledPrice(label=\"Пожертвование на развитие\", amount=amount)]\n    )\n\n    await asyncio.sleep(0.5)\n    await callback_query.message.delete()\n\n\n@paymentsRouter.pre_checkout_query(lambda query: True)\nasync def checkout_process(pre_checkout_query: types.PreCheckoutQuery):\n    logging.log(logging.INFO, pre_checkout_query)\n\n    await pre_checkout_query.bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)\n\n# Обработчик успешной оплаты\n@paymentsRouter.message(F.successful_payment)\nasync def successful_payment(message: types.Message):\n    logging.log(logging.INFO, \"SUCCESSFUL PAYMENT:\")\n    for k, v in message.successful_payment:\n        logging.log(logging.INFO, f\"{k} = {v}\")\n\n    if message.successful_payment.invoice_payload.startswith(\"donation\"):\n        await message.answer(\n            f\"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\\n\\nБлагодарим за поддержку проекта!\")\n        return\n\n    if message.successful_payment.invoice_payload.startswith(\"buy_balance\"):\n        await tokenizeService.get_tokens(message.from_user.id)\n\n        tokens = int(message.successful_payment.invoice_payload.split(\" \")[1])\n        await tokenizeService.update_token(message.from_user.id, tokens)\n\n        if message.successful_payment.invoice_payload.split(\" \")[3] == \"stars\":\n            await message.answer(\n                f\"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\\n\\nВаш баланс пополнен на *{tokens}*⚡️!\")\n        else:\n            await message.answer(\n                f\"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\\n\\nВаш баланс пополнен на *{tokens}*⚡️!\")\n\n        gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)\n\n        await message.answer(f\"\"\"💵 Текущий баланс: *{gpt_tokens.get(\"tokens\")}*⚡️",
+    "line": 18
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "Оплатить {stars} ⭐️",
+    "line": 42
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "single",
+    "text": "Оплата картой 💳",
+    "line": 66
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "button",
+    "text": "Оплата картой 💳",
+    "line": 66
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "keyboard",
+    "text": "Оплата картой 💳",
+    "line": 66
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "single",
+    "text": "Выбирете способ оплаты",
+    "line": 86
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "single",
+    "text": "Баланс какой модели вы хотите пополнить?",
+    "line": 94
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "single",
+    "text": "Выбирете способ оплаты",
+    "line": 105
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "single",
+    "text": "⬅️ Назад к выбору способа оплаты",
+    "line": 177
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "button",
+    "text": "⬅️ Назад к выбору способа оплаты",
+    "line": 177
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "keyboard",
+    "text": "⬅️ Назад к выбору способа оплаты",
+    "line": 177
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "single",
+    "text": "⬅️ Назад к выбору способа оплаты",
+    "line": 197
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "button",
+    "text": "⬅️ Назад к выбору способа оплаты",
+    "line": 197
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "keyboard",
+    "text": "⬅️ Назад к выбору способа оплаты",
+    "line": 197
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "Купить {tokens}⚡️?",
+    "line": 211
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "🤩 Покупка {tokens}⚡️",
+    "line": 232
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "Покупка {tokens}⚡️",
+    "line": 234
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "🤩 Покупка {tokens}⚡️",
+    "line": 239
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\\n\\nБлагодарим за поддержку проекта!",
+    "line": 292
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\\n\\nВаш баланс пополнен на *{tokens}*⚡️!",
+    "line": 303
+  },
+  {
+    "file": "../bot/payment/router.py",
+    "type": "fstring",
+    "text": "🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\\n\\nВаш баланс пополнен на *{tokens}*⚡️!",
+    "line": 306
+  },
+  {
+    "file": "../bot/referral/router.py",
+    "type": "fstring",
+    "text": "Пользователь {user_id} запросил реферальную ссылку.",
+    "line": 20
+  },
+  {
+    "file": "../bot/referral/router.py",
+    "type": "multiline",
+    "text": "*5 000*⚡️ за каждого приглашенного пользователя. \n*+500*⚡️ к ежедневному пополнению баланса за каждого пользователя. \n\n👩🏻‍💻 Количество рефералов: *{len(referral['children'])}*\n🤑 Ежедневное автопополнение: *{referral['award']}*⚡️\n\n🎉 Ваша реферальная ссылка: `{referral_link}`",
+    "line": 29
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "multiline",
+    "text": "👋 Привет! Я бот от разработчиков deep.foundation!\n\n🤖 Я готов помочь тебе с любой задачей, просто напиши сообщение или нажми кнопку в меню!\n\n/help - ✨ обзор команд и возможностей\n/balance - ⚡️ узнать свой баланс\n/referral - 🔗 подробности рефералки\n\nВсё бесплатно, если не платить.\nКаждый день твой баланс будет пополняться на сумму от *10 000⚡️* (энергии)!\n\nЕсли нужно больше:\n💎 Можно пополнить баланс Telegram звёздами или банковской картой.\n👥 Понравилось? Поделись с друзьями и получи бонус за каждого приглашенного друга! Приводя много друзей ты сможешь пользоваться нейросетями практически безлимитно.\n\n/referral - получай больше с реферальной системой:\n*5 000⚡️️* за каждого приглашенного пользователя;\n*+500⚡️️* к ежедневному пополнению баланса за каждого друга.\n\n🏠 Если что-то пошло не так или хочешь поделиться вдохновением, напиши в наше сообщество @deepGPT.\n\"\"\"\n\nref_text = \"\"\"\n👋 Ты прибыл по реферальной ссылке, чтобы получить награду нужно подписаться на мой канал.\n\"\"\"\n\nasync def handle_referral(message, user_id, ref_user_id):\n    result = await referralsService.create_referral(user_id, ref_user_id)\n    \n    print(result, 'resuuuuult')\n    \n    # Проверяем, что ref_user_id валиден перед отправкой сообщения\n    if not ref_user_id:\n        return  # Прерываем выполнение, если ref_user_id отсутствует\n    \n    if not result or result.get(\"parent\") is None:\n        return\n    \n    # Проверяем, что ref_user_id - число или строка (например, username)\n    try:\n        chat_id = int(ref_user_id)  # Если ref_user_id должен быть числом\n    except (TypeError, ValueError):\n        await message.answer(\"❌ Некорректный реферальный ID.\")\n        return\n    \n    await message.answer(text=\"\"\"\n🎉 Вы получили *5 000*⚡️!\n\n/balance - ✨ Узнать баланс\n/referral - 🔗 Подробности рефералки\n\"\"\")\n\n    await message.bot.send_message(\n        chat_id=chat_id,  # Используем проверенный chat_id\n        text=\"\"\"\n🎉 Добавлен новый реферал! \nВы получили *5 000*⚡️!\nВаш реферал должен проявить любую активность в боте через 24 часа, чтобы вы получили еще *5 000*⚡️ и +500⚡️️ к ежедневному пополнению баланса.\n\n/balance - ✨ Узнать баланс\n/referral - 🔗 Подробности рефералки\n\"\"\"\n    )\n\n\nasync def create_token_if_not_exist(user_id):\n    return await tokenizeService.get_tokens(user_id)\n\n@startRouter.message(CommandStart())\nasync def start(message: types.Message):\n    args_match = re.search(r'^/start\\s(\\S+)', message.text)\n    ref_user_id = args_match.group(1) if args_match else None\n\n    # always force sending the keyboard\n    keyboard = create_main_keyboard()\n    await send_message(message, text=hello_text, reply_markup=keyboard)\n\n    await create_token_if_not_exist(message.from_user.id)\n\n    is_subscribe = await check_subscription(message)\n\n    # Уведомляем реферера, что пользователь перешёл по ссылке, но ещё не подписался\n    if ref_user_id: # and str(ref_user_id) != str(message.from_user.id) and not is_subscribe\n        try:\n            chat_id = int(ref_user_id)\n        except (TypeError, ValueError):\n            chat_id = None\n\n        if chat_id:\n            user_name = message.from_user.username\n            user_mention = f\"<a href='tg://user?id={message.from_user.id}'>{message.from_user.full_name}</a>\"\n            await message.bot.send_message(\n                chat_id=chat_id,\n                text=(\n                    f\"\"\"\n🎉 По вашей реферальной ссылке перешли: @{user_name} ({user_mention}).\n\nЧтобы вашему другу стать вашим рефералом, он должен подписаться на канал @gptDeep.\n\nКак только это произойдёт вы получите <b>5 000</b>⚡️ единоразово и <b>+500</b>⚡️️ к ежедневному пополнению баланса.\n\nЕсли вдруг этого долго не происходит, то возможно вашему другу нужна помощь, <b>попробуйте написать ему в личные сообщения</b>. \nЕсли и это не помогает, то обратитесь в поддержку в сообществе @deepGPT и мы поможем вам разобраться с ситуацией.\n\"\"\"\n                ),\n                parse_mode=\"HTML\"\n            )\n\n    if not is_subscribe:\n        if str(ref_user_id) == str(message.from_user.id):\n            return\n\n        await message.answer(\n            text=ref_text,\n            reply_markup=types.InlineKeyboardMarkup(\n                resize_keyboard=True,\n                inline_keyboard=[\n                    [\n                        types.InlineKeyboardButton(text=\"Подписаться 👊🏻\", url=\"https://t.me/gptDeep\"),\n                    ],\n                    [\n                        types.InlineKeyboardButton(text=\"Проверить ✅\",\n                                                   callback_data=f\"ref-is-subscribe {ref_user_id} {message.from_user.id}\"),\n                    ]\n                ]\n            )\n        )\n        return\n\n    await handle_referral(message, message.from_user.id, ref_user_id)\n\n\n@startRouter.callback_query(StartWithQuery(\"ref-is-subscribe\"))\nasync def handle_ref_is_subscribe_query(callback_query: CallbackQuery):\n    ref_user_id = callback_query.data.split(\" \")[1]\n    user_id = callback_query.data.split(\" \")[2]\n\n    is_subscribe = await check_subscription(callback_query.message, user_id)\n\n    if not is_subscribe:\n        await callback_query.message.answer(text=\"Вы не подписались! 😡\")\n        return\n\n    await handle_referral(callback_query.message, user_id, ref_user_id)\n\n\n@startRouter.message(TextCommand([help_command(), help_text()]))\nasync def help_command(message: types.Message):\n    await message.answer(text=\"\"\"\nОсновной ресурc для доступа к нейросетям - ⚡️ (энергия).\nЭто универсальный ресурс для всего функционала бота.\n\nКаждая нейросеть тратит разное количество ⚡️.\nКоличество затраченных ⚡️ зависит от длины истории диалога, моделей нейросетей и объёма ваших вопросов и ответов от нейросети.\nДля экономии используйте команду - /clear, чтобы не переполнять историю диалога и не увеличивать расход ⚡️ (энергии)! \nРекомендуется очищать контекст перед началом обсуждения новой темы. А также если выбранная модель начала отказывать в помощи.\n\n/app - 🔥 Получить ссылку к приложению!\n/start - 🔄 Рестарт бота, перезапускает бот, помогает обновить бота до последней версии.\n/model - 🛠️ Сменить модель, перезапускает бот, позволяет сменить модель бота.\n/system - ⚙️ Системное сообщение, позволяет сменить системное сообщение, чтобы изменить режим взаимодействия с ботом.   \n/clear - 🧹 Очистить контекст, помогает забыть боту всю историю.  \n/balance - ✨ Баланс, позволяет узнать баланс ⚡️.\n/image - 🖼️ Генерация картинки (Midjourney, DALL·E 3, Flux, Stable Diffusion)\n/buy - 💎 Пополнить баланс, позволяет пополнить баланс ⚡️.\n/referral - 🔗 Получить реферальную ссылку\n/suno - 🎵 Генерация музыки (Suno)\n/text - Отправить текстовое сообщение\n\"\"\")\n\n\n@startRouter.message(TextCommand([app_command()]))\nasync def app_handler(message: Message):\n    await message.answer(\"\"\"Ссылка на приложение: https://t.me/DeepGPTBot/App",
+    "line": 16
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "single",
+    "text": "Подписаться 👊🏻",
+    "line": 135
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "button",
+    "text": "Подписаться 👊🏻",
+    "line": 135
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "keyboard",
+    "text": "Подписаться 👊🏻",
+    "line": 135
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "single",
+    "text": "Проверить ✅",
+    "line": 138
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "button",
+    "text": "Проверить ✅",
+    "line": 138
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "keyboard",
+    "text": "Проверить ✅",
+    "line": 138
+  },
+  {
+    "file": "../bot/start/router.py",
+    "type": "single",
+    "text": "Вы не подписались! 😡",
+    "line": 157
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Suno: получен audio_url: {audio_url}",
+    "line": 30
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Suno: скачан файл {ext} размером {len(response.content)} байт",
+    "line": 36
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Suno: успешно отправлен mp3 файл",
+    "line": 46
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Ошибка при конвертации или отправке аудио: {e}",
+    "line": 48
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Удаляю mp3_path: {mp3_path}",
+    "line": 53
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Удаляю tmp_file_path: {tmp_file_path}",
+    "line": 57
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Suno: успешно отправлен mp3 файл",
+    "line": 63
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Ошибка при отправке mp3: {e}",
+    "line": 65
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Удаляю tmp_file_path: {tmp_file_path}",
+    "line": 70
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Suno: нет audio_url. generation={generation}",
+    "line": 73
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "❌ Не удалось получить аудиофайл от Suno.\\n\\n",
+    "line": 79
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Статус: {status}\\n",
+    "line": 80
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Ошибка: {error_message}\\n\\n",
+    "line": 81
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "Попробуйте позже или измените запрос.",
+    "line": 82
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Cгенерировать Suno еще? 🔥",
+    "line": 86
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "button",
+    "text": "Сгенерировать 🔥",
+    "line": 91
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "keyboard",
+    "text": "Сгенерировать 🔥",
+    "line": 91
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Сгенерировать 🔥",
+    "line": 92
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "multiline",
+    "text": "У вас не хватает *⚡️*. 😔\n\n/balance - ✨ Проверить Баланс\n/buy - 💎 Пополнить баланс\n/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       \n\"\"\")\n            stateService.set_current_state(user_id, StateTypes.Default)\n            return\n\n        if is_empty_prompt(message.text):\n            await message.answer(\n                \"🚫 В вашем запросе отсутствует описание музыкальной композиции 🎵. Пожалуйста, попробуйте снова.\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-suno-generate\"\n                            )\n                        ]\n                    ],\n                )\n            )\n            return\n\n        if len(message.text) > 200:\n            await message.answer(\n                \"\"\"Описание музыкальной композиции 🎵 *не может быть более 200 символов* для Suno.\n\nПожалуйста, попробуйте промт короче.\n\"\"\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-suno-generate\"\n                            )\n                        ],\n                    ],\n                )\n            )\n            return\n\n        # Сохраняем тему и переходим к запросу стиля\n        sunoService.store_user_data(str(user_id), topic=message.text)\n        stateService.set_current_state(user_id, StateTypes.SunoStyle)\n\n        await message.answer(\n            text=\"\"\"Отлично! Теперь укажите *стиль* музыкальной композиции 🎵.\n\nНапример: pop, rock, jazz, classical, electronic, folk, country, blues, hip-hop, reggae, latin, ambient, techno, house, r&b, soul, metal, punk, indie, alternative и другие.\n\n*Не более 50 символов*.\n\"\"\",\n            reply_markup=InlineKeyboardMarkup(\n                resize_keyboard=True,\n                inline_keyboard=[\n                    [\n                        InlineKeyboardButton(\n                            text=\"Отмена ❌\",\n                            callback_data=\"cancel-suno-generate\"\n                        )\n                    ],\n                ]\n            ),\n        )\n\n    except Exception as e:\n        await message.answer(DEFAULT_ERROR_MESSAGE)\n        logging.error(f\"Failed to process Suno topic: {e}\")\n        stateService.set_current_state(user_id, StateTypes.Default)\n        return\n\n\n@sunoRouter.message(StateCommand(StateTypes.SunoStyle))\nasync def suno_style_handler(message: Message):\n    user_id = message.from_user.id\n\n    try:\n        if not stateService.is_suno_style_state(user_id):\n            return\n\n        if is_empty_prompt(message.text):\n            await message.answer(\n                \"🚫 В вашем запросе отсутствует стиль музыкальной композиции 🎵. Пожалуйста, попробуйте снова.\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-suno-generate\"\n                            )\n                        ]\n                    ],\n                )\n            )\n            return\n\n        if len(message.text) > 50:\n            await message.answer(\n                \"\"\"Стиль музыкальной композиции 🎵 *не может быть более 50 символов*.\n\nПожалуйста, попробуйте короче.\n\"\"\",\n                reply_markup=InlineKeyboardMarkup(\n                    resize_keyboard=True,\n                    inline_keyboard=[\n                        [\n                            InlineKeyboardButton(\n                                text=\"Отмена ❌\",\n                                callback_data=\"cancel-suno-generate\"\n                            )\n                        ],\n                    ],\n                )\n            )\n            return\n\n        # Получаем сохраненные данные пользователя\n        user_data = sunoService.get_user_data(str(user_id))\n        topic = user_data.get('topic', '')\n        style = message.text.strip()\n\n        if not topic:\n            await message.answer(\"Произошла ошибка: тема песни не найдена. Попробуйте начать заново.\")\n            stateService.set_current_state(user_id, StateTypes.Default)\n            sunoService.clear_user_data(str(user_id))\n            return\n\n        stateService.set_current_state(user_id, StateTypes.Default)\n\n        wait_message = await message.answer(\n            f\"**⌛️Ожидайте генерацию...**\\nТема: {topic}\\nСтиль: {style}\\nПримерное время ожидания: *3-5 минут*.\\nМожете продолжать работать с ботом.\"\n        )\n\n        await message.bot.send_chat_action(message.chat.id, \"typing\")\n\n        async def task_id_get(task_id: str):\n            await message.answer(f\"`1:suno:{task_id}:generate`\")\n            await message.answer(\n                f\"\"\"Это ID вашей генерации.\n\nПросто отправьте этот ID в чат и получите актуальный статус вашей генерации в любой удобный для вас момент.\n                                \nВы также получите результат генерации по готовности.\n\"\"\"\n            )\n\n        generation = await sunoService.generate_suno(topic, style, task_id_get)\n\n        if not generation or not generation.get('data'):\n            await message.answer(\n                \"❌ Произошла ошибка при генерации музыки. Возможные причины:\\n\"\n                \"• Сервис Diffrhythm временно недоступен\\n\"\n                \"• Превышено время ожидания (15 минут)\\n\"\n                \"• Проблемы с форматом лирики\\n\\n\"\n                \"Попробуйте позже или измените тему/стиль песни.\"\n            )\n            sunoService.clear_user_data(str(user_id))\n            return\n\n        await suno_create_messages(message, generation)\n\n        # Списываем токены только если generation успешна\n        status = generation.get('data', {}).get('status')\n        if status == \"completed\":\n            await tokenizeService.update_token(user_id, 5700, \"subtract\")\n            await message.answer(\n                f\"\"\"\n🤖 Затрачено на генерацию музыкальной композиции *Suno*: *5700*\n\n❔ /help - Информация по ⚡️\n\"\"\"\n            )\n        else:\n            await message.answer(\n                \"⚡️ Энергия не была списана, так как генерация завершилась с ошибкой.\"\n            )\n\n        await wait_message.delete()\n\n        # Очищаем временные данные\n        sunoService.clear_user_data(str(user_id))\n\n    except Exception as e:\n        await message.answer(DEFAULT_ERROR_MESSAGE)\n        logging.error(f\"Failed to generate Suno: {e}\")\n        stateService.set_current_state(user_id, StateTypes.Default)\n        sunoService.clear_user_data(str(user_id))\n        return\n\n\n@sunoRouter.message(TextCommand([suno_command(), suno_text()]))\nasync def suno_prepare_handler(message: Message):\n    user_id = message.from_user.id\n    await enter_suno_state(user_id, message)\n\n\n@sunoRouter.callback_query(StartWithQuery(\"suno-generate\"))\nasync def suno_prepare_handler(callback_query: CallbackQuery):\n    user_id = callback_query.from_user.id\n    await enter_suno_state(user_id, callback_query.message)\n\n\n@sunoRouter.callback_query(StartWithQuery(\"cancel-suno-generate\"))\nasync def cancel_state(callback_query: CallbackQuery):\n    user_id = callback_query.from_user.id\n    stateService.set_current_state(user_id, StateTypes.Default)\n    sunoService.clear_user_data(str(user_id))\n    await callback_query.message.delete()\n    await callback_query.answer(\"Режим генерации музыки в Suno успешно отменён!\")\n\n\nasync def enter_suno_state(user_id, message: Message):\n    stateService.set_current_state(user_id, StateTypes.Suno)\n\n    await message.answer(\n        text=\"\"\"*Активирован режим* генерации музыки в *Suno*.\n\n*Следующее ваше сообщение будет интерпретировано как тема песни* для Suno.\n\nПосле указания темы вы сможете выбрать стиль музыкальной композиции.\n\nГенерация будет стоить *5700⚡️*.\n\nОпишите в следующем сообщении *тему* музыкальной композиции 🎵 (*не более 200 символов*), которую вы хотите сгенерировать или отмените если передумали.",
+    "line": 111
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 128
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 128
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 129
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 148
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 148
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 149
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 173
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 173
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 174
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 204
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 204
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 205
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 224
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 224
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 225
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "fstring",
+    "text": "**⌛️Ожидайте генерацию...**\\nТема: {topic}\\nСтиль: {style}\\nПримерное время ожидания: *3-5 минут*.\\nМожете продолжать работать с ботом.",
+    "line": 248
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "button",
+    "text": "Отмена ❌",
+    "line": 347
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "keyboard",
+    "text": "Отмена ❌",
+    "line": 347
+  },
+  {
+    "file": "../bot/suno/router.py",
+    "type": "single",
+    "text": "Отмена ❌",
+    "line": 348
+  },
+  {
+    "file": "../bot/tasks/router.py",
+    "type": "single",
+    "text": "Cгенерировать Midjourney еще? 🔥",
+    "line": 39
+  },
+  {
+    "file": "../bot/tasks/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 44
+  },
+  {
+    "file": "../bot/tasks/router.py",
+    "type": "single",
+    "text": "Cгенерировать Flux еще? 🔥",
+    "line": 115
+  },
+  {
+    "file": "../bot/tasks/router.py",
+    "type": "fstring",
+    "text": "Сгенерировать 🔥",
+    "line": 120
+  }
+]

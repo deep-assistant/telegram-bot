@@ -11,31 +11,33 @@ chat_message_counts = {}
 # Configurable number of first messages to include the keyboard
 FIRST_MESSAGES_LIMIT = 3
 
-def create_main_keyboard():
+def create_main_keyboard(user_id: int = None):
+    from bot.i18n import _
+    
     return ReplyKeyboardMarkup(
         resize_keyboard=True,
         keyboard=[
             [
-                KeyboardButton(text=balance_text()),
-                KeyboardButton(text=balance_payment_command_text())
+                KeyboardButton(text=balance_text(user_id)),
+                KeyboardButton(text=balance_payment_command_text(user_id))
             ],
             [
-                KeyboardButton(text=change_model_text()),
-                KeyboardButton(text=change_system_message_text())
+                KeyboardButton(text=change_model_text(user_id)),
+                KeyboardButton(text=change_system_message_text(user_id))
             ],
             [
-                KeyboardButton(text=suno_text()),
-                KeyboardButton(text=images_command_text())
+                KeyboardButton(text=suno_text(user_id)),
+                KeyboardButton(text=images_command_text(user_id))
             ],
             [
-                KeyboardButton(text=clear_text()),
-                KeyboardButton(text=get_history_text())
+                KeyboardButton(text=clear_text(user_id)),
+                KeyboardButton(text=get_history_text(user_id))
             ],
             [
-                KeyboardButton(text=referral_command_text()),
+                KeyboardButton(text=referral_command_text(user_id)),
             ],
         ],
-        input_field_placeholder="💬 Задай свой вопрос"
+        input_field_placeholder=_("placeholder.ask_question", user_id=user_id)
     )
 
 async def send_message(callback_or_message: Union[Message, CallbackQuery], *args, **kwargs):
@@ -44,12 +46,14 @@ async def send_message(callback_or_message: Union[Message, CallbackQuery], *args
     If reply_markup is not provided and this is one of the first 3 messages in the chat,
     adds the main keyboard from create_main_keyboard().
     """
-    # Determine the type and extract chat ID and response method
+    # Determine the type and extract chat ID, user ID and response method
     if isinstance(callback_or_message, Message):
         chat_id = callback_or_message.chat.id
+        user_id = callback_or_message.from_user.id
         responder = callback_or_message.answer
     elif isinstance(callback_or_message, CallbackQuery):
         chat_id = callback_or_message.message.chat.id
+        user_id = callback_or_message.from_user.id
         responder = callback_or_message.message.answer
     else:
         raise ValueError("First argument must be Message or CallbackQuery")
@@ -63,7 +67,7 @@ async def send_message(callback_or_message: Union[Message, CallbackQuery], *args
 
     # Check if reply_markup is in kwargs and if we're within the first 3 messages
     if 'reply_markup' not in kwargs and chat_message_counts[chat_id] <= FIRST_MESSAGES_LIMIT:
-        kwargs['reply_markup'] = create_main_keyboard()
+        kwargs['reply_markup'] = create_main_keyboard(user_id)
 
     # Send the message with all provided args and kwargs
     await responder(*args, **kwargs)
