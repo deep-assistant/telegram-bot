@@ -30,7 +30,7 @@ from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
-    StateTypes, systemMessage
+    StateTypes, systemMessage, contextService
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
@@ -788,3 +788,84 @@ async def handle_completion(message: Message, batch_messages):
     text = f" {text}\n\n {message.reply_to_message.text}" if message.reply_to_message else text
 
     await handle_gpt_request(message, text)
+
+
+@gptRouter.callback_query(StartWithQuery("context_clear_"))
+async def handle_context_clear(callback_query: CallbackQuery):
+    """Handle context clear button press"""
+    user_id = str(callback_query.from_user.id)
+    
+    try:
+        # Clear the dialog context
+        response = await tokenizeService.clear_dialog(user_id)
+        
+        if response and response.get("status"):
+            success_message = "✅ Контекст диалога успешно очищен!"
+        else:
+            success_message = "✅ Контекст диалога уже был пуст!"
+        
+        # Update last interaction timestamp
+        contextService.update_last_interaction(user_id)
+        
+        # Process any pending message
+        await process_pending_message(callback_query, user_id)
+        
+        # Edit the original message to show success
+        await callback_query.message.edit_text(success_message)
+        await callback_query.answer("Контекст очищен!")
+        
+    except Exception as e:
+        await callback_query.answer("Ошибка при очистке контекста!")
+        print(f"Error clearing context for user {user_id}: {e}")
+
+
+@gptRouter.callback_query(StartWithQuery("context_keep_"))
+async def handle_context_keep(callback_query: CallbackQuery):
+    """Handle context keep button press"""
+    user_id = str(callback_query.from_user.id)
+    
+    try:
+        # Update last interaction timestamp
+        contextService.update_last_interaction(user_id)
+        
+        # Process any pending message
+        await process_pending_message(callback_query, user_id)
+        
+        # Edit the original message to show confirmation
+        await callback_query.message.edit_text("✅ Контекст диалога сохранен!")
+        await callback_query.answer("Контекст сохранен!")
+        
+    except Exception as e:
+        await callback_query.answer("Ошибка при обработке запроса!")
+        print(f"Error keeping context for user {user_id}: {e}")
+
+
+async def process_pending_message(callback_query: CallbackQuery, user_id: str):
+    """Process the original message that was pending context decision"""
+    try:
+        # Get the pending message from database
+        original_message_key = f"pending_message_{user_id}"
+        pending_text = None
+        
+        try:
+            pending_text = contextService.data_base[original_message_key].decode('utf-8')
+            # Clean up the pending message from database
+            with contextService.data_base.transaction():
+                del contextService.data_base[original_message_key]
+            contextService.data_base.commit()
+        except KeyError:
+            pass
+        
+        # If there was a pending message, process it
+        if pending_text:
+            # Create a fake message object to process the pending text
+            fake_message = callback_query.message
+            fake_message.text = pending_text
+            fake_message.from_user = callback_query.from_user
+            fake_message.chat = callback_query.message.chat
+            
+            # Process the original message
+            await handle_gpt_request(fake_message, pending_text)
+            
+    except Exception as e:
+        print(f"Error processing pending message for user {user_id}: {e}")
