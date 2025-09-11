@@ -356,7 +356,7 @@ gptRouter.message(TextCommand([CHANGE_MODEL_COMMAND, CHANGE_MODEL_TEXT]), async 
   if (!subscribed) return;
   const userId = message.from_user.id;
   const currentModel = gptService.get_current_model(userId);
-  const infoText = `Выберите модель: 🤖\n**o3-mini:** ... \n**GPT-3.5-turbo:** ...`;
+  const infoText = `Выберите модель: 🤖\n**o3-mini:** ... \n**GPT-3.5:** ...`;
   await message.answer(infoText, { reply_markup: createChangeModelKeyboard(currentModel) });
   await new Promise(r => setTimeout(r, 500));
   await message.delete();

@@ -52,7 +52,7 @@ export class ImageService {
   static defaultSteps = 31;
   static defaultCfg = '7';
   static defaultSize = '512x512';
-  static defaultDalleSize = '1024x1024';
+  static defaultDALLESize = '1024x1024';
   static defaultMidjourneySize = '1:1';
   static defaultFluxModel = 'Qubico/flux1-dev';
 
@@ -138,17 +138,17 @@ export class ImageService {
     await dataBase.set(dbKey(userId, ImageService.CURRENT_SIZE), state);
   }
 
-  async getDalleSize(userId) {
+  async getDALLESize(userId) {
     try {
       const buf = await dataBase.get(dbKey(userId, ImageService.DALLE_SIZE));
       return buf.toString('utf-8');
     } catch {
-      await this.setDalleSize(userId, ImageService.defaultDalleSize);
-      return ImageService.defaultDalleSize;
+      await this.setDALLESize(userId, ImageService.defaultDALLESize);
+      return ImageService.defaultDALLESize;
     }
   }
 
-  async setDalleSize(userId, state) {
+  async setDALLESize(userId, state) {
     await dataBase.set(dbKey(userId, ImageService.DALLE_SIZE), state);
   }
 
@@ -208,7 +208,7 @@ export class ImageService {
   /**
    * Generate an image via DALL·E 3
    */
-  async generateDalle(userId, prompt) {
+  async generateDALLE(userId, prompt) {
     const client = new OpenAI({
       apiKey: config.GO_API_KEY,
       baseURL: 'https://api.goapi.xyz/v1/',
@@ -217,7 +217,7 @@ export class ImageService {
       model: 'gpt-4-gizmo-g-pmuQfob8d',
       max_tokens: 30000,
       messages: [
-        { role: 'user', content: `You should generate images in size ${await this.getDalleSize(userId)}` },
+        { role: 'user', content: `You should generate images in size ${await this.getDALLESize(userId)}` },
         { role: 'user', content: prompt },
       ],
       stream: false,

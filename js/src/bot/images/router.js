@@ -201,7 +201,7 @@ imagesRouter.message(StateCommand(StateTypes.Dalle3), async (message) => {
     const waitMsg = await message.answer('**⌛️Ожидайте генерацию...**\nПримерное время ожидания 15-30 секунд.');
     await message.bot.sendChatAction(message.chat.id, 'typing');
     imageService.setWaitingImage(userId, true);
-    const imgResult = await imageService.generateDalle(userId, message.text);
+    const imgResult = await imageService.generateDALLE(userId, message.text);
     await message.bot.sendChatAction(message.chat.id, 'typing');
     await message.answer(imgResult.text);
     await message.replyPhoto(imgResult.image);
@@ -394,7 +394,7 @@ async function generateBaseMidjourneyKeyboard(callbackQuery) {
 // Generate base DALL·E 3 keyboard
 async function generateBaseDalle3Keyboard(callbackQuery) {
   const userId = callbackQuery.from_user.id;
-  const currentSize = await imageService.getDalleSize(userId);
+  const currentSize = await imageService.getDALLESize(userId);
   const sizeText = (size) => currentSize === size ? `✅ ${size}` : size;
   await callbackQuery.message.editText('Параметры **Dall-e-3**:', { parse_mode: 'MarkdownV2' });
   await callbackQuery.message.editReplyMarkup({ reply_markup: new InlineKeyboardMarkup({
@@ -543,7 +543,7 @@ imagesRouter.callbackQuery(StartWithQuery('image-model'), async (callbackQuery) 
     const size = parts[2]; await imageService.setMidjourneySize(userId, size); return await generateBaseMidjourneyKeyboard(callbackQuery);
   }
   if (model === 'update-size-dalle') {
-    const size = parts[2]; await imageService.setDalleSize(userId, size); return await generateBaseDalle3Keyboard(callbackQuery);
+    const size = parts[2]; await imageService.setDALLESize(userId, size); return await generateBaseDalle3Keyboard(callbackQuery);
   }
   if (model === 'update-model') {
     const newModel = parts[2]; await imageService.setCurrentImage(userId, newModel); return await generateBaseStableDiffusionKeyboard(callbackQuery);
