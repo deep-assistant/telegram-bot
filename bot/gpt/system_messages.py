@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot.gpt.utils import checked_text
 from services.gpt_service import SystemMessages
+from services.repository_service import repositoryService
 
 from .db_system_message import default_system_message, happy_system_message, software_developer_system_message, question_answer_mode, promt_deep, transcribe
 
@@ -30,6 +31,19 @@ def get_system_message(value: str) -> str:
         return system_messages[value]
 
     return value
+
+
+def get_system_message_with_context(value: str, user_id: str) -> str:
+    """Get system message with repository context if available"""
+    base_message = get_system_message(value)
+    
+    # Get repository context for the user
+    repository_url = repositoryService.get_current_repository(user_id)
+    if repository_url:
+        repository_context = repositoryService.format_repository_context(repository_url)
+        return base_message + repository_context
+    
+    return base_message
 
 
 system_messages_list = list(map(lambda message: message.value, SystemMessages))
