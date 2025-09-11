@@ -15,6 +15,7 @@ import { paymentRouter } from './bot/payment/router.js';
 // import diagnosticsRouter from './bot/diagnostics/router.js';
 import { i18n } from './i18n.js';
 import { createLogger } from './utils/logger.js';
+import { rateLimitMiddleware } from './middleware/rate_limit.js';
 
 const log = createLogger('main');
 
@@ -139,6 +140,7 @@ async function startBot() {
   
   // Add middlewares
   currentBot.use(i18n);
+  currentBot.use(rateLimitMiddleware());
   currentBot.use(albumMiddleware());
   
   // Apply routers
