@@ -102,9 +102,10 @@ class GPTService {
     await dataBase.set(dbKey(userId, GPTService.CURRENT_SYSTEM_MESSAGE_KEY), value);
   }
 
-  getMappingGptModel(userId) {
+  async getMappingGptModel(userId) {
     // map stored model to API model
-    return gptModelsMap[this.getCurrentModel(userId)];
+    const currentModel = await this.getCurrentModel(userId);
+    return gptModelsMap[currentModel];
   }
 }
 

@@ -1,4 +1,5 @@
 import { Composer } from 'grammy';
+import { FSInputFile } from 'grammy';
 import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,6 +21,7 @@ import {
 } from '../commands.js';
 import { getSystemMessage, systemMessagesList, createSystemMessageKeyboard } from './system_messages.js';
 import { isChatMember, sendMarkdownMessage, getTokensMessage, createChangeModelKeyboard } from './utils.js';
+import { sendPhotoAsFile } from '../utils.js';
 import { formatImageFromRequest } from '../../services/image_utils.js';
 import { asyncPost, asyncGet } from '../../services/utils.js';
 import {
@@ -85,15 +87,15 @@ async function handleGptRequest(message, text) {
     // if (!agreed) return;
     const subscribed = await isChatMember(message);
     if (!subscribed) return;
-    if (!stateService.is_default_state(userId)) return;
+    if (!(await stateService.isDefaultState(userId))) return;
 
     const chatId = message.chat.id;
-    const botModel = gptService.get_current_model(userId);
-    const gptModel = gptService.get_mapping_gpt_model(userId);
+    const botModel = await gptService.getCurrentModel(userId);
+    const gptModel = await gptService.getMappingGptModel(userId);
     await message.bot.send_chat_action(chatId, 'typing');
 
     // System message and token check
-    let sysMsg = gptService.get_current_system_message(userId);
+    let sysMsg = await gptService.getCurrentSystemMessage(userId);
     const tokensBefore = await tokenizeService.get_tokens(userId);
     if ((tokensBefore.tokens || 0) <= 0) {
       await message.answer(
@@ -160,7 +162,7 @@ gptRouter.message(Photo(), async (message, album) => {
   // Extract highest-quality photos
   const photos = album.map(item => item.photo[item.photo.length - 1]);
   const userId = message.from_user.id;
-  if (!stateService.is_default_state(userId)) return;
+  if (!(await stateService.isDefaultState(userId))) return;
   const tokens = await tokenizeService.get_tokens(userId);
   if ((tokens.tokens || 0) < 0) {
     await message.answer(
@@ -335,10 +337,10 @@ gptRouter.message(TextCommand([CHANGE_SYSTEM_MESSAGE_COMMAND, CHANGE_SYSTEM_MESS
   const subscribed = await isChatMember(message);
   if (!subscribed) return;
   const userId = message.from_user.id;
-  let currentSystemMessage = gptService.get_current_system_message(userId);
+  let currentSystemMessage = await gptService.getCurrentSystemMessage(userId);
   if (!systemMessagesList.includes(currentSystemMessage)) {
     currentSystemMessage = SystemMessages.Custom;
-    gptService.set_current_system_message(userId, currentSystemMessage);
+    await gptService.setCurrentSystemMessage(userId, currentSystemMessage);
   }
   await message.answer(
     'Установи режим работы бота: ⚙️',
@@ -355,7 +357,7 @@ gptRouter.message(TextCommand([CHANGE_MODEL_COMMAND, CHANGE_MODEL_TEXT]), async 
   const subscribed = await isChatMember(message);
   if (!subscribed) return;
   const userId = message.from_user.id;
-  const currentModel = gptService.get_current_model(userId);
+  const currentModel = await gptService.getCurrentModel(userId);
   const infoText = `Выберите модель: 🤖\n**o3-mini:** ... \n**GPT-3.5-turbo:** ...`;
   await message.answer(infoText, { reply_markup: createChangeModelKeyboard(currentModel) });
   await new Promise(r => setTimeout(r, 500));
@@ -365,8 +367,8 @@ gptRouter.message(TextCommand([CHANGE_MODEL_COMMAND, CHANGE_MODEL_TEXT]), async 
 // State to capture custom system message
 gptRouter.message(StateCommand(StateTypes.SystemMessageEditing), async (message) => {
   const userId = message.from_user.id;
-  gptService.set_current_system_message(userId, message.text);
-  await systemMessage.edit_system_message(userId, message.text);
+  await gptService.setCurrentSystemMessage(userId, message.text);
+  await systemMessage.editSystemMessage(userId, message.text);
   await stateService.setCurrentState(userId, StateTypes.Default);
   await new Promise(r => setTimeout(r, 500));
   await message.answer('Режим успешно изменён!');
@@ -378,7 +380,7 @@ gptRouter.callbackQuery(StartWithQuery('cancel-system-edit'), async (callbackQue
   const parts = callbackQuery.data.split(' ');
   const systemMsg = parts.slice(1).join(' ');
   const userId = callbackQuery.from_user.id;
-  gptService.set_current_system_message(userId, systemMsg);
+  await gptService.setCurrentSystemMessage(userId, systemMsg);
   await stateService.setCurrentState(userId, StateTypes.Default);
   await callbackQuery.message.delete();
   await callbackQuery.answer('Успешно отменено!');
@@ -388,7 +390,7 @@ gptRouter.callbackQuery(StartWithQuery('cancel-system-edit'), async (callbackQue
 gptRouter.callbackQuery(TextCommandQuery(systemMessagesList), async (callbackQuery) => {
   const userId = callbackQuery.from_user.id;
   const sysMsg = callbackQuery.data;
-  const currentSys = gptService.get_current_system_message(userId);
+  const currentSys = await gptService.getCurrentSystemMessage(userId);
   if (sysMsg === currentSys && sysMsg !== SystemMessages.Custom) {
     await callbackQuery.answer('Данный режим уже выбран!');
     return;
@@ -396,7 +398,7 @@ gptRouter.callbackQuery(TextCommandQuery(systemMessagesList), async (callbackQue
   if (sysMsg === SystemMessages.Custom) {
     await stateService.setCurrentState(userId, StateTypes.SystemMessageEditing);
   } else {
-    gptService.set_current_system_message(userId, sysMsg);
+    await gptService.setCurrentSystemMessage(userId, sysMsg);
   }
   await callbackQuery.answer();
 });
@@ -404,7 +406,7 @@ gptRouter.callbackQuery(TextCommandQuery(systemMessagesList), async (callbackQue
 // Handle model selection
 gptRouter.callbackQuery(TextCommandQuery(Object.values(GPTModels)), async (callbackQuery) => {
   const userId = callbackQuery.from_user.id;
-  gptService.set_current_model(userId, callbackQuery.data);
+  await gptService.setCurrentModel(userId, callbackQuery.data);
   await callbackQuery.answer('Модель успешно изменена!');
 });
 
