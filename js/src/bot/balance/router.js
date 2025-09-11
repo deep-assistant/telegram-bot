@@ -9,12 +9,13 @@ const log = createLogger('balance_router');
 export const balanceRouter = new Composer();
 
 function formatBalanceMessage(ctx, { referral, gptTokens, getDateLine, acceptAccount }) {
+  const tokens = gptTokens?.tokens || 0;
   return ctx.t('balance.message', {
     referrals: referral.children.length,
     award: referral.award,
     accountStatus: acceptAccount(),
     dateLine: getDateLine(),
-    tokens: gptTokens.tokens || 0
+    tokens: tokens
   });
 }
 
@@ -23,7 +24,21 @@ async function sendBalance(ctx) {
   log.debug('Balance requested for user:', userId);
   try {
     const gptTokens = await tokenizeService.get_tokens(userId);
+    log.debug('gptTokens received:', gptTokens);
     const referral = await referralsService.getReferral(userId);
+    log.debug('referral received:', referral);
+    
+    if (!gptTokens) {
+      log.error('Failed to get gptTokens for user:', userId);
+      await sendMessage(ctx, ctx.t('balance.error'));
+      return;
+    }
+    
+    if (!referral) {
+      log.error('Failed to get referral for user:', userId);
+      await sendMessage(ctx, ctx.t('balance.error'));
+      return;
+    }
     const lastUpdate = new Date(referral.lastUpdate);
     const newDate = new Date(lastUpdate.getTime() + 24 * 60 * 60 * 1000);
     const currentDate = new Date();
