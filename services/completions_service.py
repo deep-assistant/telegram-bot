@@ -80,6 +80,16 @@ class CompletionsService:
             "masterToken": ADMIN_TOKEN
         }
 
+        # O1-series models (o1-mini, o1-preview, o3-mini) don't support system messages
+        # We need to either omit the system message or convert it to user message
+        o1_models = ['o1-mini', 'o1-preview', 'o3-mini']
+        
+        if gpt_model in o1_models:
+            # For o1-series models, prepend system message to user message instead
+            if system_message and system_message.strip():
+                message = f"System instructions: {system_message}\n\nUser message: {message}"
+            system_message = None  # Don't send system message for o1 models
+        
         payload = {
             'userId': get_user_name(user_id),
             'content': message,
