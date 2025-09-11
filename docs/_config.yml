@@ -1,0 +1,18 @@
+# GitHub Pages configuration
+title: Telegram Bot Agreement
+description: User Agreement and Privacy Policy for GPT Deep Telegram Bot
+
+# Use minimal theme for simple styling
+theme: minima
+
+# Enable plugins
+plugins:
+  - jekyll-optional-front-matter
+
+# Set default layout
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"

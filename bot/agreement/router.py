@@ -19,7 +19,7 @@ async def agreement_handler(message: Message) -> bool:
 
     if not is_agreement:
         await message.answer(
-            text="📑 Вы ознакомлены и принимаете [пользовательское соглашение](https://grigoriy-grisha.github.io/chat_gpt_agreement/) и [политику конфиденциальности](https://grigoriy-grisha.github.io/chat_gpt_agreement/PrivacyPolicy)?",
+            text="📑 Вы ознакомлены и принимаете [пользовательское соглашение](https://deep-assistant.github.io/telegram-bot/) и [политику конфиденциальности](https://deep-assistant.github.io/telegram-bot/privacy.html)?",
             reply_markup=InlineKeyboardMarkup(
                 resize_keyboard=True,
                 inline_keyboard=[
@@ -43,7 +43,7 @@ async def handle_change_system_message_query(callback_query: CallbackQuery):
         agreementService.set_agreement_status(callback_query.from_user.id, True)
         await callback_query.message.delete()
 
-    if callback_query.data == AgreementStatuses.ACCEPT_AGREEMENT.value:
+    if callback_query.data == AgreementStatuses.DECLINE_AGREEMENT.value:
         await callback_query.answer(
             "К сожалению, мы не можем вам предоставить функционал без подтверждения согласия! ☹️")
 
