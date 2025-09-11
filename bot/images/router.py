@@ -447,6 +447,26 @@ async def handle_generate_image(message: types.Message):
             )
             return
 
+        # Check for prompts starting with "/" which are not accepted by Midjourney
+        if message.text.strip().startswith('/'):
+            await message.answer(
+                """🚫 Запросы, начинающиеся с "/", не принимаются Midjourney.
+
+Пожалуйста, опишите что вы хотите создать без использования команд. Например: "Сибирский кот ест суп" вместо "/image сибирский кот ест суп".""",
+                reply_markup=InlineKeyboardMarkup(
+                    resize_keyboard=True,
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="Отмена ❌",
+                                callback_data="cancel-midjourney-generate"
+                            )
+                        ]
+                    ],
+                )
+            )
+            return
+
         banned_words_in_request = get_banned_words(message.text)
         if banned_words_in_request:
             await message.answer(
