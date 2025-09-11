@@ -64,6 +64,12 @@ class Document(BaseFilter):
         return message.document is not None
 
 
+class PngDocument(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        return (message.document is not None and 
+                message.document.mime_type == 'image/png')
+
+
 class Photo(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         return message.photo is not None
