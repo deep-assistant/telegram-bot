@@ -15,6 +15,7 @@ from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
 from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
+from bot.repository.router import repositoryRouter
 from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
@@ -31,6 +32,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(apiRouter)
     dp.include_router(agreementRouter)
     dp.include_router(imageEditingRouter)
+    dp.include_router(repositoryRouter)
     dp.include_router(taskRouter)
     dp.include_router(gptRouter)
 

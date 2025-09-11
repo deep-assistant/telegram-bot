@@ -21,7 +21,7 @@ from bot.filters import TextCommand, Document, Photo, TextCommandQuery, Voice, A
 from bot.gpt import change_model_command
 from bot.commands import change_system_message_command, change_system_message_text, change_model_text, \
     balance_text, balance_command, clear_command, clear_text, get_history_command, get_history_text
-from bot.gpt.system_messages import get_system_message, system_messages_list, \
+from bot.gpt.system_messages import get_system_message, get_system_message_with_context, system_messages_list, \
     create_system_message_keyboard
 from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_message, \
     create_change_model_keyboard, checked_text
@@ -120,7 +120,7 @@ async def handle_gpt_request(message: Message, text: str):
 /model - 🛠️ Сменить модель
 """)
             return
-        system_message = get_system_message(system_message)
+        system_message_with_context = get_system_message_with_context(system_message, str(user_id))
         if system_message == "question-answer":
             questionAnswer = True
         else:
@@ -129,7 +129,7 @@ async def handle_gpt_request(message: Message, text: str):
         answer = await completionsService.query_chatgpt(
             user_id,
             text,
-            system_message,
+            system_message_with_context,
             gpt_model,
             bot_model,
             questionAnswer,

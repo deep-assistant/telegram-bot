@@ -80,6 +80,24 @@ def here_and_now_command():
 def api_command():
     return "/api"
 
+def repository_command():
+    return "/repo"
+
+def repository_text():
+    return "📁 Установить репозиторий"
+
+def show_repository_command():
+    return "/show_repo"
+
+def show_repository_text():
+    return "📋 Показать текущий репозиторий"
+
+def clear_repository_command():
+    return "/clear_repo"
+
+def clear_repository_text():
+    return "🗑️ Очистить репозиторий"
+
 all_commands = [
     payment_command_start(),
     payment_command_text(),
@@ -108,4 +126,10 @@ all_commands = [
     suno_text(),
     here_and_now_command(),
     api_command(),
+    repository_command(),
+    repository_text(),
+    show_repository_command(),
+    show_repository_text(),
+    clear_repository_command(),
+    clear_repository_text(),
 ]
