@@ -9,6 +9,7 @@ from bot.filters import TextCommand
 from bot.commands import help_text, help_command, app_command
 from bot.gpt.utils import check_subscription
 from bot.main_keyboard import create_main_keyboard, send_message
+from bot.i18n import _
 from services import tokenizeService, referralsService
 
 startRouter = Router()
@@ -59,12 +60,8 @@ async def handle_referral(message, user_id, ref_user_id):
         await message.answer("❌ Некорректный реферальный ID.")
         return
     
-    await message.answer(text="""
-🎉 Вы получили *5 000*⚡️!
-
-/balance - ✨ Узнать баланс
-/referral - 🔗 Подробности рефералки
-""")
+    reward_text = _("referral.reward", user_id=user_id)
+    await message.answer(text=reward_text)
 
     await message.bot.send_message(
         chat_id=chat_id,  # Используем проверенный chat_id
@@ -87,9 +84,15 @@ async def start(message: types.Message):
     args_match = re.search(r'^/start\s(\S+)', message.text)
     ref_user_id = args_match.group(1) if args_match else None
 
+    # Get user ID for translations
+    user_id = message.from_user.id
+    
+    # Use translated welcome text
+    welcome_text = _("welcome.hello", user_id=user_id)
+    
     # always force sending the keyboard
-    keyboard = create_main_keyboard()
-    await send_message(message, text=hello_text, reply_markup=keyboard)
+    keyboard = create_main_keyboard(user_id)
+    await send_message(message, text=welcome_text, reply_markup=keyboard)
 
     await create_token_if_not_exist(message.from_user.id)
 
@@ -149,12 +152,13 @@ async def start(message: types.Message):
 @startRouter.callback_query(StartWithQuery("ref-is-subscribe"))
 async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
     ref_user_id = callback_query.data.split(" ")[1]
-    user_id = callback_query.data.split(" ")[2]
+    user_id = int(callback_query.data.split(" ")[2])
 
     is_subscribe = await check_subscription(callback_query.message, user_id)
 
     if not is_subscribe:
-        await callback_query.message.answer(text="Вы не подписались! 😡")
+        not_subscribed_text = _("status.not_subscribed", user_id=user_id)
+        await callback_query.message.answer(text=not_subscribed_text)
         return
 
     await handle_referral(callback_query.message, user_id, ref_user_id)
@@ -162,29 +166,11 @@ async def handle_ref_is_subscribe_query(callback_query: CallbackQuery):
 
 @startRouter.message(TextCommand([help_command(), help_text()]))
 async def help_command(message: types.Message):
-    await message.answer(text="""
-Основной ресурc для доступа к нейросетям - ⚡️ (энергия).
-Это универсальный ресурс для всего функционала бота.
-
-Каждая нейросеть тратит разное количество ⚡️.
-Количество затраченных ⚡️ зависит от длины истории диалога, моделей нейросетей и объёма ваших вопросов и ответов от нейросети.
-Для экономии используйте команду - /clear, чтобы не переполнять историю диалога и не увеличивать расход ⚡️ (энергии)! 
-Рекомендуется очищать контекст перед началом обсуждения новой темы. А также если выбранная модель начала отказывать в помощи.
-
-/app - 🔥 Получить ссылку к приложению!
-/start - 🔄 Рестарт бота, перезапускает бот, помогает обновить бота до последней версии.
-/model - 🛠️ Сменить модель, перезапускает бот, позволяет сменить модель бота.
-/system - ⚙️ Системное сообщение, позволяет сменить системное сообщение, чтобы изменить режим взаимодействия с ботом.   
-/clear - 🧹 Очистить контекст, помогает забыть боту всю историю.  
-/balance - ✨ Баланс, позволяет узнать баланс ⚡️.
-/image - 🖼️ Генерация картинки (Midjourney, DALL·E 3, Flux, Stable Diffusion)
-/buy - 💎 Пополнить баланс, позволяет пополнить баланс ⚡️.
-/referral - 🔗 Получить реферальную ссылку
-/suno - 🎵 Генерация музыки (Suno)
-/text - Отправить текстовое сообщение
-""")
+    help_text = _("help.info", user_id=message.from_user.id)
+    await message.answer(text=help_text)
 
 
 @startRouter.message(TextCommand([app_command()]))
 async def app_handler(message: Message):
-    await message.answer("""Ссылка на приложение: https://t.me/DeepGPTBot/App""")
+    app_link_text = _("app.link", user_id=message.from_user.id)
+    await message.answer(app_link_text)
