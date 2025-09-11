@@ -11,10 +11,10 @@ export function createMainKeyboard(ctx) {
   log.trace(() => `Creating main keyboard for user: ${ctx.from?.id}`);
   const keyboard = new Keyboard()
     .text(ctx.t('buttons.balance')).text(ctx.t('buttons.buy')).row()
-    .text(ctx.t('buttons.model')).text(ctx.t('buttons.system')).row()
-    .text(ctx.t('buttons.suno')).text(ctx.t('buttons.image')).row()
-    .text(ctx.t('buttons.clear')).text(ctx.t('buttons.history')).row()
-    .text(ctx.t('buttons.referral'))
+    .text(ctx.t('buttons.transfer')).text(ctx.t('buttons.model')).row()
+    .text(ctx.t('buttons.system')).text(ctx.t('buttons.suno')).row()
+    .text(ctx.t('buttons.image')).text(ctx.t('buttons.clear')).row()
+    .text(ctx.t('buttons.history')).text(ctx.t('buttons.referral'))
     .resized()
     .placeholder(ctx.t('main_keyboard.placeholder'));
   

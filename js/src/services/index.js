@@ -8,6 +8,7 @@ import { stateService, StateTypes } from './state_service.js';
 import { sunoService } from './suno_service.js';
 import { systemMessage } from './system_message_service.js';
 import { tokenizeService } from './tokenize_service.js';
+import { transferService } from './transfer_service.js';
 
 export {
   agreementService,
@@ -21,5 +22,6 @@ export {
   StateTypes,
   sunoService,
   systemMessage,
-  tokenizeService
+  tokenizeService,
+  transferService
 };

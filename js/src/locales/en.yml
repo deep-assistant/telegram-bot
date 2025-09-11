@@ -72,6 +72,7 @@ start:
 main_keyboard:
   balance: ✨ Balance
   buy: 💎 Top up
+  transfer: 🔄 Transfer
   model: 🛠️ Change model
   system: ⚙️ System message
   suno: 🎵 Music generation
@@ -84,6 +85,7 @@ main_keyboard:
 buttons:
   balance: ✨ Balance
   buy: 💎 Top up
+  transfer: 🔄 Transfer
   model: 🛠️ Change model
   system: ⚙️ System message
   suno: 🎵 Music generation
@@ -139,4 +141,96 @@ payment:
     title: "Thank you for supporting the project! 🤩"
     subtitle: "We'll soon be delighting you with new and cool features!"
     choose_amount: "Choose donation amount:"
-    label: "Donation" 
+    label: "Donation"
+
+transfer:
+  welcome: |
+    🔄 **Energy Transfer**
+    
+    Current balance: **{balance}⚡️**
+    
+    You can transfer energy to other bot users:
+    • Minimum transfer: **{minAmount}⚡️**
+    • Maximum transfer: **{maxAmount}⚡️** per transaction
+    • You must keep at least **{minRemaining}⚡️** in your account
+    
+    **Commands:**
+    /transfer - Start interactive transfer
+    /send <user_id> <amount> - Quick transfer
+  start_transfer: "🚀 Start Transfer"
+  transfer_help: "❓ Help"
+  help: |
+    🔄 **How to Transfer Energy**
+    
+    **Method 1: Interactive Transfer**
+    1\. Use /transfer command
+    2\. Click "Start Transfer"
+    3\. Enter recipient's Telegram ID
+    4\. Enter amount to transfer
+    5\. Confirm the transfer
+    
+    **Method 2: Quick Transfer**
+    `/send <user_id> <amount>`
+    Example: `/send 123456789 1000`
+    
+    **Important:**
+    • You can only transfer to other bot users
+    • Recipient must have used the bot at least once
+    • Transfers are immediate and cannot be undone
+    • Minimum transfer: **100⚡️**
+    • Maximum transfer: **100,000⚡️**
+    • You must keep at least **1,000⚡️** in your account
+  send_usage: |
+    **Usage:** `/send <user_id> <amount>`
+    
+    Example: `/send 123456789 1000`
+    
+    Transfer 1,000⚡️ to user with ID 123456789
+  enter_recipient: |
+    👤 **Enter Recipient**
+    
+    Please enter the recipient's Telegram user ID (numbers only).
+    
+    Example: `123456789`
+  enter_amount: |
+    💰 **Enter Amount**
+    
+    Please enter the amount of energy to transfer:
+    • Minimum: **{minAmount}⚡️**
+    • Maximum: **{maxAmount}⚡️**
+    
+    Example: `1000`
+  confirmation: |
+    ⚠️ **Confirm Transfer**
+    
+    **Recipient:** {recipient}
+    **Amount:** {amount}⚡️
+    
+    This action cannot be undone!
+  confirm: "✅ Confirm"
+  cancel: "❌ Cancel"
+  back: "⬅️ Back"
+  cancelled: "❌ Transfer cancelled."
+  success: |
+    ✅ **Transfer Successful!**
+    
+    Transferred **{amount}⚡️** to user {recipient}
+    Your new balance: **{newBalance}⚡️**
+  received: |
+    🎉 **Energy Received!**
+    
+    You received **{amount}⚡️** from user {sender}
+    Your new balance: **{newBalance}⚡️**
+  error: "❌ Transfer error. Please try again later."
+  failed: "❌ Transfer failed. Please try again."
+  invalid_recipient: "❌ Invalid recipient. Please provide a valid user ID."
+  invalid_recipient_format: "❌ Invalid format. Please enter the recipient's Telegram ID (numbers only)."
+  invalid_amount: "❌ Invalid amount. Please enter a valid number."
+  invalid_amount_format: "❌ Invalid amount format. Please enter a number."
+  cannot_transfer_to_self: "❌ You cannot transfer energy to yourself."
+  amount_too_small: "❌ Amount too small. Minimum transfer: **{minimum}⚡️**"
+  amount_too_large: "❌ Amount too large. Maximum transfer: **{maximum}⚡️**"
+  insufficient_balance: "❌ Insufficient balance. You have **{current}⚡️**, need **{required}⚡️**"
+  insufficient_remaining_balance: "❌ Transfer would leave you with insufficient balance. You need to keep at least **{minRemaining}⚡️**"
+  recipient_not_found: "❌ Recipient not found. They must use the bot at least once."
+  sender_not_found: "❌ Your account was not found. Please try /start first." 

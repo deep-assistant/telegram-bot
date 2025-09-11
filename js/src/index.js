@@ -7,6 +7,7 @@ import { startRouter } from './bot/start/router.js';
 // import apiRouter from './bot/api/router.js';
 import { balanceRouter } from './bot/balance/router.js';
 import { paymentRouter } from './bot/payment/router.js';
+import { transferRouter } from './bot/transfer/router.js';
 // import imageEditingRouter from './bot/image_editing/router.js';
 // import imagesRouter from './bot/images/router.js';
 // import referralRouter from './bot/referral/router.js';
@@ -81,6 +82,7 @@ function applyRouters(bot) {
   // bot.use(imageEditingRouter);
   // bot.use(taskRouter);
   bot.use(balanceRouter);
+  bot.use(transferRouter);
 }
 
 async function onStartup() {
