@@ -80,6 +80,18 @@ def here_and_now_command():
 def api_command():
     return "/api"
 
+def multi_mode_command():
+    return "/multi_mode"
+
+def multi_mode_text():
+    return "📋 Режим нескольких сообщений"
+
+def exit_multi_mode_command():
+    return "/exit_multi"
+
+def get_response_command():
+    return "/get_response"
+
 all_commands = [
     payment_command_start(),
     payment_command_text(),
@@ -108,4 +120,8 @@ all_commands = [
     suno_text(),
     here_and_now_command(),
     api_command(),
+    multi_mode_command(),
+    multi_mode_text(),
+    exit_multi_mode_command(),
+    get_response_command(),
 ]

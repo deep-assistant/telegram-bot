@@ -3,6 +3,7 @@ from services.completions_service import completionsService
 from services.gpt_service import gptService, GPTModels
 from services.image_editing import imageEditing
 from services.image_service import imageService
+from services.multi_mode_service import multiModeService
 from services.referrals_service import referralsService
 from services.state_service import stateService, StateTypes
 from services.suno_service import sunoService

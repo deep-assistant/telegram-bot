@@ -6,6 +6,7 @@ from db import data_base, db_key
 class StateTypes(Enum):
     Default = "default"
     SystemMessageEditing = "system_message_editing"
+    MultiMode = "multi_mode"
 
 
     Image = "image"
@@ -68,6 +69,10 @@ class StateService:
     def is_image_editing_state(self, user_id: str) -> bool:
         current_state = self.get_current_state(user_id)
         return current_state.value == StateTypes.ImageEditing.value
+
+    def is_multi_mode_state(self, user_id: str) -> bool:
+        current_state = self.get_current_state(user_id)
+        return current_state.value == StateTypes.MultiMode.value
 
 
 stateService = StateService()

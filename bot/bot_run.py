@@ -13,6 +13,7 @@ from bot.api.router import apiRouter
 from bot.gpt import gptRouter
 from bot.image_editing import imageEditingRouter
 from bot.images import imagesRouter
+from bot.multi_mode import multiModeRouter
 from bot.payment import paymentsRouter
 from bot.referral.router import referralRouter
 from bot.start import startRouter
@@ -32,6 +33,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(agreementRouter)
     dp.include_router(imageEditingRouter)
     dp.include_router(taskRouter)
+    dp.include_router(multiModeRouter)
     dp.include_router(gptRouter)
 
 # todo пофиксить
