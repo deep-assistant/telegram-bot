@@ -58,6 +58,19 @@ class CompletionsService {
 
   async queryChatGPT(userId, message, systemMessage, gptModel, botModel, singleMessage) {
     const params = { masterToken: config.adminToken };
+    
+    // O1-series models (o1-mini, o1-preview, o3-mini) don't support system messages
+    // We need to either omit the system message or convert it to user message
+    const o1Models = ['o1-mini', 'o1-preview', 'o3-mini'];
+    
+    if (o1Models.includes(gptModel)) {
+      // For o1-series models, prepend system message to user message instead
+      if (systemMessage && systemMessage.trim()) {
+        message = `System instructions: ${systemMessage}\n\nUser message: ${message}`;
+      }
+      systemMessage = null; // Don't send system message for o1 models
+    }
+    
 const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
 const response = await asyncPost(`${config.proxyUrl}/completions`, { params, json: payload });
     if (response.status === 200) {
