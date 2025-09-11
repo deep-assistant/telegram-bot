@@ -115,7 +115,18 @@ errors:
 
     /balance - ✨ Check balance
     /buy - 💎 Top up
-    /referral - 👥 Invite a friend to get more **⚡️**! 
+    /referral - 👥 Invite a friend to get more **⚡️**!
+
+rate_limit:
+  exceeded: |
+    ⚠️ **Rate limit exceeded!**
+
+    You have exceeded the limit of **{limit}** requests per minute.
+    Current count: **{current}/{limit}**
+
+    Try again in {resetMinutes}m {resetSeconds}s.
+
+    💡 **Tip:** Purchase more energy to increase your rate limit! 
 
 payment:
   choose_model: "Choose model for balance top-up"

@@ -18,4 +18,9 @@ export const config = {
   telegramApiHash: process.env.TELEGRAM_API_HASH || "",
   telegramPhone: process.env.TELEGRAM_PHONE || "",
   telegramBotName: process.env.TELEGRAM_BOT_NAME || "@DeepGPTBot",
+  // Rate limiting configuration
+  rateLimitEnabled: process.env.RATE_LIMIT_ENABLED === "true" || true,
+  defaultRequestsPerMinute: parseInt(process.env.DEFAULT_REQUESTS_PER_MINUTE) || 10,
+  premiumRequestsPerMinute: parseInt(process.env.PREMIUM_REQUESTS_PER_MINUTE) || 30,
+  premiumEnergyThreshold: parseInt(process.env.PREMIUM_ENERGY_THRESHOLD) || 50000,
 };
