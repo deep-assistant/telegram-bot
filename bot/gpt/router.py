@@ -310,19 +310,19 @@ async def transcribe_voice(user_id: int, voice_file_url: str):
 
 @gptRouter.message(Voice())
 @gptRouter.message(Audio())
-async def handle_voice(message: Message):
+async def handle_voice(message: Message, batch_messages=None):
     if message.chat.type in ['group', 'supergroup']:
         if message.entities is None:
             return
         mentions = [entity for entity in message.entities if entity.type == 'mention']
         if not any(mention.offset <= 0 < mention.offset + mention.length for mention in mentions):
             return
-        
+
     user_id = message.from_user.id
 
     if not stateService.is_default_state(user_id):
         return
-        
+
     tokens = await tokenizeService.get_tokens(user_id)
     if tokens.get("tokens") < 0:
         await message.answer("""
@@ -330,7 +330,7 @@ async def handle_voice(message: Message):
 
 /balance - ✨ Проверить Баланс
 /buy - 💎 Пополнить баланс
-/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!       
+/referral - 👥 Пригласить друга, чтобы получить больше *⚡️*!
 """)
         stateService.set_current_state(user_id, StateTypes.Default)
         return
@@ -340,39 +340,59 @@ async def handle_voice(message: Message):
     if not is_subscribe:
         return
 
+    # Handle batch of audio/voice messages (e.g., forwarded messages)
+    messages_to_process = batch_messages if batch_messages else [message]
 
-    if message.voice is not None:
-        messageData = message.voice
-    else: 
-        messageData = message.audio
+    all_transcriptions = []
+    total_energy = 0
 
+    for msg in messages_to_process:
+        # Skip messages without voice or audio
+        if msg.voice is None and msg.audio is None:
+            continue
 
-    duration = messageData.duration
-    voice_file_id = messageData.file_id
-    file = await message.bot.get_file(voice_file_id)
-    file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
+        if msg.voice is not None:
+            messageData = msg.voice
+        else:
+            messageData = msg.audio
 
-    response_json = await transcribe_voice(message.from_user.id, file_url)
+        duration = messageData.duration
+        voice_file_id = messageData.file_id
+        file = await msg.bot.get_file(voice_file_id)
+        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
-    if response_json.get("success"):
-        await message.answer(f"""
-🎤 Обработка аудио затратила `{response_json.get("energy")}`⚡️ 
+        response_json = await transcribe_voice(msg.from_user.id, file_url)
+
+        if response_json.get("success"):
+            all_transcriptions.append(response_json.get('text'))
+            total_energy += response_json.get("energy", 0)
+        else:
+            await message.answer(response_json.get('text'))
+            return
+
+    # If no transcriptions were successful, return early
+    if not all_transcriptions:
+        return
+
+    # Report total energy used
+    await message.answer(f"""
+🎤 Обработка аудио затратила `{total_energy}`⚡️
 
 ❔ /help - Информация по ⚡️
 """)
 
-        
-        current_state = stateService.get_current_state(message.from_user.id) 
-        print(current_state, 'current_state')
-        print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')
-        if current_state == StateTypes.Transcribe:  
-            await message.reply(response_json.get('text'))  
-            return
-            
-        await handle_gpt_request(message, response_json.get('text'))
+    current_state = stateService.get_current_state(message.from_user.id)
+    print(current_state, 'current_state')
+    print(StateTypes.Transcribe, 'StateTypes.TranscribeStateTypes.Transcribe')
+
+    # Combine all transcriptions
+    combined_text = "\n\n".join(all_transcriptions)
+
+    if current_state == StateTypes.Transcribe:
+        await message.reply(combined_text)
         return
 
-    await message.answer(response_json.get('text'))
+    await handle_gpt_request(message, combined_text)
 
 @gptRouter.message(Document())
 async def handle_document(message: Message):
