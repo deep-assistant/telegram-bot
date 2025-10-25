@@ -765,6 +765,12 @@ async def handle_bot_command(message: Message, batch_messages):
 
 @gptRouter.message()
 async def handle_completion(message: Message, batch_messages):
+    user_id = message.from_user.id
+    
+    # Skip messages in multi-mode state
+    if stateService.is_multi_mode_state(user_id):
+        return
+    
     if message.chat.type in ['group', 'supergroup']:
         # Проверяем наличие упоминаний
         if not message.entities:
