@@ -4,6 +4,7 @@ import { OpenAI } from './openai_stub.js';
 import { getUserName } from '../bot/utils.js';
 import { DEFAULT_ERROR_MESSAGE } from '../bot/constants.js';
 import { asyncPost } from './utils.js';
+import { apiPriorityService } from './api_priority_service.js';
 
 // In-memory storage for history and conversation toggle flags
 const history = {};
@@ -57,24 +58,84 @@ class CompletionsService {
   }
 
   async queryChatGPT(userId, message, systemMessage, gptModel, botModel, singleMessage) {
-    const params = { masterToken: config.adminToken };
-const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
-const response = await asyncPost(`${config.proxyUrl}/completions`, { params, json: payload });
-    if (response.status === 200) {
-      const completions = await response.json();
-      const responseContent = completions.choices[0].message.content;
-      const responseModel = completions.model;
-      let reasoningContent = null;
-      const firstThink = responseContent.indexOf('<think>');
-      const lastThink = responseContent.indexOf('</think>');
-      if (firstThink !== -1 && lastThink !== -1) {
-        reasoningContent = responseContent.substring(firstThink, lastThink + '</think>'.length);
+    const requestContext = {
+      userId,
+      hasMedia: Array.isArray(message) && message.some(m => m.type === 'image_url'),
+      singleMessage
+    };
+
+    // Get the best API provider for this model
+    const bestProvider = apiPriorityService.getBestApiForModel(gptModel, requestContext);
+    const startTime = Date.now();
+
+    try {
+      const params = { masterToken: config.adminToken };
+      const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
+      
+      // Use the selected provider's URL
+      const apiUrl = `${bestProvider.url}/completions`;
+      const response = await asyncPost(apiUrl, { params, json: payload });
+      
+      const responseTime = Date.now() - startTime;
+
+      if (response.status === 200) {
+        const completions = await response.json();
+        const responseContent = completions.choices[0].message.content;
+        const responseModel = completions.model;
+        
+        // Estimate tokens used (rough approximation)
+        const tokensUsed = Math.ceil((responseContent.length + (typeof message === 'string' ? message.length : JSON.stringify(message).length)) / 4);
+        
+        // Record successful request
+        apiPriorityService.recordSuccess(bestProvider.id, responseTime, tokensUsed);
+
+        let reasoningContent = null;
+        const firstThink = responseContent.indexOf('<think>');
+        const lastThink = responseContent.indexOf('</think>');
+        if (firstThink !== -1 && lastThink !== -1) {
+          reasoningContent = responseContent.substring(firstThink, lastThink + '</think>'.length);
+        }
+        const finalContent = reasoningContent ? responseContent.replace(reasoningContent, '').trim() : responseContent;
+        return { success: true, response: finalContent, model: responseModel, provider: bestProvider.id };
+      } else {
+        const errData = await response.json();
+        const error = new Error(`API Error: ${errData.message || 'Unknown error'}`);
+        apiPriorityService.recordFailure(bestProvider.id, error);
+        return { success: false, response: `Ошибка 😔: ${errData.message}` };
       }
-      const finalContent = reasoningContent ? responseContent.replace(reasoningContent, '').trim() : responseContent;
-      return { success: true, response: finalContent, model: responseModel };
-    } else {
-      const errData = await response.json();
-      return { success: false, response: `Ошибка 😔: ${errData.message}` };
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      apiPriorityService.recordFailure(bestProvider.id, error);
+      
+      // Try fallback provider if available
+      if (bestProvider.id !== 'primary') {
+        console.log(`Falling back to primary provider due to error: ${error.message}`);
+        const fallbackProvider = { id: 'primary', url: config.proxyUrl };
+        try {
+          const params = { masterToken: config.adminToken };
+          const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
+          const response = await asyncPost(`${fallbackProvider.url}/completions`, { params, json: payload });
+          
+          if (response.status === 200) {
+            const completions = await response.json();
+            const responseContent = completions.choices[0].message.content;
+            const responseModel = completions.model;
+            
+            let reasoningContent = null;
+            const firstThink = responseContent.indexOf('<think>');
+            const lastThink = responseContent.indexOf('</think>');
+            if (firstThink !== -1 && lastThink !== -1) {
+              reasoningContent = responseContent.substring(firstThink, lastThink + '</think>'.length);
+            }
+            const finalContent = reasoningContent ? responseContent.replace(reasoningContent, '').trim() : responseContent;
+            return { success: true, response: finalContent, model: responseModel, provider: 'primary-fallback' };
+          }
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+        }
+      }
+      
+      return { success: false, response: `Ошибка 😔: ${error.message}` };
     }
   }
 
