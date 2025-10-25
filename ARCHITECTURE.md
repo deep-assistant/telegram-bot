@@ -858,10 +858,10 @@ const logger = pino({
 
 ### Optimization Opportunities
 
-1. **Caching**: Redis for frequent queries
+1. **Data Storage**: Migrate to [links-notation](https://github.com/link-foundation/links-notation) for human-readable persistence, then to [Doublets](https://github.com/linksplatform/Data.Doublets) for high-performance associative storage (> 10k users)
 2. **Message Queuing**: Bull/BullMQ for background tasks
 3. **Load Balancing**: Multiple bot instances with same token
-4. **Database**: Migrate Python to PostgreSQL for > 10k users
+4. **Associative Knowledge Network**: Store conversation history as associative links in Doublets for efficient Associative Knowledge Network representation
 5. **CDN**: Cache static attachments
 
 ---
@@ -905,16 +905,16 @@ const logger = pino({
 
 ### Recommended Improvements
 
-1. Migrate Python to PostgreSQL
-2. Implement proper Redis persistence for JS
-3. Add comprehensive test coverage
-4. Standardize error messages
-5. Add request tracing/correlation IDs
-6. Implement circuit breakers for external APIs
-7. Add health check endpoints
-8. Improve logging structure
-9. Add metrics/monitoring (Prometheus)
-10. Document API contract with API Gateway
+1. **Database Migration**: Migrate from SQLite/Vedis/Redis to [links-notation](https://github.com/link-foundation/links-notation) (file-based human-readable) and then to [Doublets](https://github.com/linksplatform/Data.Doublets) (binary associative data store) for all stored data
+2. Add comprehensive test coverage
+3. Standardize error messages (choose single language or proper i18n)
+4. Add request tracing/correlation IDs
+5. Implement circuit breakers for external APIs
+6. Add health check endpoints
+7. Improve logging structure
+8. Add metrics/monitoring (Prometheus)
+9. Document API contract with API Gateway
+10. Migrate conversation history to Doublets for efficient Associative Knowledge Network storage
 
 ---
 
