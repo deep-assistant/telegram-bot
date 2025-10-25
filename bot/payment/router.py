@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 
+import config
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, LabeledPrice
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -160,16 +161,89 @@ def get_star_price_keyboard(base_callback: str, prices: [int], model):
     return buttons
 
 
+def get_star_price_keyboard_with_contribution(base_callback: str, prices: [int], model):
+    buttons = []
+
+    for price in prices:
+        format_price = f'{price:,}'
+        base_star_price = get_star_price(price, model)
+
+        buttons.append([
+            InlineKeyboardButton(
+                text=f"{format_price}⚡️ (базовая стоимость: {base_star_price} ⭐️)",
+                callback_data=f"{base_callback} {format_price} {base_star_price} {model}"
+            ),
+        ])
+
+    return buttons
+
+
+def get_rub_price_keyboard_with_contribution(base_callback: str, prices: [int], model):
+    buttons = []
+
+    for price in prices:
+        format_price = f'{price:,}'
+        base_rub_price = get_price_rub(price, model)
+
+        buttons.append([
+            InlineKeyboardButton(
+                text=f"{format_price}⚡️ (базовая стоимость: {base_rub_price} RUB)",
+                callback_data=f"{base_callback} {format_price} {base_rub_price} {model}"
+            ),
+        ])
+
+    return buttons
+
+
+def create_contribution_keyboard(payment_method: str, tokens: str, base_price: int, model: str):
+    contribution_amounts = [0, 10, 25, 50, 100, 250]
+    buttons = []
+    
+    for amount in contribution_amounts:
+        total_price = base_price + amount
+        if amount == 0:
+            text = f"Только базовая стоимость ({base_price} {'⭐️' if payment_method == 'stars' else 'RUB'})"
+        else:
+            text = f"+{amount} {'⭐️' if payment_method == 'stars' else 'RUB'} поддержка (итого: {total_price} {'⭐️' if payment_method == 'stars' else 'RUB'})"
+        
+        buttons.append([
+            InlineKeyboardButton(
+                text=text,
+                callback_data=f"confirm_payment {payment_method} {tokens} {base_price} {amount} {model}"
+            )
+        ])
+    
+    buttons.append([
+        InlineKeyboardButton(
+            text="💡 Ввести свою сумму поддержки",
+            callback_data=f"custom_contribution {payment_method} {tokens} {base_price} {model}"
+        )
+    ])
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
 @paymentsRouter.callback_query(StartWithQuery("buy_method_stars"))
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text("Насколько ⚡️ вы хотите пополнить баланс?")
+    transparency_text = """
+💰 Выберите количество токенов для пополнения баланса
+
+🔍 **Прозрачность использования средств:**
+• Базовая стоимость покрывает операционные расходы
+• Дополнительные взносы идут на развитие бота
+• Все средства инвестируются в улучшение сервиса
+
+Насколько ⚡️ вы хотите пополнить баланс?
+"""
+    
+    await callback_query.message.edit_text(transparency_text)
 
     await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
         inline_keyboard=[
-            *get_star_price_keyboard(
-                "buy_stars",
+            *get_star_price_keyboard_with_contribution(
+                "select_contribution_stars",
                 [25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000],
                 model
             ),
@@ -183,13 +257,24 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
 @paymentsRouter.callback_query(StartWithQuery("buy_method_card"))
 async def handle_buy_balance_model_query(callback_query: CallbackQuery):
     model = callback_query.data.split(" ")[1]
-    await callback_query.message.edit_text("Насколько ⚡️ вы хотите пополнить баланс?")
+    transparency_text = """
+💰 Выберите количество токенов для пополнения баланса
+
+🔍 **Прозрачность использования средств:**
+• Базовая стоимость покрывает операционные расходы
+• Дополнительные взносы идут на развитие бота
+• Все средства инвестируются в улучшение сервиса
+
+Насколько ⚡️ вы хотите пополнить баланс?
+"""
+    
+    await callback_query.message.edit_text(transparency_text)
 
     await callback_query.message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(
         resize_keyboard=True,
         inline_keyboard=[
-            *get_rub_price_keyboard(
-                "buy_card",
+            *get_rub_price_keyboard_with_contribution(
+                "select_contribution_card",
                 [100000, 250000, 500000, 1000000, 2500000, 5000000],
                 model
             ),
@@ -198,6 +283,148 @@ async def handle_buy_balance_model_query(callback_query: CallbackQuery):
                                      callback_data=f"back_buy_method {model}"),
             ]
         ]))
+
+
+# Обработчик выбора взноса для Telegram Stars
+@paymentsRouter.callback_query(StartWithQuery("select_contribution_stars"))
+async def handle_contribution_stars_selection(callback_query: CallbackQuery):
+    tokens = callback_query.data.split(" ")[1]
+    base_price = int(callback_query.data.split(" ")[2])
+    model = callback_query.data.split(" ")[3]
+    
+    contribution_text = f"""
+💰 **Пополнение баланса: {tokens}⚡️**
+
+💡 **Базовая стоимость:** {base_price} ⭐️
+• Покрывает операционные расходы
+
+🚀 **Дополнительная поддержка (необязательно):**
+• Помогает развивать новые функции
+• Улучшает качество сервиса
+• Поддерживает команду разработчиков
+
+Выберите сумму поддержки:
+"""
+    
+    await callback_query.message.edit_text(contribution_text)
+    await callback_query.message.edit_reply_markup(
+        reply_markup=create_contribution_keyboard("stars", tokens, base_price, model)
+    )
+
+
+# Обработчик выбора взноса для карты
+@paymentsRouter.callback_query(StartWithQuery("select_contribution_card"))
+async def handle_contribution_card_selection(callback_query: CallbackQuery):
+    tokens = callback_query.data.split(" ")[1]
+    base_price = int(callback_query.data.split(" ")[2])
+    model = callback_query.data.split(" ")[3]
+    
+    contribution_text = f"""
+💰 **Пополнение баланса: {tokens}⚡️**
+
+💡 **Базовая стоимость:** {base_price} RUB
+• Покрывает операционные расходы
+
+🚀 **Дополнительная поддержка (необязательно):**
+• Помогает развивать новые функции
+• Улучшает качество сервиса
+• Поддерживает команду разработчиков
+
+Выберите сумму поддержки:
+"""
+    
+    await callback_query.message.edit_text(contribution_text)
+    await callback_query.message.edit_reply_markup(
+        reply_markup=create_contribution_keyboard("card", tokens, base_price, model)
+    )
+
+
+# Обработчик подтверждения платежа
+@paymentsRouter.callback_query(StartWithQuery("confirm_payment"))
+async def handle_payment_confirmation(callback_query: CallbackQuery):
+    parts = callback_query.data.split(" ")
+    payment_method = parts[1]
+    tokens = parts[2]
+    base_price = int(parts[3])
+    contribution = int(parts[4])
+    model = parts[5]
+    
+    total_amount = base_price + contribution
+    
+    if payment_method == "stars":
+        await callback_query.message.answer_invoice(
+            title="Покупка ⚡️ с поддержкой проекта",
+            description=f"Купить {tokens}⚡️ (базовая стоимость: {base_price}⭐️, поддержка: {contribution}⭐️)",
+            prices=[LabeledPrice(label="XTR", amount=total_amount)],
+            provider_token="",
+            payload=f"buy_balance {tokens.replace(',', '')} {model} stars {base_price} {contribution}",
+            currency="XTR",
+            reply_markup=payment_keyboard(total_amount),
+        )
+    else:  # card
+        await callback_query.bot.send_invoice(
+            callback_query.message.chat.id,
+            **buy_balance_product,
+            description=f"🤩 Покупка {tokens}⚡️ с поддержкой проекта (базовая стоимость: {base_price} RUB, поддержка: {contribution} RUB)",
+            payload=f"buy_balance {tokens.replace(',', '')} {model} card {base_price} {contribution}",
+            prices=[types.LabeledPrice(label=f"Покупка {tokens}⚡️ с поддержкой", amount=total_amount * 100)],
+            provider_data=json.dumps(
+                {
+                    "receipt": {
+                        "items": [{
+                            "description": f"🤩 Покупка {tokens}⚡️ с поддержкой проекта",
+                            "quantity": "1",
+                            "amount": {
+                                "value": str(total_amount) + ".00",
+                                "currency": "RUB",
+                            },
+                            "vat_code": 1,
+                            "payment_mode": "full_payment",
+                            "payment_subject": "commodity"
+                        }],
+                        "email": "edtimyr@gmail.com"
+                    }
+                }
+            )
+        )
+    
+    await asyncio.sleep(0.5)
+    await callback_query.message.delete()
+
+
+# Обработчик кастомного взноса
+@paymentsRouter.callback_query(StartWithQuery("custom_contribution"))
+async def handle_custom_contribution(callback_query: CallbackQuery):
+    parts = callback_query.data.split(" ")
+    payment_method = parts[1]
+    tokens = parts[2]
+    base_price = int(parts[3])
+    model = parts[4]
+    
+    custom_text = f"""
+💰 **Пополнение баланса: {tokens}⚡️**
+
+💡 **Базовая стоимость:** {base_price} {'⭐️' if payment_method == 'stars' else 'RUB'}
+
+💝 **Введите свою сумму поддержки:**
+Отправьте число от 1 до 1000 {'⭐️' if payment_method == 'stars' else 'RUB'}
+
+Или выберите "Только базовая стоимость" для продолжения без дополнительной поддержки.
+"""
+    
+    back_button = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="Только базовая стоимость",
+            callback_data=f"confirm_payment {payment_method} {tokens} {base_price} 0 {model}"
+        )],
+        [InlineKeyboardButton(
+            text="⬅️ Назад к выбору суммы",
+            callback_data=f"select_contribution_{payment_method} {tokens} {base_price} {model}"
+        )]
+    ])
+    
+    await callback_query.message.edit_text(custom_text)
+    await callback_query.message.edit_reply_markup(reply_markup=back_button)
 
 
 # Обработчик запроса отправки инвойса (Telegram Stars)
@@ -295,15 +522,46 @@ async def successful_payment(message: types.Message):
     if message.successful_payment.invoice_payload.startswith("buy_balance"):
         await tokenizeService.get_tokens(message.from_user.id)
 
-        tokens = int(message.successful_payment.invoice_payload.split(" ")[1])
+        payload_parts = message.successful_payment.invoice_payload.split(" ")
+        tokens = int(payload_parts[1])
         await tokenizeService.update_token(message.from_user.id, tokens)
 
-        if message.successful_payment.invoice_payload.split(" ")[3] == "stars":
-            await message.answer(
-                f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
+        # Check if this payment includes contribution information (new format)
+        if len(payload_parts) >= 6:  # New format: buy_balance tokens model payment_method base_price contribution
+            base_price = int(payload_parts[4])
+            contribution = int(payload_parts[5])
+            payment_method = payload_parts[3]
+            
+            if contribution > 0:
+                if payment_method == "stars":
+                    await message.answer(
+                        f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\n"
+                        f"💰 Базовая стоимость: *{base_price}*⭐️\n"
+                        f"🚀 Поддержка проекта: *{contribution}*⭐️\n"
+                        f"⚡️ Ваш баланс пополнен на *{tokens}*⚡️\n\n"
+                        f"🙏 Спасибо за поддержку развития проекта!")
+                else:
+                    await message.answer(
+                        f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\n"
+                        f"💰 Базовая стоимость: *{base_price}* RUB\n"
+                        f"🚀 Поддержка проекта: *{contribution}* RUB\n"
+                        f"⚡️ Ваш баланс пополнен на *{tokens}*⚡️\n\n"
+                        f"🙏 Спасибо за поддержку развития проекта!")
+            else:
+                if payment_method == "stars":
+                    await message.answer(
+                        f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
+                else:
+                    await message.answer(
+                        f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
         else:
-            await message.answer(
-                f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
+            # Legacy format compatibility
+            if len(payload_parts) >= 4 and payload_parts[3] == "stars":
+                await message.answer(
+                    f"🤩 Платёж на сумму *{message.successful_payment.total_amount} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
+            else:
+                await message.answer(
+                    f"🤩 Платёж на сумму *{message.successful_payment.total_amount // 100} {message.successful_payment.currency}* прошел успешно! 🤩\n\nВаш баланс пополнен на *{tokens}*⚡️!")
 
         gpt_tokens = await tokenizeService.get_tokens(message.from_user.id)
 
