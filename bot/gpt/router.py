@@ -80,7 +80,14 @@ def detect_model(model: str):
         
     return None
 
-async def handle_gpt_request(message: Message, text: str):
+async def handle_gpt_request(message: Message, text):
+    """
+    Handle GPT requests, supporting both text and multimodal (image + text) content.
+
+    Args:
+        message: The Telegram message object
+        text: Either a string (for text-only) or a list (for multimodal content with images)
+    """
     user_id = message.from_user.id
     message_loading = await message.answer("**⌛️Ожидайте ответ...**")
 
@@ -94,7 +101,7 @@ async def handle_gpt_request(message: Message, text: str):
 
         if not is_subscribe:
             return
-        
+
         if not stateService.is_default_state(user_id):
             return
 
@@ -115,7 +122,7 @@ async def handle_gpt_request(message: Message, text: str):
 У вас не хватает *⚡️*. 😔
 
 /balance - ✨ Проверить Баланс
-/buy - 💎 Пополнить баланс 
+/buy - 💎 Пополнить баланс
 /referral - 👥 Пригласить друга, чтобы получить бесплатно *⚡️*!
 /model - 🛠️ Сменить модель
 """)

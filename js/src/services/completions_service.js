@@ -56,10 +56,21 @@ class CompletionsService {
     history[userId] = cutDialog.reverse();
   }
 
+  /**
+   * Query ChatGPT with either text or multimodal content.
+   *
+   * @param {number} userId - User ID
+   * @param {string|Array} message - Either a string (text) or array (multimodal with images)
+   * @param {string} systemMessage - System prompt
+   * @param {string} gptModel - Model name
+   * @param {string} botModel - Bot model
+   * @param {boolean} singleMessage - Whether to use single message mode
+   * @returns {Promise<{success: boolean, response: string, model: string}>}
+   */
   async queryChatGPT(userId, message, systemMessage, gptModel, botModel, singleMessage) {
     const params = { masterToken: config.adminToken };
-const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
-const response = await asyncPost(`${config.proxyUrl}/completions`, { params, json: payload });
+    const payload = { userId: getUserName(userId), content: message, systemMessage, model: gptModel };
+    const response = await asyncPost(`${config.proxyUrl}/completions`, { params, json: payload });
     if (response.status === 200) {
       const completions = await response.json();
       const responseContent = completions.choices[0].message.content;

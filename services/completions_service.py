@@ -75,6 +75,20 @@ class CompletionsService:
         history[user_id] = list(reversed(cut_dialog))
 
     async def query_chatgpt(self, user_id, message, system_message, gpt_model: str, bot_model: GPTModels, singleMessage: bool) -> Any:
+        """
+        Query ChatGPT with either text or multimodal content.
+
+        Args:
+            user_id: User ID
+            message: Either a string (text) or list (multimodal with images)
+            system_message: System prompt
+            gpt_model: Model name
+            bot_model: Bot model enum
+            singleMessage: Whether to use single message mode
+
+        Returns:
+            Dict with success status, response text, and model name
+        """
 
         params = {
             "masterToken": ADMIN_TOKEN
