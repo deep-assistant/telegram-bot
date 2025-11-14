@@ -9,6 +9,14 @@ import path from 'path';
  *
  * This test verifies that when a user sends images with a caption to the bot,
  * the bot properly recognizes and processes the images, rather than ignoring them.
+ *
+ * Test scenarios:
+ * 1. Direct send - Send photo with caption directly to bot
+ * 2. Reply in group - Reply to photo message in group chat (mentions bot)
+ * 3. Forward - Forward photo message to bot
+ *
+ * Root cause: bot/gpt/router.py checks message.entities instead of
+ * message.caption_entities for photo messages in groups, causing early exit.
  */
 
 async function waitForMessage(client, botUsername, timeoutMs = 15000) {

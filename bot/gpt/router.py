@@ -231,18 +231,20 @@ async def handle_image(message: Message):
 @gptRouter.message(Photo())
 async def handle_image(message: Message, album):
     if message.chat.type in ['group', 'supergroup']:
-        if message.entities is None:
+        # For photo messages, check caption_entities (not entities)
+        # Photos can have captions with mentions, not text with entities
+        if message.caption_entities is None:
             return
 
-        # Получаем список всех сущностей типа 'mention'
+        # Get all mention entities
         mentions = [
-            entity for entity in message.entities if entity.type == 'mention'
+            entity for entity in message.caption_entities if entity.type == 'mention'
         ]
 
-        # Проверяем, упомянут ли бот
+        # Check if bot is mentioned in the caption
         if not any(
             mention.offset <= 0 < mention.offset + mention.length and
-            message.text[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
+            message.caption[mention.offset + 1:mention.offset + mention.length] == 'DeepGPTBot'
             for mention in mentions
         ):
             return
