@@ -28,9 +28,11 @@ from bot.gpt.utils import is_chat_member, send_markdown_message, get_tokens_mess
 from bot.utils import include
 from bot.utils import send_photo_as_file
 from bot.constants import DIALOG_CONTEXT_CLEAR_FAILED_DEFAULT_ERROR_MESSAGE
+import config
 from config import TOKEN, GO_API_KEY, PROXY_URL
 from services import gptService, GPTModels, completionsService, tokenizeService, referralsService, stateService, \
     StateTypes, systemMessage
+from services import get_adlean_service
 from services.gpt_service import SystemMessages
 from services.image_utils import format_image_from_request
 from services.utils import async_post, async_get
@@ -175,10 +177,77 @@ async def handle_gpt_request(message: Message, text: str):
             await message_loading.delete()
 
             return
+        
+        # ========== AdLean Integration ==========
+        print(f"[AdLean] Starting ad integration for user {user_id}")
+        
+        # Увеличиваем счетчик запросов пользователя
+        try:
+            requests_count = tokenizeService.increment_requests_count(user_id)
+            print(f"[AdLean] User {user_id} requests count = {requests_count}")
+        except Exception as e:
+            print(f"[AdLean] ERROR in increment_requests_count: {e}")
+            requests_count = 1
+        
+        # Получаем ответ от GPT
+        gpt_response = answer.get("response")
+        print(f"[AdLean] GPT response length = {len(gpt_response)} chars")
+        
+        # Проверяем, нужно ли запрашивать рекламу
+        ad_response = {"have_ads": False, "content": ""}
+        
+        print(f"[AdLean] Config - ENABLED: {config.ADLEAN_ENABLED}, threshold: {config.ADLEAN_SHOW_AFTER_N_REQUESTS}")
+        print(f"[AdLean] Requests count: {requests_count}")
+        should_show_ad = config.ADLEAN_ENABLED and requests_count >= config.ADLEAN_SHOW_AFTER_N_REQUESTS
+        print(f"[AdLean] Should show ad = {should_show_ad}")
+        
+        if should_show_ad:
+            print(f"[AdLean] Requesting ad from AdLean API...")
+            try:
+                # Получаем текущий экземпляр сервиса
+                service = get_adlean_service()
+                if service is None:
+                    print(f"[AdLean] ERROR: Service not initialized!")
+                    ad_response = {"have_ads": False, "content": ""}
+                else:
+                    print(f"[AdLean] Service instance retrieved successfully")
+                    # ВАЖНО: Отправляем ОТВЕТ GPT (gpt_response), а не запрос пользователя!
+                    ad_response = await service.get_ad(
+                        user_id=str(user_id),
+                        message_text=gpt_response,  # ← ИСПРАВЛЕНО: ответ GPT вместо text
+                        user_metadata={
+                            "country": "RU",
+                            "gender": "unknown",
+                            "ip": "0.0.0.0"
+                        },
+                        role="assistant"  # ← ВАЖНО: роль "assistant" для ответа GPT
+                    )
+                    content_length = len(ad_response.get('content', '')) if isinstance(ad_response.get('content'), str) else 0
+                    print(f"[AdLean] API Response: have_ads={ad_response.get('have_ads')}, content_length={content_length}")
+            except Exception as e:
+                print(f"[AdLean] ERROR calling API: {e}")
+                import traceback
+                traceback.print_exc()
+                ad_response = {"have_ads": False, "content": ""}
+        else:
+            print(f"[AdLean] Ad NOT requested (conditions not met)")
+        
+        # Формируем финальный ответ: реклама + GPT ответ
+        if ad_response.get("have_ads") and ad_response.get("content"):
+            final_response = f"{ad_response['content']}\n\n{gpt_response}"
+            print(f"[AdLean] ✅ Ad SHOWN to user {user_id}")
+            # Сбрасываем счетчик после показа рекламы
+            tokenizeService.reset_requests_count(user_id)
+        else:
+            final_response = gpt_response
+            print(f"[AdLean] ❌ Ad NOT shown (no ad content)")
+        
+        print(f"[AdLean] Integration complete for user {user_id}")
+        # ========== Конец интеграции AdLean ==========
 
         gpt_tokens_after = await tokenizeService.get_tokens(user_id)
 
-        format_text = format_image_from_request(answer.get("response"))
+        format_text = format_image_from_request(final_response)
         image = format_text["image"]
 
         messages = await send_markdown_message(message, format_text["text"])

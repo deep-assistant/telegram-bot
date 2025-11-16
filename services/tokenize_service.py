@@ -126,5 +126,61 @@ class TokenizeService:
         else:
             return None
 
+    # ========== AdLean Integration: Request Counter ==========
+    
+    REQUESTS_COUNT_KEY = "requests_count"
+
+    def get_requests_count(self, user_id: str) -> int:
+        """
+        Получить количество запросов пользователя
+        
+        Args:
+            user_id: ID пользователя Telegram
+            
+        Returns:
+            int: Количество запросов (0 если пользователь новый)
+        """
+        try:
+            count = data_base[db_key(user_id, self.REQUESTS_COUNT_KEY)].decode('utf-8')
+            return int(count)
+        except KeyError:
+            # Пользователь новый, счетчик = 0
+            return 0
+        except Exception as e:
+            print(f"[TokenizeService] Error getting requests count: {e}")
+            return 0
+
+    def increment_requests_count(self, user_id: str) -> int:
+        """
+        Увеличить счетчик запросов на 1
+        
+        Args:
+            user_id: ID пользователя Telegram
+            
+        Returns:
+            int: Новое значение счетчика
+        """
+        current_count = self.get_requests_count(user_id)
+        new_count = current_count + 1
+        
+        with data_base.transaction():
+            data_base[db_key(user_id, self.REQUESTS_COUNT_KEY)] = str(new_count)
+        data_base.commit()
+        
+        print(f"[TokenizeService] User {user_id} requests count: {new_count}")
+        return new_count
+
+    def reset_requests_count(self, user_id: str):
+        """
+        Сбросить счетчик запросов (опционально)
+        
+        Args:
+            user_id: ID пользователя Telegram
+        """
+        with data_base.transaction():
+            data_base[db_key(user_id, self.REQUESTS_COUNT_KEY)] = "0"
+        data_base.commit()
+        print(f"[TokenizeService] User {user_id} requests count reset")
+
 
 tokenizeService = TokenizeService()

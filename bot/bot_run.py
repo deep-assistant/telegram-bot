@@ -19,6 +19,7 @@ from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
 from bot.diagnostics import diagnosticsRouter
+from services import init_adlean_service
 
 
 def apply_routers(dp: Dispatcher) -> None:
@@ -99,6 +100,12 @@ async def on_shutdown(dp: Dispatcher):
 
 
 async def bot_run() -> None:
+    init_adlean_service(
+        api_key=config.ADLEAN_API_KEY,
+        api_url=config.ADLEAN_API_URL,
+        enabled=config.ADLEAN_ENABLED
+    )
+    
     dp = Dispatcher(storage=MemoryStorage())
     dp.message.middleware(AlbumMiddleware())
     apply_routers(dp)
