@@ -1,7 +1,19 @@
 .idea
 __pycache__
-./config.py
-data_base.db
-config.py
-config.py.save
 node_modules
+
+# Databases
+data_base.db
+data_base_test.db
+
+# Environment files with secrets
+.env
+.env.test
+.env.prod
+.env.local
+
+# Keep example files
+!.env.example
+
+# Config backup
+config.py.save

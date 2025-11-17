@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  telegram_bot_test:
+    build: ./
+    container_name: telegram_bot_test
+    env_file:
+      - .env.test
+    volumes:
+      - ./data_base_test.db:/data_base.db
+    restart: unless-stopped
+    network_mode: "host"  # Для доступа к localhost:8089
+

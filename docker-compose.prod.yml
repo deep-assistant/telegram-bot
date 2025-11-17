@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  telegram_bot_prod:
+    build: ./
+    container_name: telegram_bot_prod
+    env_file:
+      - .env.prod
+    volumes:
+      - ./data_base.db:/data_base.db
+    restart: unless-stopped
+
