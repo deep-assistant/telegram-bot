@@ -19,6 +19,7 @@ from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
 from bot.diagnostics import diagnosticsRouter
+from bot.transfer import transferRouter
 from services import init_adlean_service
 
 
@@ -33,6 +34,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(agreementRouter)
     dp.include_router(imageEditingRouter)
     dp.include_router(taskRouter)
+    dp.include_router(transferRouter)
     dp.include_router(gptRouter)
 
 # todo пофиксить
