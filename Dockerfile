@@ -5,10 +5,16 @@ RUN apt-get install -y --no-install-recommends \
         build-essential \
         ffmpeg \
     && rm -rf /var/lib/apt/lists/*    
-COPY requirements.txt .
 
+WORKDIR /app
+
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "__main__.py"]
+# Сделать entrypoint исполняемым
+RUN chmod +x entrypoint.sh
+
+# Использовать entrypoint для автоматической инициализации БД
+ENTRYPOINT ["./entrypoint.sh"]

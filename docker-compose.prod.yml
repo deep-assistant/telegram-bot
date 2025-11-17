@@ -7,6 +7,9 @@ services:
     env_file:
       - .env.prod
     volumes:
-      - ./data_base.db:/data_base.db
+      - telegram_bot_prod_db:/app/data
     restart: unless-stopped
+
+volumes:
+  telegram_bot_prod_db:
 

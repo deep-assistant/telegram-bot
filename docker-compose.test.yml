@@ -7,7 +7,10 @@ services:
     env_file:
       - .env.test
     volumes:
-      - ./data_base_test.db:/data_base.db
+      - telegram_bot_test_db:/app/data
     restart: unless-stopped
     network_mode: "host"  # Для доступа к localhost:8089
+
+volumes:
+  telegram_bot_test_db:
 
