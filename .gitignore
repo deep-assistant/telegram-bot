@@ -15,5 +15,8 @@ data_base_test.db
 # Keep example files
 !.env.example
 
+# Config with API keys (use config.example.py instead)
+config.py
+
 # Config backup
 config.py.save
