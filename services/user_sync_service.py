@@ -132,6 +132,42 @@ class UserSyncService:
             print(f"Error fetching Telegram data for user {user_id}: {e}")
             return {"username": None, "full_name": None, "success": False}
     
+    async def lazy_sync_user(self, user_id: str, username: str = None, full_name: str = None) -> bool:
+        """
+        Ленивая синхронизация: обновляет только если данные переданы и отличаются от текущих
+        
+        Args:
+            user_id: ID пользователя
+            username: Username из Telegram (без @)
+            full_name: Полное имя пользователя
+            
+        Returns:
+            True если обновлено, False если не нужно
+        """
+        try:
+            # Проверить есть ли что обновлять
+            if not username and not full_name:
+                return False
+            
+            # Подготовить данные для синхронизации
+            user_data = {}
+            if username:
+                user_data["username"] = username
+            if full_name:
+                user_data["full_name"] = full_name
+            
+            # Отправить на API Gateway
+            response = await async_post(
+                f"{PROXY_URL}/tokens/sync",
+                params={"masterToken": ADMIN_TOKEN},
+                json={"userId": user_id, "userData": user_data}
+            )
+            
+            return response.get("success", False)
+        except Exception as e:
+            # Игнорируем ошибки ленивой синхронизации (не критично)
+            return False
+    
     async def sync_single_user(self, user: Dict) -> Dict:
         """
         Синхронизировать одного пользователя

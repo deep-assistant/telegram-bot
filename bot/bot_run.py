@@ -94,17 +94,21 @@ class AlbumMiddleware(BaseMiddleware):
 async def on_startup(dp: Dispatcher):
     print("Bot is starting...", flush=True)
     
-    # Синхронизация данных пользователей из Telegram
-    try:
-        print("🔄 Starting user data synchronization...", flush=True)
-        sys.stdout.flush()
-        user_sync_service = get_user_sync_service(dp.bot)
-        await user_sync_service.sync_all_users(max_concurrent=3)
-        print("✅ User synchronization completed", flush=True)
-        sys.stdout.flush()
-    except Exception as e:
-        print(f"⚠️  User synchronization failed: {e}", flush=True)
-        print("Bot will continue without synchronization", flush=True)
+    # Синхронизация данных пользователей из Telegram (если включено)
+    if config.SYNC_ON_STARTUP:
+        try:
+            print("🔄 Starting user data synchronization...", flush=True)
+            sys.stdout.flush()
+            user_sync_service = get_user_sync_service(dp.bot)
+            await user_sync_service.sync_all_users(max_concurrent=3)
+            print("✅ User synchronization completed", flush=True)
+            sys.stdout.flush()
+        except Exception as e:
+            print(f"⚠️  User synchronization failed: {e}", flush=True)
+            print("Bot will continue without synchronization", flush=True)
+            sys.stdout.flush()
+    else:
+        print("⏭️  User synchronization skipped (SYNC_ON_STARTUP=false)", flush=True)
         sys.stdout.flush()
     
     if config.WEBHOOK_ENABLED:
@@ -158,20 +162,24 @@ async def bot_run() -> None:
         # Delete webhook if exists and start polling.
         await bot.delete_webhook()
         
-        # Запустить синхронизацию пользователей перед polling
-        try:
-            print("🔄 Starting user data synchronization...", flush=True)
+        # Запустить синхронизацию пользователей перед polling (если включено)
+        if config.SYNC_ON_STARTUP:
+            try:
+                print("🔄 Starting user data synchronization...", flush=True)
+                sys.stdout.flush()
+                user_sync_service = get_user_sync_service(bot)
+                await user_sync_service.sync_all_users(max_concurrent=3)
+                print("✅ User synchronization completed", flush=True)
+                sys.stdout.flush()
+            except Exception as e:
+                print(f"⚠️  User synchronization failed: {e}", flush=True)
+                import traceback
+                traceback.print_exc()
+                sys.stdout.flush()
+                print("Bot will continue without synchronization", flush=True)
+        else:
+            print("⏭️  User synchronization skipped (SYNC_ON_STARTUP=false)", flush=True)
             sys.stdout.flush()
-            user_sync_service = get_user_sync_service(bot)
-            await user_sync_service.sync_all_users(max_concurrent=3)
-            print("✅ User synchronization completed", flush=True)
-            sys.stdout.flush()
-        except Exception as e:
-            print(f"⚠️  User synchronization failed: {e}", flush=True)
-            import traceback
-            traceback.print_exc()
-            sys.stdout.flush()
-            print("Bot will continue without synchronization", flush=True)
         
         await dp.start_polling(
             bot,

@@ -13,7 +13,9 @@ from services import (
     stateService,
     StateTypes
 )
+from services.user_sync_service import get_user_sync_service
 from bot.utils import get_user_name
+import config
 
 transferRouter = Router()
 
@@ -36,6 +38,62 @@ def create_transfer_confirmation_keyboard(transfer_id: str):
             ]
         ]
     )
+
+@transferRouter.message(TextCommand(["/admin_sync_all"]))
+async def admin_sync_all_command(message: types.Message):
+    """Принудительная синхронизация всех пользователей (требует пароль)"""
+    # Парсим команду и пароль
+    parts = message.text.strip().split(maxsplit=1)
+    
+    if len(parts) < 2:
+        await message.answer(
+            "❌ <b>Неверный формат команды</b>\n\n"
+            "Использование:\n"
+            "<code>/admin_sync_all &lt;пароль&gt;</code>",
+            parse_mode="HTML"
+        )
+        return
+    
+    password = parts[1].strip()
+    
+    # Проверка пароля
+    if password != config.PASS_SYNC_BD:
+        await message.answer(
+            "❌ <b>Неверный пароль</b>\n\n"
+            "Доступ запрещен",
+            parse_mode="HTML"
+        )
+        return
+    
+    # Пароль верный - запускаем синхронизацию
+    loading = await message.answer(
+        "🔄 <b>Запуск полной синхронизации...</b>\n\n"
+        "Это может занять несколько минут ⏳",
+        parse_mode="HTML"
+    )
+    
+    try:
+        user_sync_service = get_user_sync_service(message.bot)
+        
+        # Запускаем синхронизацию
+        stats = await user_sync_service.sync_all_users(max_concurrent=5)
+        
+        # Отправляем результаты
+        await loading.edit_text(
+            f"✅ <b>Синхронизация завершена</b>\n\n"
+            f"📊 <b>Результаты:</b>\n"
+            f"• Всего пользователей: {stats.get('total', 0)}\n"
+            f"• ✅ Синхронизировано: {stats.get('synced', 0)}\n"
+            f"• ⏭️  Пропущено: {stats.get('skipped', 0)}\n"
+            f"• ❌ Ошибок: {stats.get('errors', 0)}",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        await loading.edit_text(
+            f"❌ <b>Ошибка синхронизации</b>\n\n"
+            f"<code>{str(e)}</code>",
+            parse_mode="HTML"
+        )
 
 @transferRouter.message(TextCommand(["/cancel"]))
 async def cancel_command(message: types.Message):
@@ -153,6 +211,22 @@ async def start_transfer(message: types.Message):
     """Начать процесс перевода"""
     user_id = message.from_user.id
     
+    # Ленивая синхронизация пользователя
+    try:
+        user_sync_service = get_user_sync_service(message.bot)
+        username = message.from_user.username
+        first_name = message.from_user.first_name or ""
+        last_name = message.from_user.last_name or ""
+        full_name = f"{first_name} {last_name}".strip()
+        
+        await user_sync_service.lazy_sync_user(
+            user_id=str(user_id),
+            username=username,
+            full_name=full_name if full_name else None
+        )
+    except Exception:
+        pass  # Не критично если синхронизация не удалась
+    
     # Получить настройки
     settings = await transferService.get_settings()
     if not settings or not settings.get("enabled"):
@@ -206,8 +280,9 @@ async def start_transfer(message: types.Message):
         f"• Минимум: {settings['limits']['min_transfer_amount']:,}⚡️\n"
         f"• Максимум: {settings['limits']['max_transfer_amount']:,}⚡️\n"
         f"━━━━━━━━━━━━━━━━━━━\n\n"
-        f"Введите username получателя:\n"
-        f"<code>@username</code>\n\n"
+        f"Введите получателя в одном из форматов:\n"
+        f"• <code>@username</code> (например: @TimaxLacs)\n"
+        f"• <code>ID пользователя</code> (например: 1945700731)\n\n"
         f"Для отмены: /cancel",
         parse_mode="HTML"
     )
@@ -216,29 +291,66 @@ async def start_transfer(message: types.Message):
 async def input_receiver(message: types.Message):
     """Обработка ввода получателя"""
     user_id = message.from_user.id
-    receiver_username = message.text.strip()
+    receiver_input = message.text.strip()
     
     # Пропустить если это команда (она будет обработана другим handler)
-    if receiver_username.startswith('/'):
+    if receiver_input.startswith('/'):
         return
     
+    # Определить формат ввода: @username или user_id (число)
+    is_user_id = receiver_input.isdigit()
+    is_username = receiver_input.startswith('@')
+    
     # Валидация формата
-    if not re.match(r'^@[a-zA-Z0-9_]{5,32}$', receiver_username):
+    if is_user_id:
+        # Проверка на минимальную длину ID (обычно 7+ цифр)
+        if len(receiver_input) < 5:
+            await message.answer(
+                "❌ Неверный формат ID\n\n"
+                "ID пользователя должен содержать минимум 5 цифр\n\n"
+                "Попробуйте снова или /cancel для отмены",
+                parse_mode="HTML"
+            )
+            return
+        receiver_username = receiver_input  # Используем ID как есть
+    elif is_username:
+        # Валидация username
+        if not re.match(r'^@[a-zA-Z0-9_]{5,32}$', receiver_input):
+            await message.answer(
+                "❌ Неверный формат username\n\n"
+                "Правильный формат: <code>@username</code>\n"
+                "Username должен содержать от 5 до 32 символов\n\n"
+                "Попробуйте снова или /cancel для отмены",
+                parse_mode="HTML"
+            )
+            return
+        receiver_username = receiver_input
+    else:
         await message.answer(
-            "❌ Неверный формат username\n\n"
-            "Правильный формат: <code>@username</code>\n"
-            "Telegram username должен содержать от 5 до 32 символов\n\n"
+            "❌ Неверный формат\n\n"
+            "Используйте один из форматов:\n"
+            "• <code>@username</code> (например: @TimaxLacs)\n"
+            "• <code>ID пользователя</code> (например: 1945700731)\n\n"
             "Попробуйте снова или /cancel для отмены",
             parse_mode="HTML"
         )
         return
     
     # Проверка: не самому себе
+    sender_user_id = str(user_id)
     sender_username = message.from_user.username
-    if sender_username and receiver_username.lower() == f"@{sender_username.lower()}":
+    
+    if is_user_id and receiver_username == sender_user_id:
         await message.answer(
             "❌ Нельзя переводить самому себе\n\n"
-            "Введите другой username или /cancel"
+            "Введите другой ID или username, или /cancel"
+        )
+        return
+    
+    if is_username and sender_username and receiver_username.lower() == f"@{sender_username.lower()}":
+        await message.answer(
+            "❌ Нельзя переводить самому себе\n\n"
+            "Введите другой username или ID, или /cancel"
         )
         return
     
@@ -250,11 +362,12 @@ async def input_receiver(message: types.Message):
     await loading_msg.delete()
     
     if not check_result.get("exists"):
+        identifier = f"<code>{receiver_username}</code>"
         await message.answer(
-            f"❌ Пользователь {receiver_username} не найден в системе\n\n"
+            f"❌ Пользователь {identifier} не найден в системе\n\n"
             f"<b>Возможные причины:</b>\n"
             f"• Пользователь не запускал бота (/start)\n"
-            f"• Неверный username\n"
+            f"• Неверный username или ID\n"
             f"• Опечатка в написании\n\n"
             f"Попробуйте снова или /cancel для отмены",
             parse_mode="HTML"
