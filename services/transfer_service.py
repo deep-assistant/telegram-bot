@@ -56,7 +56,9 @@ class TransferService:
         receiver_id: str, 
         amount: int,
         sender_username: Optional[str] = None,
-        sender_full_name: Optional[str] = None
+        sender_full_name: Optional[str] = None,
+        receiver_username: Optional[str] = None,
+        receiver_full_name: Optional[str] = None
     ) -> Dict:
         """
         Выполнить перевод
@@ -67,6 +69,8 @@ class TransferService:
             amount: Сумма перевода
             sender_username: Username отправителя (без @)
             sender_full_name: Полное имя отправителя
+            receiver_username: Username получателя (без @)
+            receiver_full_name: Полное имя получателя
             
         Returns:
             {
@@ -89,6 +93,14 @@ class TransferService:
                 payload["senderData"]["username"] = sender_username
             if sender_full_name:
                 payload["senderData"]["full_name"] = sender_full_name
+        
+        # Добавляем данные получателя для синхронизации
+        if receiver_username or receiver_full_name:
+            payload["receiverData"] = {}
+            if receiver_username:
+                payload["receiverData"]["username"] = receiver_username
+            if receiver_full_name:
+                payload["receiverData"]["full_name"] = receiver_full_name
         
         response = await async_post(
             f"{PROXY_URL}/transfer/execute",

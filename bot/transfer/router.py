@@ -175,13 +175,13 @@ async def start_transfer(message: types.Message):
     
     if not has_access:
         await message.answer(
-            f"❌ *Недостаточно прав для переводов*\n\n"
+            f"❌ <b>Недостаточно прав для переводов</b>\n\n"
             f"Для доступа к переводам нужно:\n"
-            f"• Баланс от *{min_required:,}⚡️* (у вас: {balance:,}⚡️)\n"
+            f"• Баланс от <b>{min_required:,}⚡️</b> (у вас: {balance:,}⚡️)\n"
             f"ИЛИ\n"
             f"• Премиум статус 👑\n\n"
             f"/buy - Пополнить баланс",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         return
     
@@ -197,19 +197,19 @@ async def start_transfer(message: types.Message):
     stateService.set_current_state(user_id, StateTypes.TransferInputReceiver)
     
     await message.answer(
-        f"💸 *ПЕРЕВОД ЭНЕРГИИ*\n\n"
+        f"💸 <b>ПЕРЕВОД ЭНЕРГИИ</b>\n\n"
         f"━━━━━━━━━━━━━━━━━━━\n"
-        f"💰 Ваш баланс: *{balance:,}⚡️*\n"
-        f"💳 Комиссия: *{fee_percent}%*\n\n"
-        f"📊 *Лимиты:*\n"
+        f"💰 Ваш баланс: <b>{balance:,}⚡️</b>\n"
+        f"💳 Комиссия: <b>{fee_percent}%</b>\n\n"
+        f"📊 <b>Лимиты:</b>\n"
         f"• Сегодня: {today_count}/{max_daily} переводов\n"
         f"• Минимум: {settings['limits']['min_transfer_amount']:,}⚡️\n"
         f"• Максимум: {settings['limits']['max_transfer_amount']:,}⚡️\n"
         f"━━━━━━━━━━━━━━━━━━━\n\n"
         f"Введите username получателя:\n"
-        f"`@username`\n\n"
+        f"<code>@username</code>\n\n"
         f"Для отмены: /cancel",
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 @transferRouter.message(StateCommand(StateTypes.TransferInputReceiver))
@@ -226,10 +226,10 @@ async def input_receiver(message: types.Message):
     if not re.match(r'^@[a-zA-Z0-9_]{5,32}$', receiver_username):
         await message.answer(
             "❌ Неверный формат username\n\n"
-            "Правильный формат: `@username`\n"
+            "Правильный формат: <code>@username</code>\n"
             "Telegram username должен содержать от 5 до 32 символов\n\n"
             "Попробуйте снова или /cancel для отмены",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         return
     
@@ -252,14 +252,34 @@ async def input_receiver(message: types.Message):
     if not check_result.get("exists"):
         await message.answer(
             f"❌ Пользователь {receiver_username} не найден в системе\n\n"
-            f"*Возможные причины:*\n"
+            f"<b>Возможные причины:</b>\n"
             f"• Пользователь не запускал бота (/start)\n"
             f"• Неверный username\n"
             f"• Опечатка в написании\n\n"
             f"Попробуйте снова или /cancel для отмены",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         return
+    
+    # Получить актуальные данные получателя из Telegram
+    receiver_id = check_result.get("user_id")
+    receiver_username_clean = None
+    receiver_full_name = "Unknown"
+    
+    try:
+        receiver_chat = await message.bot.get_chat(receiver_id)
+        receiver_username_clean = receiver_chat.username
+        receiver_first_name = receiver_chat.first_name or ""
+        receiver_last_name = receiver_chat.last_name or ""
+        receiver_full_name = f"{receiver_first_name} {receiver_last_name}".strip()
+        
+        # Если не удалось получить имя, берем из БД
+        if not receiver_full_name:
+            receiver_full_name = check_result.get("full_name", "Unknown")
+    except Exception as e:
+        print(f"Failed to get receiver data from Telegram in check: {e}")
+        # Используем данные из БД как fallback
+        receiver_full_name = check_result.get("full_name", "Unknown")
     
     # Получить баланс
     tokens = await tokenizeService.get_tokens(user_id)
@@ -268,8 +288,9 @@ async def input_receiver(message: types.Message):
     # Сохранить данные
     transfer_data[user_id] = {
         "receiver_username": receiver_username,
-        "receiver_id": check_result.get("user_id"),
-        "receiver_full_name": check_result.get("full_name", "Unknown")
+        "receiver_id": receiver_id,
+        "receiver_full_name": receiver_full_name,
+        "receiver_username_clean": receiver_username_clean  # Для последующей синхронизации
     }
     
     # Следующий шаг
@@ -278,11 +299,11 @@ async def input_receiver(message: types.Message):
     await message.answer(
         f"✅ Пользователь найден!\n\n"
         f"👤 Username: {receiver_username}\n"
-        f"📝 Имя: *{check_result.get('full_name')}*\n\n"
-        f"💰 Ваш баланс: *{balance:,}⚡️*\n\n"
+        f"📝 Имя: <b>{check_result.get('full_name')}</b>\n\n"
+        f"💰 Ваш баланс: <b>{balance:,}⚡️</b>\n\n"
         f"💸 Введите сумму для перевода:\n\n"
         f"Для отмены: /cancel",
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 @transferRouter.message(StateCommand(StateTypes.TransferInputAmount))
@@ -311,9 +332,9 @@ async def input_amount(message: types.Message):
         await message.answer(
             "❌ Неверный формат суммы\n\n"
             "Введите целое число, например:\n"
-            "`1000` или `5000`\n\n"
+            "<code>1000</code> или <code>5000</code>\n\n"
             "Попробуйте снова или /cancel",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         return
     
@@ -326,17 +347,17 @@ async def input_amount(message: types.Message):
     # Валидация суммы
     if amount < min_amount:
         await message.answer(
-            f"❌ Минимальная сумма перевода: *{min_amount}⚡️*\n\n"
+            f"❌ Минимальная сумма перевода: <b>{min_amount}⚡️</b>\n\n"
             f"Попробуйте снова или /cancel",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         return
     
     if amount > max_amount:
         await message.answer(
-            f"❌ Максимальная сумма перевода: *{max_amount:,}⚡️*\n\n"
+            f"❌ Максимальная сумма перевода: <b>{max_amount:,}⚡️</b>\n\n"
             f"Попробуйте снова или /cancel",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         return
     
@@ -350,15 +371,15 @@ async def input_amount(message: types.Message):
     
     if balance < total:
         await message.answer(
-            f"❌ *Недостаточно средств*\n\n"
-            f"Ваш баланс: *{balance:,}⚡️*\n"
-            f"Сумма перевода: *{amount:,}⚡️*\n"
-            f"Комиссия ({fee_percent}%): *{fee:,}⚡️*\n"
-            f"Требуется: *{total:,}⚡️*\n"
-            f"Не хватает: *{total - balance:,}⚡️*\n\n"
+            f"❌ <b>Недостаточно средств</b>\n\n"
+            f"Ваш баланс: <b>{balance:,}⚡️</b>\n"
+            f"Сумма перевода: <b>{amount:,}⚡️</b>\n"
+            f"Комиссия ({fee_percent}%): <b>{fee:,}⚡️</b>\n"
+            f"Требуется: <b>{total:,}⚡️</b>\n"
+            f"Не хватает: <b>{total - balance:,}⚡️</b>\n\n"
             f"/buy - Пополнить баланс\n"
             f"/cancel - Отменить перевод",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         return
     
@@ -374,22 +395,22 @@ async def input_amount(message: types.Message):
     
     # Подтверждение
     await message.answer(
-        f"💸 *ПОДТВЕРЖДЕНИЕ ПЕРЕВОДА*\n\n"
+        f"💸 <b>ПОДТВЕРЖДЕНИЕ ПЕРЕВОДА</b>\n\n"
         f"━━━━━━━━━━━━━━━━━━━\n"
-        f"👤 *Отправитель:*\n"
+        f"👤 <b>Отправитель:</b>\n"
         f"   {message.from_user.first_name} {message.from_user.last_name or ''}\n\n"
-        f"👤 *Получатель:*\n"
+        f"👤 <b>Получатель:</b>\n"
         f"   {receiver_username}\n"
         f"   {receiver_full_name}\n\n"
-        f"💰 *Сумма:* {amount:,}⚡️\n"
-        f"💳 *Комиссия ({fee_percent}%):* {fee:,}⚡️\n"
+        f"💰 <b>Сумма:</b> {amount:,}⚡️\n"
+        f"💳 <b>Комиссия ({fee_percent}%):</b> {fee:,}⚡️\n"
         f"━━━━━━━━━━━━━━━━━━━\n"
-        f"📤 *Будет списано:* *{total:,}⚡️*\n"
-        f"📥 *Получатель получит:* *{amount:,}⚡️*\n\n"
-        f"💼 *Баланс после:* {balance - total:,}⚡️\n\n"
-        f"⚠️ *Отменить перевод после подтверждения будет невозможно!*",
+        f"📤 <b>Будет списано:</b> <b>{total:,}⚡️</b>\n"
+        f"📥 <b>Получатель получит:</b> <b>{amount:,}⚡️</b>\n\n"
+        f"💼 <b>Баланс после:</b> {balance - total:,}⚡️\n\n"
+        f"⚠️ <b>Отменить перевод после подтверждения будет невозможно!</b>",
         reply_markup=create_transfer_confirmation_keyboard(transfer_id),
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 @transferRouter.callback_query(StartWithQuery("transfer_confirm"))
@@ -406,7 +427,7 @@ async def confirm_transfer(callback_query: CallbackQuery):
     data = transfer_data[user_id]
     
     # Выполнить
-    await callback_query.message.edit_text("⏳ *Выполняю перевод...*", parse_mode="Markdown")
+    await callback_query.message.edit_text("⏳ <b>Выполняю перевод...</b>", parse_mode="HTML")
     
     # Получить данные отправителя из Telegram
     sender_username = callback_query.from_user.username
@@ -414,12 +435,29 @@ async def confirm_transfer(callback_query: CallbackQuery):
     sender_last_name = callback_query.from_user.last_name or ""
     sender_full_name = f"{sender_first_name} {sender_last_name}".strip()
     
+    # Получить актуальные данные получателя из Telegram (могли быть получены раньше)
+    receiver_username = data.get("receiver_username_clean")
+    receiver_full_name = data.get("receiver_full_name")
+    
+    # Если не были получены раньше, попробовать снова
+    if not receiver_username or not receiver_full_name:
+        try:
+            receiver_chat = await callback_query.bot.get_chat(data["receiver_id"])
+            receiver_username = receiver_chat.username
+            receiver_first_name = receiver_chat.first_name or ""
+            receiver_last_name = receiver_chat.last_name or ""
+            receiver_full_name = f"{receiver_first_name} {receiver_last_name}".strip()
+        except Exception as e:
+            print(f"Failed to get receiver data from Telegram: {e}")
+    
     result = await transferService.execute_transfer(
         get_user_name(user_id),
         data["receiver_id"],
         data["amount"],
         sender_username=sender_username,
-        sender_full_name=sender_full_name if sender_full_name else None
+        sender_full_name=sender_full_name if sender_full_name else None,
+        receiver_username=receiver_username,
+        receiver_full_name=receiver_full_name if receiver_full_name else None
     )
     
     if result.get("success"):
@@ -458,7 +496,6 @@ async def confirm_transfer(callback_query: CallbackQuery):
                     f"   {sender_name}\n\n"
                     f"💵 <b>Сумма:</b> <b>{data['amount']:,}⚡️</b>\n"
                     f"━━━━━━━━━━━━━━━━━━━\n\n"
-                    f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}\n\n"
                     f"/balance - Проверить баланс"
                 ),
                 parse_mode="HTML"
@@ -472,12 +509,12 @@ async def confirm_transfer(callback_query: CallbackQuery):
         error_msg = result.get("error", "Неизвестная ошибка")
         
         await callback_query.message.edit_text(
-            f"❌ *ОШИБКА ПЕРЕВОДА*\n\n"
+            f"❌ <b>ОШИБКА ПЕРЕВОДА</b>\n\n"
             f"{error_msg}\n\n"
             f"Ваш баланс не изменён.\n"
             f"Попробуйте позже или обратитесь в поддержку.\n\n"
             f"/transfer - Попробовать снова",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
         await callback_query.answer("❌ Ошибка", show_alert=True)
     
