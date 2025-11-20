@@ -80,6 +80,12 @@ def here_and_now_command():
 def api_command():
     return "/api"
 
+def transfer_command():
+    return "/transfer"
+
+def transfer_text():
+    return "💸 Перевести энергию"
+
 all_commands = [
     payment_command_start(),
     payment_command_text(),
@@ -108,4 +114,6 @@ all_commands = [
     suno_text(),
     here_and_now_command(),
     api_command(),
+    transfer_command(),
+    transfer_text(),
 ]

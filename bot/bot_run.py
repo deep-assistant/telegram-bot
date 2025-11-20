@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 from aiogram import Bot, Dispatcher, BaseMiddleware
 from aiogram.client.default import DefaultBotProperties
@@ -19,7 +20,9 @@ from bot.start import startRouter
 from bot.suno import sunoRouter
 from bot.tasks import taskRouter
 from bot.diagnostics import diagnosticsRouter
+from bot.transfer import transferRouter
 from services import init_adlean_service
+from services.user_sync_service import get_user_sync_service
 
 
 def apply_routers(dp: Dispatcher) -> None:
@@ -33,6 +36,7 @@ def apply_routers(dp: Dispatcher) -> None:
     dp.include_router(agreementRouter)
     dp.include_router(imageEditingRouter)
     dp.include_router(taskRouter)
+    dp.include_router(transferRouter)
     dp.include_router(gptRouter)
 
 # todo пофиксить
@@ -88,7 +92,25 @@ class AlbumMiddleware(BaseMiddleware):
 
 # Startup and shutdown hooks for webhook mode.
 async def on_startup(dp: Dispatcher):
-    print("Bot is starting...")
+    print("Bot is starting...", flush=True)
+    
+    # Синхронизация данных пользователей из Telegram (если включено)
+    if config.SYNC_ON_STARTUP:
+        try:
+            print("🔄 Starting user data synchronization...", flush=True)
+            sys.stdout.flush()
+            user_sync_service = get_user_sync_service(dp.bot)
+            await user_sync_service.sync_all_users(max_concurrent=3)
+            print("✅ User synchronization completed", flush=True)
+            sys.stdout.flush()
+        except Exception as e:
+            print(f"⚠️  User synchronization failed: {e}", flush=True)
+            print("Bot will continue without synchronization", flush=True)
+            sys.stdout.flush()
+    else:
+        print("⏭️  User synchronization skipped (SYNC_ON_STARTUP=false)", flush=True)
+        sys.stdout.flush()
+    
     if config.WEBHOOK_ENABLED:
         await dp.bot.set_webhook(config.WEBHOOK_URL)
 
@@ -139,6 +161,26 @@ async def bot_run() -> None:
     else:
         # Delete webhook if exists and start polling.
         await bot.delete_webhook()
+        
+        # Запустить синхронизацию пользователей перед polling (если включено)
+        if config.SYNC_ON_STARTUP:
+            try:
+                print("🔄 Starting user data synchronization...", flush=True)
+                sys.stdout.flush()
+                user_sync_service = get_user_sync_service(bot)
+                await user_sync_service.sync_all_users(max_concurrent=3)
+                print("✅ User synchronization completed", flush=True)
+                sys.stdout.flush()
+            except Exception as e:
+                print(f"⚠️  User synchronization failed: {e}", flush=True)
+                import traceback
+                traceback.print_exc()
+                sys.stdout.flush()
+                print("Bot will continue without synchronization", flush=True)
+        else:
+            print("⏭️  User synchronization skipped (SYNC_ON_STARTUP=false)", flush=True)
+            sys.stdout.flush()
+        
         await dp.start_polling(
             bot,
             skip_updates=False,

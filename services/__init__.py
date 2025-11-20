@@ -9,3 +9,4 @@ from services.suno_service import sunoService
 from services.system_message_service import systemMessage
 from services.tokenize_service import tokenizeService
 from services.adlean_service import adlean_service, init_adlean_service, get_adlean_service
+from services.transfer_service import transferService

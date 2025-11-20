@@ -19,6 +19,10 @@ class StateTypes(Enum):
 
 
     Transcribe = "transcribation"
+    
+    # Transfer states
+    TransferInputReceiver = "transfer_input_receiver"
+    TransferInputAmount = "transfer_input_amount"
 
  
 class StateService:

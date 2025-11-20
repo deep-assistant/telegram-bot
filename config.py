@@ -74,6 +74,10 @@ HTTPX_DISABLE_SSL_VERIFY = get_env_bool("HTTPX_DISABLE_SSL_VERIFY", False)
 # Database Path
 DB_PATH = os.getenv("DB_PATH", "/app/data/data_base.db")
 
+# User Synchronization
+SYNC_ON_STARTUP = get_env_bool("SYNC_ON_STARTUP", True)
+PASS_SYNC_BD = os.getenv("PASS_SYNC_BD", "10874356918")
+
 
 # ==========================================
 # CONFIGURATION VALIDATION
